@@ -2,7 +2,7 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { Role } from "../src/models/Role.js";
-import { resolvePermissions, invalidatePermissionsCache } from "../src/middleware/rbac.js";
+import { resolvePermissions, invalidatePermissionsCache, requirePermission } from "../src/middleware/rbac.js";
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27017/edms?directConnection=true";
@@ -61,4 +61,24 @@ test("Ket qua duyet cay duoc cache tren Redis", async () => {
   assert.ok(cached, "phai co cache sau khi resolve");
   const parsed = JSON.parse(cached);
   assert.ok(parsed.includes("order:track"));
+});
+
+test("ADMIN voi quyen wildcard '*' duoc phep lam moi hanh dong", async () => {
+  let calledWith;
+  const req = { user: { role: "ADMIN" } };
+  const next = (err) => (calledWith = err);
+
+  await requirePermission("bat-ky-quyen-nao-chua-tung-khai-bao")(req, {}, next);
+
+  assert.equal(calledWith, undefined, "next() phai duoc goi khong co loi");
+});
+
+test("CUSTOMER khong co quyen rieng cua ADMIN bi FORBIDDEN", async () => {
+  let calledWith;
+  const req = { user: { role: "CUSTOMER" } };
+  const next = (err) => (calledWith = err);
+
+  await requirePermission("bat-ky-quyen-nao-chua-tung-khai-bao")(req, {}, next);
+
+  assert.equal(calledWith?.code, "FORBIDDEN");
 });
