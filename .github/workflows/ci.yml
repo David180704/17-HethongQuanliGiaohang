@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "sprint-*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code/apps/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: code/apps/api/package-lock.json
+
+      - name: Dung MongoDB (replica set 1 node) va Redis
+        working-directory: .
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          docker run -d --name redis -p 6379:6379 redis:7-alpine
+
+      - name: Doi Mongo san sang roi khoi tao replica set
+        working-directory: .
+        run: |
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.adminCommand('ping')" && break
+            sleep 2
+          done
+          docker exec mongo mongosh --quiet --eval "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}) }"
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "rs.status().ok" | grep -q 1 && break
+            sleep 2
+          done
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run seed
+        env:
+          MONGO_URI: mongodb://localhost:27017/edms?directConnection=true
+
+      - run: npm test
+        env:
+          MONGO_URI: mongodb://localhost:27017/edms?directConnection=true
+          REDIS_URL: redis://localhost:6379
+          JWT_ACCESS_SECRET: ci-access-secret
+          JWT_REFRESH_SECRET: ci-refresh-secret
+
+      - name: Build Docker image
+        run: docker build -t edms-api:ci .
