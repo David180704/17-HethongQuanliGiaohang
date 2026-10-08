@@ -28,3 +28,9 @@ export async function login({ emailOrPhone, password }) {
     },
   };
 }
+
+export async function getProfile(userId) {
+  const user = await User.findById(userId).select("-passwordHash");
+  if (!user) throw ErrorCodes.NOT_FOUND("Khong tim thay nguoi dung");
+  return user;
+}

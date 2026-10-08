@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { asyncHandler, ok } from "../../core/response.js";
-import { guardAuthenticated } from "../../middleware/auth.js";
+import { guardAuthenticated, requireAuth } from "../../middleware/auth.js";
 import { ErrorCodes } from "../../core/errors.js";
 import * as authService from "./auth.service.js";
 
@@ -42,5 +42,28 @@ authRouter.post(
     }
     const result = await authService.login({ emailOrPhone, password });
     return ok(res, result);
+  }),
+);
+
+/**
+ * @openapi
+ * /auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Thong tin tai khoan dang dang nhap (minh hoa requireAuth)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Thong tin ho so cua chinh minh
+ *       401:
+ *         description: Chua dang nhap hoac token khong hop le
+ */
+authRouter.get(
+  "/me",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const user = await authService.getProfile(req.user.id);
+    return ok(res, user);
   }),
 );
