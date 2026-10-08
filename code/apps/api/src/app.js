@@ -3,6 +3,10 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger.js";
 import { errorHandler, ErrorCodes } from "./core/errors.js";
 import { authRouter } from "./modules/auth/auth.router.js";
+import { usersRouter } from "./modules/users/users.router.js";
+import { routesRouter } from "./modules/routes/routes.router.js";
+import { serviceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
+import { serviceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
 
 export function createApp() {
   const app = express();
@@ -13,6 +17,10 @@ export function createApp() {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   app.use("/auth", authRouter);
+  app.use("/users", usersRouter);
+  app.use("/routes", routesRouter);
+  app.use("/serviceAreas", serviceAreasRouter);
+  app.use("/serviceTypes", serviceTypesRouter);
 
   app.use((req, res, next) => {
     next(ErrorCodes.NOT_FOUND("Khong tim thay duong dan"));
