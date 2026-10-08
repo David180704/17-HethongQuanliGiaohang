@@ -99,3 +99,22 @@ test("duong dan khong ton tai tra ve 404 NOT_FOUND", async () => {
   assert.equal(res.status, 404);
   assert.equal(res.body.error.code, "NOT_FOUND");
 });
+
+test("GET /auth/me tra ve ho so khi co token hop le", async () => {
+  const login = await request(app)
+    .post("/auth/login")
+    .send({ emailOrPhone: activeUser.email, password: PASSWORD });
+  const token = login.body.data.accessToken;
+
+  const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${token}`);
+
+  assert.equal(res.status, 200);
+  assert.equal(res.body.data.email, activeUser.email);
+  assert.equal(res.body.data.passwordHash, undefined);
+});
+
+test("GET /auth/me khong co token tra ve 401", async () => {
+  const res = await request(app).get("/auth/me");
+  assert.equal(res.status, 401);
+  assert.equal(res.body.error.code, "UNAUTHORIZED");
+});
