@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { User } from "../src/models/User.js";
+import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27017/edms?directConnection=true";
 const PASSWORD = "Test@12345";
@@ -40,6 +41,7 @@ before(async () => {
 
 after(async () => {
   await User.deleteMany({ _id: { $in: [activeUser._id, pendingUser._id] } });
+  await getRedis().quit();
   await mongoose.disconnect();
 });
 

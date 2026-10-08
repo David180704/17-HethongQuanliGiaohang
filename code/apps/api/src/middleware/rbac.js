@@ -58,7 +58,7 @@ export function requirePermission(permission) {
     if (!req.user) return next(ErrorCodes.UNAUTHORIZED());
 
     const permissions = await resolvePermissions(req.user.role);
-    if (!permissions.includes(permission)) {
+    if (!permissions.includes("*") && !permissions.includes(permission)) {
       return next(ErrorCodes.FORBIDDEN());
     }
     return next();
