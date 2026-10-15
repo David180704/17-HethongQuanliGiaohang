@@ -1,0 +1,1329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ns0:Project xmlns:ns0="http://schemas.microsoft.com/project" xmlns="http://schemas.microsoft.com/project">
+  <ns0:Name>EDMS-TaskBoard.xml</ns0:Name>
+  <ns0:Title>EDMS - Bang quan ly cong viec 3 cap Sprint-US-Task</ns0:Title>
+  <ns0:Author>DEV 1</ns0:Author>
+  <ns0:Company>Nhom 17</ns0:Company>
+  <ns0:CreationDate>2026-10-15T00:00:00</ns0:CreationDate>
+  <ns0:CurrencySymbol>d</ns0:CurrencySymbol>
+  <ns0:CalendarUID>1</ns0:CalendarUID>
+  <ns0:DefaultStartTime>08:00:00</ns0:DefaultStartTime>
+  <ns0:DefaultFinishTime>17:00:00</ns0:DefaultFinishTime>
+  <ns0:MinutesPerDay>480</ns0:MinutesPerDay>
+  <ns0:MinutesPerWeek>2400</ns0:MinutesPerWeek>
+  <ns0:DaysPerMonth>20</ns0:DaysPerMonth>
+  <ns0:ScheduleFromStart>1</ns0:ScheduleFromStart>
+  <ns0:StartDate>2026-09-03T08:00:00</ns0:StartDate>
+  <ns0:Calendars>
+    <ns0:Calendar>
+      <ns0:UID>1</ns0:UID>
+      <ns0:Name>Standard</ns0:Name>
+      <ns0:IsBaseCalendar>1</ns0:IsBaseCalendar>
+      <ns0:WeekDays>
+        <ns0:WeekDay>
+          <ns0:DayType>1</ns0:DayType>
+          <ns0:DayWorking>0</ns0:DayWorking>
+        </ns0:WeekDay>
+        <ns0:WeekDay>
+          <ns0:DayType>2</ns0:DayType>
+          <ns0:DayWorking>1</ns0:DayWorking>
+          <ns0:WorkingTimes>
+            <ns0:WorkingTime>
+              <ns0:FromTime>08:00:00</ns0:FromTime>
+              <ns0:ToTime>17:00:00</ns0:ToTime>
+            </ns0:WorkingTime>
+          </ns0:WorkingTimes>
+        </ns0:WeekDay>
+        <ns0:WeekDay>
+          <ns0:DayType>3</ns0:DayType>
+          <ns0:DayWorking>1</ns0:DayWorking>
+          <ns0:WorkingTimes>
+            <ns0:WorkingTime>
+              <ns0:FromTime>08:00:00</ns0:FromTime>
+              <ns0:ToTime>17:00:00</ns0:ToTime>
+            </ns0:WorkingTime>
+          </ns0:WorkingTimes>
+        </ns0:WeekDay>
+        <ns0:WeekDay>
+          <ns0:DayType>4</ns0:DayType>
+          <ns0:DayWorking>1</ns0:DayWorking>
+          <ns0:WorkingTimes>
+            <ns0:WorkingTime>
+              <ns0:FromTime>08:00:00</ns0:FromTime>
+              <ns0:ToTime>17:00:00</ns0:ToTime>
+            </ns0:WorkingTime>
+          </ns0:WorkingTimes>
+        </ns0:WeekDay>
+        <ns0:WeekDay>
+          <ns0:DayType>5</ns0:DayType>
+          <ns0:DayWorking>1</ns0:DayWorking>
+          <ns0:WorkingTimes>
+            <ns0:WorkingTime>
+              <ns0:FromTime>08:00:00</ns0:FromTime>
+              <ns0:ToTime>17:00:00</ns0:ToTime>
+            </ns0:WorkingTime>
+          </ns0:WorkingTimes>
+        </ns0:WeekDay>
+        <ns0:WeekDay>
+          <ns0:DayType>6</ns0:DayType>
+          <ns0:DayWorking>1</ns0:DayWorking>
+          <ns0:WorkingTimes>
+            <ns0:WorkingTime>
+              <ns0:FromTime>08:00:00</ns0:FromTime>
+              <ns0:ToTime>17:00:00</ns0:ToTime>
+            </ns0:WorkingTime>
+          </ns0:WorkingTimes>
+        </ns0:WeekDay>
+        <ns0:WeekDay>
+          <ns0:DayType>7</ns0:DayType>
+          <ns0:DayWorking>0</ns0:DayWorking>
+        </ns0:WeekDay>
+      </ns0:WeekDays>
+    </ns0:Calendar>
+  </ns0:Calendars>
+  <ns0:Tasks>
+    <ns0:Task>
+      <ns0:UID>11</ns0:UID>
+      <ns0:ID>1</ns0:ID>
+      <ns0:Name>[16d KH] Sprint 1 (03/09/2026 - 11/09/2026) - Nen mong ky thuat</ns0:Name>
+      <ns0:OutlineLevel>1</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-03T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-11T17:00:00</ns0:Finish>
+      <ns0:Duration>PT72H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>12</ns0:UID>
+      <ns0:ID>2</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-01 - Khoi tao repository va dung moi truong Docker cho API, MongoDB, Redis</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-03T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-04T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 3
+Bat dau thuc te: 2026-09-03
+Ket thuc thuc te: 2026-09-04</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>13</ns0:UID>
+      <ns0:ID>3</ns0:ID>
+      <ns0:Name>US-01/T1 - Khoi tao repository, cau hinh chuan ma nguon va quy uoc commit</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-03T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-03T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Git, GitHub, ESLint, Prettier, Husky, Conventional Commits</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>14</ns0:UID>
+      <ns0:ID>4</ns0:ID>
+      <ns0:Name>US-01/T2 - Dung Docker Compose cho API, MongoDB replica set va Redis</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-04T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-04T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Docker, Docker Compose, MongoDB 7, Redis 7</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>13</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>15</ns0:UID>
+      <ns0:ID>5</ns0:ID>
+      <ns0:Name>[5d uu tien Cao] US-02 - Thiet ke mo hinh du lieu va so do lop he thong: 12 collection MongoDB, Mongoose model, chi muc va du lieu mau</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-07T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-08T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 6
+Bat dau thuc te: 2026-09-07
+Ket thuc thuc te: 2026-09-09</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>12</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>16</ns0:UID>
+      <ns0:ID>6</ns0:ID>
+      <ns0:Name>US-02/T3 - Ve so do thuc the, quan he va so do lop cho 12 collection</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-07T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-07T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: draw.io, MongoDB Compass</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>14</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>17</ns0:UID>
+      <ns0:ID>7</ns0:ID>
+      <ns0:Name>US-02/T4 - Hien thuc Mongoose model, chi muc va du lieu mau</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-08T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-08T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose 8, mongodb-memory-server, @faker-js/faker</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>16</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>18</ns0:UID>
+      <ns0:ID>8</ns0:ID>
+      <ns0:Name>[5d uu tien Cao] US-03 - Xay dung khung xac thuc JWT voi cap Access Token va Refresh Token, middleware phan quyen theo vai tro</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-09T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-10T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 5
+Bat dau thuc te: 2026-09-10
+Ket thuc thuc te: 2026-09-11
+JWT + Redis - Access Token 15 phut, Refresh Token 7 ngay</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>15</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>19</ns0:UID>
+      <ns0:ID>9</ns0:ID>
+      <ns0:Name>US-03/T5 - Hien thuc dang ky, dang nhap va sinh cap Access/Refresh Token</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-09T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-09T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: jsonwebtoken, bcrypt, ioredis</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>17</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>20</ns0:UID>
+      <ns0:ID>10</ns0:ID>
+      <ns0:Name>US-03/T6 - Middleware xac thuc va phan quyen theo vai tro</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-10T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-10T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Express, jsonwebtoken, ioredis</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>19</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>21</ns0:UID>
+      <ns0:ID>11</ns0:ID>
+      <ns0:Name>[3d uu tien Trung binh] US-04 - Chuan hoa dinh dang response, bang ma loi va sinh tai lieu Swagger</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-11T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-11T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 3
+Bat dau thuc te: 2026-09-11
+Ket thuc thuc te: 2026-09-11
+swagger-jsdoc - Middleware boc response va xu ly loi tap trung</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>18</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>22</ns0:UID>
+      <ns0:ID>12</ns0:ID>
+      <ns0:Name>US-04/T7 - Chuan hoa response, bang ma loi va sinh tai lieu Swagger</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-11T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-11T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: swagger-jsdoc, swagger-ui-express, http-status-codes</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>20</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>23</ns0:UID>
+      <ns0:ID>13</ns0:ID>
+      <ns0:Name>US-04/T8 - Viet Test Case, kiem thu tich hop va day len Git</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-11T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-11T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Ke hoach: Jest/Supertest/Postman/GitHub Actions; thuc te: node:test
+Thuoc Tat ca US, dat o day vi la Task cuoi Sprint</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>22</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>24</ns0:UID>
+      <ns0:ID>14</ns0:ID>
+      <ns0:Name>[19d KH] Sprint 2 (14/09/2026 - 25/09/2026) - Tai khoan, phan quyen va danh muc nen</ns0:Name>
+      <ns0:OutlineLevel>1</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-14T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-24T17:00:00</ns0:Finish>
+      <ns0:Duration>PT88H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>US-13 duoc du kien chon o day (Sprint Planning 2, Task T9) nhung thuc te hoan thanh trong cua so ngay cua Sprint 3 - xem US-13 o Sprint 3, khong lap lai o day.</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>25</ns0:UID>
+      <ns0:ID>15</ns0:ID>
+      <ns0:Name>[2d uu tien Cao] US-05 - Thiet lap CI pipeline tu dong kiem thu va build</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-14T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-14T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 2
+Bat dau thuc te: 2026-09-14
+Ket thuc thuc te: 2026-09-14</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>26</ns0:UID>
+      <ns0:ID>16</ns0:ID>
+      <ns0:Name>US-05/T1 - Viet workflow CI: lint, chay test, build Docker image, bat branch protection</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-14T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-14T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: GitHub Actions, Docker Buildx</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>27</ns0:UID>
+      <ns0:ID>17</ns0:ID>
+      <ns0:Name>[2d uu tien Cao] US-06 - Dang nhap he thong, khoa tai khoan 15 phut sau 5 lan sai</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-15T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-15T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 2
+Bat dau thuc te: 2026-09-15
+Ket thuc thuc te: 2026-09-15
+Khoa 15 phut sau 5 lan sai</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>18</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>28</ns0:UID>
+      <ns0:ID>18</ns0:ID>
+      <ns0:Name>US-06/T2 - Hien thuc API dang nhap, sinh cap token, dem so lan sai tren Redis</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-15T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-15T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: jsonwebtoken, bcrypt, ioredis</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>26</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>29</ns0:UID>
+      <ns0:ID>19</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-07 - Dang ky tai khoan khach hang, phan biet ca nhan va doanh nghiep</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-16T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-17T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 3
+Bat dau thuc te: 2026-09-16
+Ket thuc thuc te: 2026-09-17
+Tai khoan doanh nghiep o trang thai PENDING cho duyet</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>27</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>30</ns0:UID>
+      <ns0:ID>20</ns0:ID>
+      <ns0:Name>US-07/T3 - Hien thuc API dang ky, trang thai PENDING cho tai khoan doanh nghiep, gui email xac nhan</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-17T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-17T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, bcrypt, nodemailer</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>28</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>31</ns0:UID>
+      <ns0:ID>21</ns0:ID>
+      <ns0:Name>[1d uu tien Trung binh] US-08 - Dang xuat khoi he thong, thu hoi Refresh Token qua Redis</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-17T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-17T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 1
+Bat dau thuc te: 2026-09-18
+Ket thuc thuc te: 2026-09-18
+Redis blacklist - TTL bang han con lai cua Refresh Token</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>27</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>32</ns0:UID>
+      <ns0:ID>22</ns0:ID>
+      <ns0:Name>US-08/T4 - Hien thuc dang xuat, blacklist Refresh Token voi TTL bang han con lai</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-18T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-18T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: ioredis</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>28</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>33</ns0:UID>
+      <ns0:ID>23</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-09 - Phan quyen truy cap theo vai tro, 5 vai tro co ke thua</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-18T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-21T17:00:00</ns0:Finish>
+      <ns0:Duration>PT32H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 5
+Bat dau thuc te: 2026-09-18
+Ket thuc thuc te: 2026-09-22
+CUSTOMER ke thua GUEST</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>18</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>34</ns0:UID>
+      <ns0:ID>24</ns0:ID>
+      <ns0:Name>US-09/T5 - Lap ma tran 5 vai tro, cay ke thua quyen va middleware kiem tra</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-22T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-22T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Express middleware, ioredis cache</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>28</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>35</ns0:UID>
+      <ns0:ID>25</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-10 - Quan ly tai khoan nguoi dung, doi vai tro, khoa va mo</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-21T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-22T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 3
+Bat dau thuc te: 2026-09-22
+Ket thuc thuc te: 2026-09-23
+CRUD, doi vai tro, khoa va mo tai khoan</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>33</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>36</ns0:UID>
+      <ns0:ID>26</ns0:ID>
+      <ns0:Name>US-10/T6 - CRUD tai khoan nguoi dung, doi vai tro, khoa va mo tai khoan</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-23T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-23T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, React, TailwindCSS</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>34</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>37</ns0:UID>
+      <ns0:ID>27</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-11 - Quan ly danh muc tuyen va khu vuc phuc vu</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-22T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-23T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 3
+Bat dau thuc te: 2026-09-23
+Ket thuc thuc te: 2026-09-24
+Mot quan hoac huyen chi thuoc mot tuyen</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>15</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>38</ns0:UID>
+      <ns0:ID>28</ns0:ID>
+      <ns0:Name>US-11/T7 - CRUD tuyen va khu vuc, chan mot quan hoac huyen thuoc hai tuyen</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-24T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-24T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, React</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>34</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>39</ns0:UID>
+      <ns0:ID>29</ns0:ID>
+      <ns0:Name>[2d uu tien Trung binh] US-12 - Quan ly danh muc loai dich vu van chuyen</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-24T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-24T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 2
+Bat dau thuc te: 2026-09-24
+Ket thuc thuc te: 2026-09-25
+Hai loai: gui thuong va gui nhanh</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>15</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>40</ns0:UID>
+      <ns0:ID>30</ns0:ID>
+      <ns0:Name>US-12/T8 - CRUD loai dich vu van chuyen: gui thuong va gui nhanh</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-25T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-25T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, React</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>38</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>41</ns0:UID>
+      <ns0:ID>31</ns0:ID>
+      <ns0:Name>US-12/T10 - Viet Test Case, kiem thu tich hop toan Sprint va day len staging</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-25T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-25T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Ke hoach: Jest/Supertest/Postman; thuc te: node:test
+Thuoc Tat ca US</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>40</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>42</ns0:UID>
+      <ns0:ID>32</ns0:ID>
+      <ns0:Name>[26d KH] Sprint 3 (28/09/2026 - 09/10/2026) - Bang gia, dinh gia va tao don hang</ns0:Name>
+      <ns0:OutlineLevel>1</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-28T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-09T17:00:00</ns0:Finish>
+      <ns0:Duration>PT96H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>43</ns0:UID>
+      <ns0:ID>33</ns0:ID>
+      <ns0:Name>[5d uu tien Cao] US-13 - Quan ly bang gia van chuyen theo khu vuc va khoi luong (chuyen tu Sprint 2)</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-28T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-29T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 5
+Bat dau thuc te: 2026-09-28
+Ket thuc thuc te: 2026-09-29</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>44</ns0:UID>
+      <ns0:ID>34</ns0:ID>
+      <ns0:Name>US-13/T1 - Thiet ke bac khoi luong, CRUD bang gia 4 vung, chuc nang thu tinh phi</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-29T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-29T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, React, Jest</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>45</ns0:UID>
+      <ns0:ID>35</ns0:ID>
+      <ns0:Name>[2d uu tien Trung binh] US-14 - Quan ly danh muc diem tap ket va buu cuc</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-09-30T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-30T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): Done
+Diem thuc te: 2
+Bat dau thuc te: 2026-09-30
+Ket thuc thuc te: 2026-09-30
+Moi diem gan voi mot khu vuc phuc vu</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>37</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>46</ns0:UID>
+      <ns0:ID>36</ns0:ID>
+      <ns0:Name>US-14/T2 - CRUD diem tap ket va buu cuc, gan moi diem voi mot khu vuc phuc vu</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-09-30T08:00:00</ns0:Start>
+      <ns0:Finish>2026-09-30T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, React</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>44</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>47</ns0:UID>
+      <ns0:ID>37</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-15 - Quan ly danh sach dia diem lay hang, toi da 10 dia diem moi khach hang</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-01T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-01T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): In Progress
+Bat dau thuc te: 2026-10-01
+Tu xac dinh khu vuc tu quan hoac huyen</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>29</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>48</ns0:UID>
+      <ns0:ID>38</ns0:ID>
+      <ns0:Name>US-15/T3 - CRUD dia diem lay hang, tu xac dinh khu vuc tu quan hoac huyen, chan ngoai vung phuc vu</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-01T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-01T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, React</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>46</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>49</ns0:UID>
+      <ns0:ID>39</ns0:ID>
+      <ns0:Name>[3d uu tien Cao] US-16 - Uoc tinh phi van chuyen truoc khi gui hang, giu du lieu qua buoc dang ky</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-02T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-02T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): To Do</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>43</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>50</ns0:UID>
+      <ns0:ID>40</ns0:ID>
+      <ns0:Name>US-16/T4 - API uoc tinh phi cong khai, collection orderDrafts voi TTL index 24 gio, co che draftToken</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-02T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-02T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Express, Mongoose TTL index</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>44</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>51</ns0:UID>
+      <ns0:ID>41</ns0:ID>
+      <ns0:Name>[5d uu tien Cao] US-17 - Xem phi van chuyen du kien truoc khi xac nhan don</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-05T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-06T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): To Do
+Khoa phi vao don khi xac nhan, khong doi theo bang gia sau do</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>43</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>52</ns0:UID>
+      <ns0:ID>42</ns0:ID>
+      <ns0:Name>US-17/T5 - Service tinh phi: khoi luong quy doi, tra 4 vung, cong phu phi hang dac biet</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-06T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-06T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Node.js service layer, Jest</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>44</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>53</ns0:UID>
+      <ns0:ID>43</ns0:ID>
+      <ns0:Name>[5d uu tien Cao] US-18 - Tao don hang giao moi, sinh ma van don trong transaction</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-07T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-08T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): To Do
+Transaction - Sinh ma van don + 10 chu so</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>47</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>51</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>54</ns0:UID>
+      <ns0:ID>44</ns0:ID>
+      <ns0:Name>US-18/T6 - Schema orders voi statusHistory nhung, sinh ma van don, boc transaction</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-07T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-07T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Mongoose, MongoDB transaction</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>48</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>52</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>55</ns0:UID>
+      <ns0:ID>45</ns0:ID>
+      <ns0:Name>US-18/T7 - Man hinh tao don 4 buoc tren Web va man hinh tuong ung tren Mobile</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-08T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-08T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: React, React Native, TailwindCSS</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>54</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>56</ns0:UID>
+      <ns0:ID>46</ns0:ID>
+      <ns0:Name>[3d uu tien Trung binh] US-19 - Khai bao tien thu ho COD va hinh thuc thanh toan phi</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-09T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-09T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Trang thai (ke hoach): To Do
+Ba hinh thuc tra phi - Chan khau tru khi thu ho nho hon phi</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>53</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>57</ns0:UID>
+      <ns0:ID>47</ns0:ID>
+      <ns0:Name>US-19/T8 - Logic thu ho: 3 hinh thuc tra phi, chan khau tru khi thu ho nho hon phi</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-09T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-09T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Node.js service layer</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>55</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>58</ns0:UID>
+      <ns0:ID>48</ns0:ID>
+      <ns0:Name>US-19/T9 - Viet Test Case va kiem thu end-to-end luong uoc tinh phi den tao don</ns0:Name>
+      <ns0:OutlineLevel>3</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-09T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-09T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Cong nghe/Tool: Ke hoach: Jest/Supertest/Postman; thuc te: node:test
+Thuoc Tat ca US</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>57</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>59</ns0:UID>
+      <ns0:ID>49</ns0:ID>
+      <ns0:Name>[26d KH] Sprint 4 (12/10/2026 - 23/10/2026) - Tra cuu hanh trinh va phan cong tu dong [CHUA CO SPRINT PLANNING CHI TIET]</ns0:Name>
+      <ns0:OutlineLevel>1</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-12T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-23T17:00:00</ns0:Finish>
+      <ns0:Duration>PT96H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Chua co Sprint Planning chi tiet (chua chia Task) - chi co du lieu Sprint Backlog.</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>60</ns0:UID>
+      <ns0:ID>50</ns0:ID>
+      <ns0:Name>[2d] #20 - Xem chi tiet don hang va toan bo hanh trinh</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-12T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-12T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Doc mang statusHistory nhung trong document don</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>53</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>61</ns0:UID>
+      <ns0:ID>51</ns0:ID>
+      <ns0:Name>[5d] #21 - Hang doi su kien va consumer ghi nhat ky/hanh trinh don</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-13T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-14T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>BullMQ tren Redis - Co retry va dead-letter queue</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>53</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>62</ns0:UID>
+      <ns0:ID>52</ns0:ID>
+      <ns0:Name>[3d] #22 - Tra cuu hanh trinh don hang bang ma van don</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-15T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-15T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>61</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>63</ns0:UID>
+      <ns0:ID>53</ns0:ID>
+      <ns0:Name>[3d] #23 - Quan ly ca lam viec va phan cong nhan vien vao tuyen</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-16T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-16T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Gan nguoi giao hang vao tuyen theo tung ca</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>37</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>64</ns0:UID>
+      <ns0:ID>54</ns0:ID>
+      <ns0:Name>[3d] #24 - Cau hinh nang luc xu ly toi da cua nguoi giao hang</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-19T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-19T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Ba cap uu tien: nhan vien -&gt; tuyen -&gt; mac dinh he thong</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>63</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>65</ns0:UID>
+      <ns0:ID>55</ns0:ID>
+      <ns0:Name>[5d] #25 - Phan cong don lay hang cho nguoi giao hang</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-20T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-21T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Transaction chong vuot nang luc va hang cho</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>63</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>64</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>66</ns0:UID>
+      <ns0:ID>56</ns0:ID>
+      <ns0:Name>[2d] #26 - Dang nhap ung dung di dong</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-22T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-22T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>React Native Expo - Dung chung API xac thuc voi Web</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>27</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>67</ns0:UID>
+      <ns0:ID>57</ns0:ID>
+      <ns0:Name>[3d] #27 - Xem danh sach don can lay trong ca lam viec</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-23T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-23T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Loc theo nguoi giao hang va ca hien tai</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>65</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>66</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>68</ns0:UID>
+      <ns0:ID>58</ns0:ID>
+      <ns0:Name>[25d KH] Sprint 5 (26/10/2026 - 06/11/2026) - Check-in GPS, giao hang, thu ho va doi soat [CHUA CO SPRINT PLANNING CHI TIET]</ns0:Name>
+      <ns0:OutlineLevel>1</ns0:OutlineLevel>
+      <ns0:Summary>1</ns0:Summary>
+      <ns0:Start>2026-10-26T08:00:00</ns0:Start>
+      <ns0:Finish>2026-11-06T17:00:00</ns0:Finish>
+      <ns0:Duration>PT96H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Chua co Sprint Planning chi tiet (chua chia Task) - chi co du lieu Sprint Backlog.</ns0:Notes>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>69</ns0:UID>
+      <ns0:ID>59</ns0:ID>
+      <ns0:Name>[3d] #28 - Xac nhan da lay hang tu nguoi gui</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-26T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-26T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>quet ma van don - Ghi toa do GPS va thoi gian</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>67</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>70</ns0:UID>
+      <ns0:ID>60</ns0:ID>
+      <ns0:Name>[3d] #29 - Quan ly diem check-in tren ban do</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-27T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-27T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Moi diem gom toa do va ban kinh mac dinh</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>37</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>71</ns0:UID>
+      <ns0:ID>61</ns0:ID>
+      <ns0:Name>[5d] #30 - Tu dong check-in vi tri khi di qua diem da cai dat</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-28T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-29T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Chan trung 30 phut, hang doi khi mat mang</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>70</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>72</ns0:UID>
+      <ns0:ID>62</ns0:ID>
+      <ns0:Name>[3d] #31 - Xem danh sach don can giao trong ca lam viec</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-10-30T08:00:00</ns0:Start>
+      <ns0:Finish>2026-10-30T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Loc theo nguoi giao hang va ca hien tai</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>65</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>73</ns0:UID>
+      <ns0:ID>63</ns0:ID>
+      <ns0:Name>[3d] #32 - Xac nhan giao hang thanh cong cho nguoi nhan</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-11-02T08:00:00</ns0:Start>
+      <ns0:Finish>2026-11-02T17:00:00</ns0:Finish>
+      <ns0:Duration>PT8H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Ghi toa do GPS - Chuyen DELIVERED, khong doi trang thai duoc nua</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>72</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>74</ns0:UID>
+      <ns0:ID>64</ns0:ID>
+      <ns0:Name>[3d] #33 - Ghi nhan da thu tien COD tu nguoi nhan</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-11-03T08:00:00</ns0:Start>
+      <ns0:Finish>2026-11-04T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Thu tien mat hoac chuyen khoan</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>73</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+    <ns0:Task>
+      <ns0:UID>75</ns0:UID>
+      <ns0:ID>65</ns0:ID>
+      <ns0:Name>[5d] #34 - Tao doi soat va tong hop so lieu cho khach hang</ns0:Name>
+      <ns0:OutlineLevel>2</ns0:OutlineLevel>
+      <ns0:Summary>0</ns0:Summary>
+      <ns0:Start>2026-11-05T08:00:00</ns0:Start>
+      <ns0:Finish>2026-11-06T17:00:00</ns0:Finish>
+      <ns0:Duration>PT16H0M0S</ns0:Duration>
+      <ns0:DurationFormat>7</ns0:DurationFormat>
+      <ns0:Notes>Mot don chi thuoc mot ky doi soat</ns0:Notes>
+      <ns0:PredecessorLink>
+        <ns0:PredecessorUID>74</ns0:PredecessorUID>
+        <ns0:Type>1</ns0:Type>
+        <ns0:CrossProject>0</ns0:CrossProject>
+        <ns0:LinkLag>0</ns0:LinkLag>
+        <ns0:LagFormat>7</ns0:LagFormat>
+      </ns0:PredecessorLink>
+    </ns0:Task>
+  </ns0:Tasks>
+</ns0:Project>

@@ -1,25 +1,4 @@
-# Ràng buộc toàn vẹn dữ liệu — EDMS (Sprint 1-2)
 
-Tài liệu này liệt kê **mọi con số và điều kiện cụ thể** đã cài vào hệ thống,
-phân loại đúng theo lý thuyết CSDL (ràng buộc miền giá trị, ràng buộc khóa,
-ràng buộc tham chiếu, ràng buộc kiểm tra, ràng buộc liên trường/liên bản ghi)
-để trả lời khi giảng viên hỏi "ràng buộc toàn vẹn nào đã khai báo".
-
-## 0. Điểm lý thuyết quan trọng nhất cần nói trước
-
-> **MongoDB không có ràng buộc khóa ngoại (FOREIGN KEY) tự động như SQL.**
-
-Khi một field khai báo `ref: "User"`, đó **chỉ là quy ước cho Mongoose biết
-cách `populate()`** (lấy dữ liệu đầy đủ của bản ghi được trỏ tới), **không
-hề ngăn được** việc lưu một `ObjectId` trỏ tới bản ghi không tồn tại hoặc đã
-bị xóa. Đây là khác biệt cốt lõi giữa NoSQL document-oriented và RDBMS.
-
-→ Tính toàn vẹn tham chiếu ở đây được đảm bảo bằng **code tầng ứng dụng**,
-không phải do CSDL tự ép buộc:
-1. Service tự kiểm tra bản ghi liên quan tồn tại trước khi lưu (ví dụ sẽ kiểm
-   tra `customerId` tồn tại trước khi tạo đơn ở Sprint 3).
-2. Dùng **transaction** của MongoDB để gộp nhiều thao tác ghi liên quan
-   (nhiều collection) thành một khối "tất cả cùng thành công hoặc cùng hủy".
 
 ## 1. Ràng buộc miền giá trị (Domain constraint — enum)
 
