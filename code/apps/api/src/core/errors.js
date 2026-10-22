@@ -20,6 +20,7 @@ export const ErrorCodes = {
     new AppError("ACCOUNT_LOCKED", message, 423),
   ACCOUNT_NOT_ACTIVE: (message = "Tài khoản chưa được kích hoạt") => new AppError("ACCOUNT_NOT_ACTIVE", message, 403),
   ALREADY_AUTHENTICATED: (message = "Bạn đã đăng nhập rồi") => new AppError("ALREADY_AUTHENTICATED", message, 403),
+  WRONG_APP: (message = "Tài khoản này không dùng được ứng dụng này") => new AppError("WRONG_APP", message, 403),
 
   EMAIL_ALREADY_EXISTS: (message = "Email đã được sử dụng") => new AppError("EMAIL_ALREADY_EXISTS", message, 409),
   PHONE_ALREADY_EXISTS: (message = "Số điện thoại đã được sử dụng") =>
