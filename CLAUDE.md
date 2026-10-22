@@ -54,17 +54,46 @@ Khách hàng chỉ nhìn thấy 4 nhóm: *Chưa nhận* · *Đã nhận – Chư
 | Xác thực | JWT: Access 15 phút, Refresh 7 ngày |
 | Tài liệu API | swagger-jsdoc + swagger-ui-express |
 | Kiểm thử | `node:test` (built-in) + Supertest |
-| Web | React 18 + Vite + TailwindCSS |
-| Mobile | React Native (Expo), `expo-location`, `expo-camera` |
+| Web Khách hàng | React + Vite + TailwindCSS |
+| Mobile Khách hàng | React Native (Expo) — cùng thiết kế với Web Khách hàng |
+| App Nhân viên | React Native (Expo) + react-native-web, `expo-location`, `expo-camera` |
 
 Kiến trúc client-server: **backend cung cấp một RESTful API duy nhất dùng chung**
-cho Web và Mobile (yêu cầu bắt buộc của case study, mục 1.2). Không có CSDL
-riêng cho mobile — Web và Mobile là hai client độc lập cùng gọi vào một backend,
-một MongoDB. Mobile là **một app duy nhất, giao diện đổi theo vai trò đăng nhập**:
-- Đăng nhập là `CUSTOMER` → luồng hướng mua sắm/gửi hàng (tham khảo UI kiểu Shopee):
-  trang chủ, tạo đơn, theo dõi đơn, xem đối soát.
-- Đăng nhập là `SHIPPER` → luồng vận hành giao nhận (tham khảo UI kiểu Grab
-  Driver/Ahamove): danh sách đơn trong ca, xác nhận lấy/giao, thu COD, check-in GPS.
+cho mọi client (yêu cầu bắt buộc của case study, mục 1.2). Không có CSDL riêng
+cho từng app — tất cả cùng gọi vào một backend, một MongoDB.
+
+Hai sản phẩm, tách theo **đối tượng dùng** (quyết định ngày 22/10/2026, thay cho
+phương án cũ "một app mobile chung cho CUSTOMER và SHIPPER"):
+
+| Sản phẩm | Đối tượng | Đăng nhập | Nền tảng |
+|---|---|---|---|
+| **App Khách hàng** | GUEST, CUSTOMER | **Không bắt buộc** — chỉ đòi khi đặt đơn/thanh toán | Web (`apps/web`) + Mobile (`apps/customer-mobile`), **cùng một thiết kế** (tham khảo UI Shopee) |
+| **App Nhân viên** | ADMIN, HUB_STAFF, SHIPPER | **Bắt buộc** — giao diện rẽ nhánh theo vai trò | Expo (`apps/staff`), chạy trên điện thoại và trình duyệt máy tính |
+
+- Khách vãng lai xem được: bảng giá, loại dịch vụ, vùng phục vụ, ước tính phí,
+  tra cứu vận đơn. Bấm "Tạo đơn"/"Thanh toán" mới bị chuyển sang đăng nhập/đăng ký.
+- Tài khoản nhân viên đăng nhập App Khách hàng → từ chối; tài khoản CUSTOMER
+  đăng nhập App Nhân viên → từ chối. Hai app không lẫn vai trò.
+- App Nhân viên theo vai trò:
+  - `ADMIN` → toàn bộ trang quản trị: danh mục, bảng giá, phân quyền, đối soát,
+    thống kê (không còn web admin riêng — đã chuyển từ Vite sang Expo).
+  - `HUB_STAFF` → duyệt đơn, phân công, nhập/xuất kho tại hub của mình.
+  - `SHIPPER` → đơn trong ca, xác nhận lấy/giao, thu COD, check-in GPS
+    (tham khảo UI Grab Driver/Ahamove).
+
+### Kiểm thử song song (giao dịch thật)
+
+Demo một giao dịch cần khách và nhân viên thao tác **cùng lúc** trên cùng dữ liệu:
+
+- Mỗi app chạy **một cổng riêng** (web khách `:5173`, app nhân viên web `:8082`)
+  vì token lưu theo origin — hai tab cùng origin sẽ ghi đè phiên của nhau.
+- Điện thoại thật (Expo Go) gọi API qua **IP LAN của máy** (vd `192.168.1.10:4044`),
+  không phải `localhost`; mở cổng API trên Windows Firewall.
+- Màn hình cần thấy thay đổi từ phía bên kia (danh sách đơn của hub, trạng thái
+  đơn của khách) **tự làm mới định kỳ 5 giây** (polling).
+- Seed phải có ca trực **của ngày chạy demo** để phân công tự động tìm được shipper.
+- Kiểm thử tự động: một bài Playwright mở **nhiều browser context** (mỗi context
+  một vai trò) chạy trọn vòng đời đơn: khách tạo → hub duyệt → shipper lấy/giao → khách thấy DELIVERED.
 
 Cấu trúc thư mục:
 
@@ -81,8 +110,9 @@ code/
     │   │   ├── modules/        # mỗi nghiệp vụ 1 thư mục: service + router
     │   │   └── server.js
     │   └── tests/
-    ├── web/
-    └── mobile/
+    ├── web/                # App Khách hàng — bản web (Vite)
+    ├── customer-mobile/    # App Khách hàng — bản mobile (Expo)
+    └── staff/              # App Nhân viên (Expo) — ADMIN, HUB_STAFF, SHIPPER
 ```
 
 Chuỗi kết nối từ máy host:
@@ -519,15 +549,16 @@ Seed 200 đơn là bắt buộc, không bỏ qua. Thiếu nó thì tra cứu hà
 
 | # | Việc |
 |:---:|---|
-| 7.1 | Web: Vite + React + Tailwind, trang đăng nhập, layout menu theo vai trò |
-| 7.2 | Web: component `ResourcePage` nhận cấu hình `{ title, endpoint, columns, fields }` |
-| 7.3 | Web: 4 trang danh mục dùng `ResourcePage` |
-| 7.4 | Web: trang bảng giá riêng (lưới bậc khối lượng) |
-| 7.5 | Web: tạo đơn 4 bước, danh sách đơn, chi tiết đơn, trang tra cứu công khai |
-| 7.6 | Mobile: Expo, một app dùng chung, rẽ nhánh theo vai trò sau đăng nhập |
-| 7.7 | Mobile — luồng CUSTOMER (tham khảo UI Shopee): trang chủ, tạo đơn, theo dõi đơn, đối soát |
-| 7.8 | Mobile — luồng SHIPPER (tham khảo UI Grab Driver/Ahamove): danh sách đơn trong ca, xác nhận giao + thu COD |
-| 7.9 | Mobile: `expo-location` geofencing cho check-in tự động (luồng SHIPPER) |
+| 7.1 | API công khai cho khách vãng lai: loại dịch vụ, vùng phục vụ, bảng giá |
+| 7.2 | App Nhân viên (Expo): đăng nhập bắt buộc, chặn CUSTOMER, rẽ nhánh theo vai trò |
+| 7.3 | App Nhân viên — ADMIN: component `ResourceScreen` nhận `{ title, endpoint, columns, fields }`, 4 trang danh mục |
+| 7.4 | App Nhân viên — ADMIN: trang bảng giá riêng (lưới bậc khối lượng) |
+| 7.5 | Web Khách hàng: trang chủ công khai, bảng giá, vùng phục vụ, đăng nhập/đăng ký chỉ khi đặt đơn |
+| 7.6 | Web Khách hàng: tạo đơn 4 bước, danh sách đơn, chi tiết đơn, tra cứu công khai |
+| 7.7 | Mobile Khách hàng (Expo): cùng màn hình và luồng với Web Khách hàng |
+| 7.8 | App Nhân viên — HUB_STAFF: duyệt đơn, phân công, nhập/xuất kho |
+| 7.9 | App Nhân viên — SHIPPER: đơn trong ca, xác nhận lấy/giao + thu COD, `expo-location` geofencing |
+| 7.10 | Playwright nhiều context: kịch bản giao dịch song song khách ↔ nhân viên |
 
 ### Đợt 8 — Hoàn hàng, sự cố, thống kê (bổ sung sau khi đối chiếu case study)
 
