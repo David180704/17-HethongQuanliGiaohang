@@ -7,5 +7,5 @@ RUN npm ci --omit=dev
 
 COPY src ./src
 
-EXPOSE 4000
+EXPOSE 4044
 CMD ["node", "src/server.js"]
