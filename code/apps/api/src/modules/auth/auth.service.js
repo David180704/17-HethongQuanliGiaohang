@@ -1,5 +1,9 @@
 import bcrypt from "bcrypt";
 import { User } from "../../models/User.js";
+// Dang ky model cho populate("hubId"/"routeIds") o getProfile - khong module nao
+// khac cua server import Hub, thieu dong nay /auth/me loi MissingSchemaError.
+import "../../models/Hub.js";
+import "../../models/Route.js";
 import { ErrorCodes } from "../../core/errors.js";
 import { signTokenPair, verifyRefreshToken, assertRefreshTokenActive } from "../../core/jwt.js";
 import { assertNotLocked, recordFailure, resetAttempts } from "../../core/loginThrottle.js";
