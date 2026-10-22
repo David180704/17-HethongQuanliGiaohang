@@ -9,6 +9,7 @@ import { usersRouter } from "./modules/users/users.router.js";
 import { routesRouter } from "./modules/routes/routes.router.js";
 import { serviceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { serviceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
+import { publicRouter } from "./modules/public/public.router.js";
 
 export function createApp() {
   const app = express();
@@ -24,6 +25,7 @@ export function createApp() {
   app.use("/routes", routesRouter);
   app.use("/serviceAreas", serviceAreasRouter);
   app.use("/serviceTypes", serviceTypesRouter);
+  app.use("/public", publicRouter);
 
   app.use((req, res, next) => {
     next(ErrorCodes.NOT_FOUND("Không tìm thấy đường dẫn"));
