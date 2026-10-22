@@ -1,97 +1,124 @@
 import { test, expect } from "@playwright/test";
 
-const ADMIN = { emailOrPhone: "admin@edms.vn", password: "Password123!" };
+const PASSWORD = "Password123!";
 const SHOT_DIR = "tests-e2e/screenshots";
+const PHONE = { width: 390, height: 844 };
 
-async function login(page) {
-  await page.goto("/login");
-  await page.getByPlaceholder("admin@edms.vn").fill(ADMIN.emailOrPhone);
-  await page.locator('input[type="password"]').fill(ADMIN.password);
-  await page.getByRole("button", { name: "Đăng nhập" }).click();
-  await page.waitForURL("/");
+async function loginOnPage(page, email) {
+  await page.getByLabel("Email hoặc số điện thoại").fill(email);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(PASSWORD);
+  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 }
 
-test("chua dang nhap bi day ve /login", async ({ page }) => {
+test("khach vang lai xem trang chu khong can dang nhap, du lieu tu API cong khai", async ({ page }) => {
   await page.goto("/");
-  await page.waitForURL("/login");
-  await expect(page.getByRole("button", { name: "Đăng nhập" })).toBeVisible();
-  await page.screenshot({ path: `${SHOT_DIR}/01-login.png`, fullPage: true });
+  await expect(page.getByRole("heading", { name: "Gửi hàng toàn quốc, theo dõi từng chặng" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Giao hàng tiêu chuẩn" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Giao hàng nhanh" })).toBeVisible();
+  await expect(page.getByText("quận/huyện đang phục vụ")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Đăng nhập" })).toBeVisible();
+  await page.screenshot({ path: `${SHOT_DIR}/01-home-guest.png`, fullPage: true });
 });
 
-test("dang nhap sai mat khau hien thong bao loi", async ({ page }) => {
-  await page.goto("/login");
-  await page.getByPlaceholder("admin@edms.vn").fill(ADMIN.emailOrPhone);
-  await page.locator('input[type="password"]').fill("sai-mat-khau");
-  await page.getByRole("button", { name: "Đăng nhập" }).click();
-  await expect(page.getByText(/không đúng/i)).toBeVisible({ timeout: 5000 });
-  await page.screenshot({ path: `${SHOT_DIR}/02-login-error.png`, fullPage: true });
+test("bang gia: doi dich vu thi gia doi theo he so phu phi", async ({ page }) => {
+  await page.goto("/bang-gia");
+  const innerDistrict = page.locator("section", { has: page.getByRole("heading", { name: "Nội quận" }) });
+  // Seed: noi quan bac dau 15.000 d; gui nhanh he so 0.5 -> 22.500 d
+  await expect(innerDistrict.getByText("15.000 ₫").first()).toBeVisible();
+  await page.getByRole("button", { name: "Giao hàng nhanh" }).click();
+  await expect(innerDistrict.getByText("22.500 ₫").first()).toBeVisible();
+  await expect(page.getByText("Phụ phí dịch vụ +50%")).toBeVisible();
+  await page.screenshot({ path: `${SHOT_DIR}/02-pricing-express.png`, fullPage: true });
 });
 
-test("dang nhap thanh cong vao duoc dashboard", async ({ page }) => {
-  await login(page);
-  await expect(page.getByRole("heading", { name: "Tổng quan" })).toBeVisible();
-  await expect(page.getByText("Quản Trị Hệ Thống")).toBeVisible();
-  await page.screenshot({ path: `${SHOT_DIR}/03-dashboard.png`, fullPage: true });
+test("vung phuc vu: tim thay Hoan Kiem, bao ro khi khong phuc vu", async ({ page }) => {
+  await page.goto("/vung-phuc-vu");
+  const search = page.getByLabel("Tìm vùng phục vụ");
+  await search.fill("Hoàn Kiếm");
+  await expect(page.getByRole("heading", { name: "Hà Nội" })).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("1 quận/huyện tại 1 tỉnh/thành");
+  await page.screenshot({ path: `${SHOT_DIR}/03-coverage-search.png`, fullPage: true });
+  await search.fill("Atlantis");
+  await expect(page.getByRole("status")).toHaveText('Chưa phục vụ khu vực "Atlantis"');
 });
 
-test("trang Nguoi dung hien bang va mo duoc form them moi", async ({ page }) => {
-  await login(page);
-  await page.getByRole("link", { name: "Người dùng" }).click();
-  await page.waitForURL("/users");
-  await expect(page.getByRole("heading", { name: "Người dùng" })).toBeVisible();
-  await expect(page.getByText(/Tổng \d+ bản ghi/)).toBeVisible();
-  await page.screenshot({ path: `${SHOT_DIR}/04-users-list.png`, fullPage: true });
+test("bam Tao don khi chua dang nhap -> dang nhap -> quay lai dung trang tao don", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Tạo đơn", exact: true }).click();
+  await expect(page).toHaveURL(/\/dang-nhap\?next=%2Ftao-don$/);
+  await expect(page.getByText("Đăng nhập để tạo đơn và thanh toán.")).toBeVisible();
+  await page.screenshot({ path: `${SHOT_DIR}/04-login-from-create-order.png`, fullPage: true });
 
-  await page.getByRole("button", { name: "+ Thêm mới" }).click();
-  await expect(page.getByText("Thêm Người dùng")).toBeVisible();
-  await page.screenshot({ path: `${SHOT_DIR}/05-users-create-modal.png`, fullPage: true });
-
-  // Chon role CUSTOMER phai hien them field customerType (field dieu kien)
-  await page.locator('select').first().selectOption("CUSTOMER");
-  await expect(page.getByText("Loại khách hàng")).toBeVisible();
-  await page.screenshot({ path: `${SHOT_DIR}/06-users-create-customer-fields.png`, fullPage: true });
+  await loginOnPage(page, "customer1@edms.vn");
+  await expect(page).toHaveURL(/\/tao-don$/);
+  await expect(page.getByRole("heading", { name: "Tạo đơn hàng" })).toBeVisible();
+  await page.screenshot({ path: `${SHOT_DIR}/05-create-order-logged-in.png`, fullPage: true });
 });
 
-test("trang Tuyen hien bang du lieu that tu seed", async ({ page }) => {
-  await login(page);
-  await page.getByRole("link", { name: "Tuyến" }).click();
-  await page.waitForURL("/routes");
-  await expect(page.getByText("R-HN-NOI")).toBeVisible({ timeout: 5000 });
-  await page.screenshot({ path: `${SHOT_DIR}/07-routes-list.png`, fullPage: true });
+test("tai khoan nhan vien bi server tu choi o App Khach hang", async ({ page }) => {
+  await page.goto("/dang-nhap");
+  await loginOnPage(page, "shipper1@edms.vn");
+  await expect(page.getByRole("alert")).toContainText("Tài khoản nhân viên không dùng App Khách hàng");
+  await expect(page).toHaveURL(/\/dang-nhap$/);
 });
 
-test("trang Khu vuc phuc vu hien bang, form co dropdown tuyen that", async ({ page }) => {
-  await login(page);
-  await page.getByRole("link", { name: "Khu vực phục vụ" }).click();
-  await page.waitForURL("/service-areas");
-  await expect(page.getByRole("heading", { name: "Khu vực phục vụ" })).toBeVisible();
-  await expect(page.getByText(/Tổng \d+ bản ghi/)).toBeVisible({ timeout: 5000 });
-  await page.getByRole("button", { name: "+ Thêm mới" }).click();
-  await page.waitForTimeout(500); // cho goi API /routes de fill dropdown
-  await page.screenshot({ path: `${SHOT_DIR}/08-service-areas-create-modal.png`, fullPage: true });
+test("da dang nhap ma vao trang dang nhap thi ve trang chu (guard nguoc)", async ({ page }) => {
+  await page.goto("/dang-nhap");
+  await loginOnPage(page, "customer1@edms.vn");
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto("/dang-nhap");
+  await expect(page).toHaveURL(/\/$/);
 });
 
-test("trang Loai dich vu hien bang", async ({ page }) => {
-  await login(page);
-  await page.getByRole("link", { name: "Loại dịch vụ" }).click();
-  await page.waitForURL("/service-types");
-  await expect(page.getByText("STANDARD")).toBeVisible({ timeout: 5000 });
-  await page.screenshot({ path: `${SHOT_DIR}/09-service-types-list.png`, fullPage: true });
+test("?next tro ra ngoai site bi bo qua (chan open redirect)", async ({ page }) => {
+  await page.goto("/dang-nhap?next=//evil.example.com");
+  await loginOnPage(page, "customer1@edms.vn");
+  await expect(page).toHaveURL("http://localhost:5173/");
 });
 
-test("CUSTOMER dang nhap khong thay menu quan tri", async ({ page }) => {
-  await page.goto("/login");
-  await page.getByPlaceholder("admin@edms.vn").fill("customer1@edms.vn");
-  await page.locator('input[type="password"]').fill("Password123!");
-  await page.getByRole("button", { name: "Đăng nhập" }).click();
-  await page.waitForURL("/");
-  await expect(page.getByRole("link", { name: "Người dùng" })).toHaveCount(0);
-  await page.screenshot({ path: `${SHOT_DIR}/10-customer-dashboard.png`, fullPage: true });
+test("dang ky: doanh nghiep hien them o shop/MST, email trung bi bao loi tu server", async ({ page }) => {
+  await page.goto("/dang-ky");
+  await page.getByRole("radio", { name: "Doanh nghiệp / shop" }).click();
+  await expect(page.getByLabel("Tên shop / doanh nghiệp")).toBeVisible();
+  await expect(page.getByLabel("Mã số thuế")).toBeVisible();
+
+  await page.getByRole("radio", { name: "Cá nhân" }).click();
+  await expect(page.getByLabel("Mã số thuế")).toHaveCount(0);
+  await page.getByLabel("Họ tên").fill("Khách Trùng Email");
+  await page.getByLabel("Email").fill("customer1@edms.vn");
+  await page.getByLabel("Số điện thoại").fill("0912345678");
+  await page.getByLabel("Mật khẩu").fill(PASSWORD);
+  await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Email đã được sử dụng");
+  await page.screenshot({ path: `${SHOT_DIR}/06-register-duplicate.png`, fullPage: true });
 });
 
-test("dang xuat quay ve login", async ({ page }) => {
-  await login(page);
+test("dang xuat xong vao trang tai khoan bi chuyen sang dang nhap", async ({ page }) => {
+  await page.goto("/dang-nhap");
+  await loginOnPage(page, "customer1@edms.vn");
+  // Cho dang nhap xong (da luu token) roi moi tai trang khac
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto("/tai-khoan");
+  await expect(page.getByRole("heading", { name: "Tài khoản của tôi" })).toBeVisible();
+  await expect(page.getByText("customer1@edms.vn")).toBeVisible();
   await page.getByRole("button", { name: "Đăng xuất" }).click();
-  await page.waitForURL("/login");
-  await expect(page.getByRole("button", { name: "Đăng nhập" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Đăng nhập" })).toBeVisible();
+  await page.goto("/tai-khoan");
+  await expect(page).toHaveURL(/\/dang-nhap\?next=%2Ftai-khoan$/);
+});
+
+test.describe("dien thoai", () => {
+  test.use({ viewport: PHONE });
+
+  test("trang chu va bang gia vua man hinh dien thoai, khong tran ngang", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Giao hàng nhanh" })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    await page.screenshot({ path: `${SHOT_DIR}/07-home-phone.png`, fullPage: true });
+
+    await page.goto("/bang-gia");
+    await expect(page.getByRole("heading", { name: "Liên miền" })).toBeVisible();
+    await page.screenshot({ path: `${SHOT_DIR}/08-pricing-phone.png`, fullPage: true });
+  });
 });
