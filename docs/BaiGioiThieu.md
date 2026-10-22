@@ -20,13 +20,13 @@ mô phỏng toàn diện quy trình Scrum cho một đồ án học thuật.
 Hệ thống quản lý giao hàng tập trung, kiến trúc client-server đa nền tảng
 (Web cho khách hàng/admin, Mobile cho shipper), phục vụ **5 vai trò**:
 
-| Vai trò | Vai trò chính |
-|---|---|
-| Khách vãng lai | Tra cứu đơn, ước tính phí, xem bảng giá — không cần đăng nhập |
-| Khách hàng | Toàn bộ quyền trên + tạo đơn, theo dõi đơn |
-| Shipper | Lấy/giao hàng, thu COD — chỉ trên đơn được giao cho mình |
-| Nhân viên hub | Duyệt đơn, phân công, nhập/xuất kho — chỉ trong phạm vi hub của mình |
-| Admin | Danh mục, bảng giá, phân quyền, đối soát |
+| Vai trò        | Vai trò chính                                                        |
+| -------------- | -------------------------------------------------------------------- |
+| Khách vãng lai | Tra cứu đơn, ước tính phí, xem bảng giá — không cần đăng nhập        |
+| Khách hàng     | Toàn bộ quyền trên + tạo đơn, theo dõi đơn                           |
+| Shipper        | Lấy/giao hàng, thu COD — chỉ trên đơn được giao cho mình             |
+| Nhân viên hub  | Duyệt đơn, phân công, nhập/xuất kho — chỉ trong phạm vi hub của mình |
+| Admin          | Danh mục, bảng giá, phân quyền, đối soát                             |
 
 **Đã hoàn thành (Sprint 1–2)**: nền tảng kỹ thuật, xác thực/phân quyền đầy
 đủ, quản trị danh mục (người dùng, tuyến, khu vực, loại dịch vụ).
@@ -86,7 +86,7 @@ ví dụ: **một người dùng đăng nhập, rồi gọi một API cần quy�
    chứa `userId` + `role`) và **Refresh Token** (7 ngày, chứa thêm mã định
    danh `jti` + số phiên bản `ver` để phục vụ thu hồi sau này).
 7. Trả về client theo khuôn chuẩn `{success:true, data:{accessToken,
-   refreshToken, user:{...}}}`.
+refreshToken, user:{...}}}`.
 
 ### Bước 2 — Gọi một API cần quyền (`GET /users`, ví dụ)
 
@@ -106,7 +106,7 @@ ví dụ: **một người dùng đăng nhập, rồi gọi một API cần quy�
 5. Service gọi Mongoose đọc collection `users` (có phân trang, tìm kiếm,
    **tự loại bỏ field `passwordHash`** trước khi trả về).
 6. Trả kết quả theo khuôn chuẩn `{success:true, data:[...], meta:{page,
-   limit,total}}`.
+limit,total}}`.
 
 ### Vì sao kể câu chuyện này chứng minh được nhiều nhất
 
@@ -120,20 +120,20 @@ cụ thể** (khóa sau 5 lần sai, JWT ngắn hạn, cây phân quyền có k�
 Đủ cả **tác dụng**, **vị trí trong dự án**, và **cách chứng minh khi demo**
 cho từng Task T1–T8:
 
-| Task | Tác dụng | Vị trí | Cách chứng minh khi demo |
-|---|---|---|---|
-| **T1** Khởi tạo repo, quy ước mã nguồn | Tạo khung dự án, luật viết code thống nhất | `.gitignore`, `package.json`, `eslint.config.js`, `.prettierrc` | Mở GitHub xem lịch sử commit đặt tên `feat(US-xx)`; chạy `npm run lint` live cho thấy sạch |
-| **T2** Docker Compose Mongo+Redis | Dựng môi trường 1 lệnh, Mongo chạy replica set để dùng được transaction | `code/docker-compose.yml` | Chạy `docker compose ps` live → 2 container "healthy"; mở MongoDB Compass gõ `rs.status()` cho thấy `rs0` |
-| **T3** Sơ đồ ERD | Thiết kế cấu trúc dữ liệu trước khi code | `docs/ERD.md` | Mở file này trên GitHub (web) — Mermaid tự vẽ thành hình |
-| **T4** Mongoose model + chỉ mục + seed | Định nghĩa 12 collection thật, tạo dữ liệu demo | `src/models/*.js`, `src/seed/*.js` | Chạy `npm run seed` live → log hiện "200 đơn, 19 user..."; mở Compass đếm số bản ghi thật |
-| **T5** Đăng ký, đăng nhập, phát token | Tạo tài khoản, đăng nhập, nhận token | `modules/auth/auth.service.js`, `core/jwt.js` | Swagger gọi `POST /auth/login` → thấy `accessToken`/`refreshToken` trong response |
-| **T6** Middleware xác thực + phân quyền | Chặn request không hợp lệ/không đủ quyền | `middleware/auth.js`, `middleware/rbac.js` | Gọi cùng 1 API 3 lần: không token (401) → token CUSTOMER (403) → token ADMIN (200) |
-| **T7** Response chuẩn, mã lỗi, Swagger | Mọi API trả theo 1 khuôn; tài liệu tự sinh | `core/response.js`, `core/errors.js`, `docs/swagger.js` | Mở `/api-docs`; gọi 1 API lỗi cho thấy luôn có dạng `{success:false,error:{code,message}}` |
-| **T8** Test case, Postman, đẩy Git | Đảm bảo code đúng tự động | `tests/*.test.js`, `EDMS.postman_collection.json` | Chạy `npm test` live → `tests 33/pass 33`; mở Postman chạy thử 1 request |
+| Task                                    | Tác dụng                                                                | Vị trí                                                          | Cách chứng minh khi demo                                                                                  |
+| --------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **T1** Khởi tạo repo, quy ước mã nguồn  | Tạo khung dự án, luật viết code thống nhất                              | `.gitignore`, `package.json`, `eslint.config.js`, `.prettierrc` | Mở GitHub xem lịch sử commit đặt tên `feat(US-xx)`; chạy `npm run lint` live cho thấy sạch                |
+| **T2** Docker Compose Mongo+Redis       | Dựng môi trường 1 lệnh, Mongo chạy replica set để dùng được transaction | `code/docker-compose.yml`                                       | Chạy `docker compose ps` live → 2 container "healthy"; mở MongoDB Compass gõ `rs.status()` cho thấy `rs0` |
+| **T3** Sơ đồ ERD                        | Thiết kế cấu trúc dữ liệu trước khi code                                | `docs/ERD.md`                                                   | Mở file này trên GitHub (web) — Mermaid tự vẽ thành hình                                                  |
+| **T4** Mongoose model + chỉ mục + seed  | Định nghĩa 12 collection thật, tạo dữ liệu demo                         | `src/models/*.js`, `src/seed/*.js`                              | Chạy `npm run seed` live → log hiện "200 đơn, 19 user..."; mở Compass đếm số bản ghi thật                 |
+| **T5** Đăng ký, đăng nhập, phát token   | Tạo tài khoản, đăng nhập, nhận token                                    | `modules/auth/auth.service.js`, `core/jwt.js`                   | Swagger gọi `POST /auth/login` → thấy `accessToken`/`refreshToken` trong response                         |
+| **T6** Middleware xác thực + phân quyền | Chặn request không hợp lệ/không đủ quyền                                | `middleware/auth.js`, `middleware/rbac.js`                      | Gọi cùng 1 API 3 lần: không token (401) → token CUSTOMER (403) → token ADMIN (200)                        |
+| **T7** Response chuẩn, mã lỗi, Swagger  | Mọi API trả theo 1 khuôn; tài liệu tự sinh                              | `core/response.js`, `core/errors.js`, `docs/swagger.js`         | Mở `/api-docs`; gọi 1 API lỗi cho thấy luôn có dạng `{success:false,error:{code,message}}`                |
+| **T8** Test case, Postman, đẩy Git      | Đảm bảo code đúng tự động                                               | `tests/*.test.js`, `EDMS.postman_collection.json`               | Chạy `npm test` live → `tests 33/pass 33`; mở Postman chạy thử 1 request                                  |
 
 ---
 
-**Một câu chốt nếu hết giờ chỉ nói được một câu**: *"Hệ thống đã xây xong
+**Một câu chốt nếu hết giờ chỉ nói được một câu**: _"Hệ thống đã xây xong
 nền tảng kỹ thuật và toàn bộ lớp bảo mật — xác thực, phân quyền, khóa tài
 khoản — đều là code thật chạy được, có 33 kiểm thử tự động xác nhận, không
-phải mô tả suông."*
+phải mô tả suông."_
