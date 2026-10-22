@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient } from "../lib/apiClient.js";
 import { getTokens, setTokens, clearTokens, getStoredUser, setStoredUser } from "../lib/tokenStore.js";
 
@@ -6,7 +6,6 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser());
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const onUnauthorized = () => setUser(null);
@@ -15,18 +14,26 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (emailOrPhone, password) => {
-    setLoading(true);
-    try {
-      const res = await apiClient.post("/auth/login", { emailOrPhone, password });
-      const { accessToken, refreshToken, user: loggedInUser } = res.data.data;
-      setTokens({ accessToken, refreshToken });
-      setStoredUser(loggedInUser);
-      setUser(loggedInUser);
-      return loggedInUser;
-    } finally {
-      setLoading(false);
-    }
+    // app: "CUSTOMER" -> server tu choi tai khoan nhan vien (WRONG_APP), khong cap token.
+    const res = await apiClient.post("/auth/login", { emailOrPhone: emailOrPhone.trim(), password, app: "CUSTOMER" });
+    const { accessToken, refreshToken, user: loggedInUser } = res.data.data;
+    setTokens({ accessToken, refreshToken });
+    setStoredUser(loggedInUser);
+    setUser(loggedInUser);
+    return loggedInUser;
   }, []);
+
+  // Ca nhan: ACTIVE ngay -> dang nhap luon. Doanh nghiep: PENDING -> cho admin duyet,
+  // chua dang nhap duoc.
+  const register = useCallback(
+    async (payload) => {
+      const res = await apiClient.post("/auth/register", payload);
+      const created = res.data.data;
+      if (created.status === "ACTIVE") await login(payload.email, payload.password);
+      return created;
+    },
+    [login],
+  );
 
   const logout = useCallback(async () => {
     const { refreshToken } = getTokens();
@@ -39,11 +46,12 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: Boolean(user) }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, isAuthenticated: Boolean(user), login, register, logout }),
+    [user, login, register, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

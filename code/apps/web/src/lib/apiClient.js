@@ -1,15 +1,30 @@
 import axios from "axios";
 import { getTokens, setTokens, clearTokens } from "./tokenStore.js";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4044";
+// Mac dinh: cung hostname voi trang dang mo, cong 4044. Mo web tren dien thoai
+// bang IP LAN (vd 192.168.1.10:5173) thi API cung tu theo IP do - "localhost"
+// tren dien thoai la chinh dien thoai, khong phai may dev.
+const API_URL = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:4044`;
 
-export const apiClient = axios.create({ baseURL: API_URL });
+export const apiClient = axios.create({ baseURL: API_URL, timeout: 15000 });
+
+// Server co guard nguoc o login/register: gui kem token cu se bi tu choi
+// ALREADY_AUTHENTICATED, nen khong gan token vao cac duong dan nay.
+const NO_TOKEN_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
+const isNoTokenPath = (url = "") => NO_TOKEN_PATHS.some((path) => url.startsWith(path));
 
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = getTokens();
-  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+  if (accessToken && !isNoTokenPath(config.url)) config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
+
+export function errorMessage(err, fallback = "Có lỗi xảy ra, vui lòng thử lại") {
+  const serverMessage = err?.response?.data?.error?.message;
+  if (serverMessage) return serverMessage;
+  if (!err?.response) return "Không kết nối được máy chủ. Vui lòng thử lại sau.";
+  return fallback;
+}
 
 let refreshPromise = null;
 
