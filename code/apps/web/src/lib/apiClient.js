@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getTokens, setTokens, clearTokens } from "./tokenStore.js";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4044";
 
 export const apiClient = axios.create({ baseURL: API_URL });
 

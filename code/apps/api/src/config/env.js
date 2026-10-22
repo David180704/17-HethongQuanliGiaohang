@@ -10,7 +10,8 @@ function required(name, fallback) {
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
-  port: Number(process.env.PORT || 4000),
+  // 4044 thay vi 4000: tren may dev cong 4000 da bi container khac (litellm_proxy) chiem.
+  port: Number(process.env.PORT || 4044),
 
   mongoUri: required("MONGO_URI", "mongodb://localhost:27017/edms?directConnection=true"),
 
