@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Playwright - anh chup/report tu dong sinh, khong commit
+tests-e2e/screenshots/
+test-results/
+playwright-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -14,7 +14,7 @@ export function requireAuth(req, res, next) {
     req.user = { id: payload.sub, role: payload.role, hubId: payload.hubId ?? null };
     return next();
   } catch {
-    return next(ErrorCodes.UNAUTHORIZED("Token khong hop le hoac da het han"));
+    return next(ErrorCodes.UNAUTHORIZED("Token không hợp lệ hoặc đã hết hạn"));
   }
 }
 

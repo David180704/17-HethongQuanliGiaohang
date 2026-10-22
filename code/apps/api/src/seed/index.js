@@ -129,7 +129,7 @@ async function seedUsers({ hubDocs, routeDocs }) {
     email: "admin@edms.vn",
     phone: nextPhone(),
     passwordHash,
-    fullName: "Quan Tri He Thong",
+    fullName: "Quản Trị Hệ Thống",
     role: "ADMIN",
     status: "ACTIVE",
   };
@@ -193,13 +193,13 @@ async function seedPickupLocations({ customers, serviceAreaDocs }) {
     const area = faker.helpers.arrayElement(serviceAreaDocs);
     docs.push({
       customerId: customer._id,
-      label: "Dia chi mac dinh",
+      label: "Địa chỉ mặc định",
       contactName: customer.fullName,
       contactPhone: customer.phone,
-      address: `${faker.number.int({ min: 1, max: 300 })} Duong ${faker.helpers.arrayElement(["Le Loi", "Tran Hung Dao", "Nguyen Trai", "Hai Ba Trung", "Vo Van Kiet"])}`,
+      address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "Trần Hưng Đạo", "Nguyễn Trãi", "Hai Bà Trưng", "Võ Văn Kiệt"])}`,
       province: area.province,
       district: area.district,
-      ward: `Phuong ${faker.number.int({ min: 1, max: 15 })}`,
+      ward: `Phường ${faker.number.int({ min: 1, max: 15 })}`,
       serviceAreaId: area._id,
       isDefault: true,
       isActive: true,
@@ -213,10 +213,10 @@ function randomReceiverAddress(area) {
   return {
     name: randomVnName(),
     phone: randomVnPhone(),
-    address: `${faker.number.int({ min: 1, max: 300 })} Duong ${faker.helpers.arrayElement(["Le Loi", "CMT8", "Nguyen Hue", "Pham Van Dong", "Ly Thuong Kiet"])}`,
+    address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "CMT8", "Nguyễn Huệ", "Phạm Văn Đồng", "Lý Thường Kiệt"])}`,
     province: area.province,
     district: area.district,
-    ward: `Phuong ${faker.number.int({ min: 1, max: 15 })}`,
+    ward: `Phường ${faker.number.int({ min: 1, max: 15 })}`,
   };
 }
 
@@ -241,7 +241,7 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
     const serviceType = serviceTypeMap[serviceTypeKey];
 
     const item = {
-      name: faker.helpers.arrayElement(["Quan ao", "Giay dep", "Sach", "Do dien tu", "My pham", "Phu kien"]),
+      name: faker.helpers.arrayElement(["Quần áo", "Giày dép", "Sách", "Đồ điện tử", "Mỹ phẩm", "Phụ kiện"]),
       weightGram: faker.number.int({ min: 100, max: 8000 }),
       length: faker.number.int({ min: 5, max: 60 }),
       width: faker.number.int({ min: 5, max: 50 }),
@@ -291,7 +291,7 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
       item,
       flags,
       serviceTypeId: serviceType._id,
-      serviceName: serviceTypeKey === "EXPRESS" ? "Gui nhanh" : "Gui thuong",
+      serviceName: serviceTypeKey === "EXPRESS" ? "Gửi nhanh" : "Gửi thường",
       zone,
       chargeableWeight,
       fee,

@@ -26,7 +26,7 @@ export function createApp() {
   app.use("/serviceTypes", serviceTypesRouter);
 
   app.use((req, res, next) => {
-    next(ErrorCodes.NOT_FOUND("Khong tim thay duong dan"));
+    next(ErrorCodes.NOT_FOUND("Không tìm thấy đường dẫn"));
   });
 
   app.use(errorHandler);

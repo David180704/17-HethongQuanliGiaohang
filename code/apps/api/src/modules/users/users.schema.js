@@ -5,23 +5,23 @@ import { ROLES, USER_STATUS, CUSTOMER_TYPE } from "../../constants/enums.js";
 function assertRoleConsistency({ role, customerType, shopName, taxCode, hubId }) {
   if (role === "CUSTOMER") {
     if (!CUSTOMER_TYPE.includes(customerType)) {
-      throw ErrorCodes.VALIDATION_ERROR("CUSTOMER phai co customerType INDIVIDUAL hoac BUSINESS");
+      throw ErrorCodes.VALIDATION_ERROR("CUSTOMER phải có customerType INDIVIDUAL hoặc BUSINESS");
     }
     if (customerType === "BUSINESS" && (!shopName || !taxCode)) {
-      throw ErrorCodes.VALIDATION_ERROR("CUSTOMER loai BUSINESS phai co shopName va taxCode");
+      throw ErrorCodes.VALIDATION_ERROR("CUSTOMER loại BUSINESS phải có shopName và taxCode");
     }
   }
   if (role === "HUB_STAFF" && !hubId) {
-    throw ErrorCodes.VALIDATION_ERROR("HUB_STAFF phai co hubId");
+    throw ErrorCodes.VALIDATION_ERROR("HUB_STAFF phải có hubId");
   }
 }
 
 export async function createUserSchema(body) {
   const { email, phone, password, fullName, role } = body;
   if (!email || !phone || !password || !fullName || !role) {
-    throw ErrorCodes.VALIDATION_ERROR("Thieu email/phone/password/fullName/role");
+    throw ErrorCodes.VALIDATION_ERROR("Thiếu email/phone/password/fullName/role");
   }
-  if (!ROLES.includes(role)) throw ErrorCodes.VALIDATION_ERROR("role khong hop le");
+  if (!ROLES.includes(role)) throw ErrorCodes.VALIDATION_ERROR("role không hợp lệ");
 
   assertRoleConsistency(body);
 
@@ -78,10 +78,10 @@ export async function updateUserSchema(body) {
   }
 
   if (sanitized.role && !ROLES.includes(sanitized.role)) {
-    throw ErrorCodes.VALIDATION_ERROR("role khong hop le");
+    throw ErrorCodes.VALIDATION_ERROR("role không hợp lệ");
   }
   if (sanitized.status && !USER_STATUS.includes(sanitized.status)) {
-    throw ErrorCodes.VALIDATION_ERROR("status khong hop le");
+    throw ErrorCodes.VALIDATION_ERROR("status không hợp lệ");
   }
   if (sanitized.email) sanitized.email = sanitized.email.toLowerCase();
 

@@ -18,7 +18,7 @@ export async function login({ emailOrPhone, password }) {
     await recordFailure(emailOrPhone);
     throw ErrorCodes.INVALID_CREDENTIALS();
   }
-  if (user.status === "LOCKED") throw ErrorCodes.ACCOUNT_LOCKED("Tai khoan da bi quan tri vien khoa");
+  if (user.status === "LOCKED") throw ErrorCodes.ACCOUNT_LOCKED("Tài khoản đã bị quản trị viên khóa");
   if (user.status === "PENDING") throw ErrorCodes.ACCOUNT_NOT_ACTIVE();
 
   const matches = await bcrypt.compare(password, user.passwordHash);
@@ -42,13 +42,13 @@ export async function login({ emailOrPhone, password }) {
 
 export async function register({ email, phone, password, fullName, customerType, shopName, taxCode }) {
   if (!email || !phone || !password || !fullName || !customerType) {
-    throw ErrorCodes.VALIDATION_ERROR("Thieu thong tin bat buoc");
+    throw ErrorCodes.VALIDATION_ERROR("Thiếu thông tin bắt buộc");
   }
   if (!CUSTOMER_TYPE.includes(customerType)) {
-    throw ErrorCodes.VALIDATION_ERROR("customerType phai la INDIVIDUAL hoac BUSINESS");
+    throw ErrorCodes.VALIDATION_ERROR("customerType phải là INDIVIDUAL hoặc BUSINESS");
   }
   if (customerType === "BUSINESS" && (!shopName || !taxCode)) {
-    throw ErrorCodes.VALIDATION_ERROR("Tai khoan doanh nghiep phai co shopName va taxCode");
+    throw ErrorCodes.VALIDATION_ERROR("Tài khoản doanh nghiệp phải có shopName và taxCode");
   }
 
   const normalizedEmail = email.toLowerCase();
@@ -73,8 +73,8 @@ export async function register({ email, phone, password, fullName, customerType,
   if (isBusiness) {
     await sendMail({
       to: user.email,
-      subject: "EDMS - Da nhan yeu cau dang ky tai khoan doanh nghiep",
-      html: `<p>Xin chao ${fullName},</p><p>Yeu cau dang ky tai khoan doanh nghiep <b>${shopName}</b> cua ban dang cho quan tri vien duyet. Chung toi se bao qua email nay khi tai khoan duoc kich hoat.</p>`,
+      subject: "EDMS - Đã nhận yêu cầu đăng ký tài khoản doanh nghiệp",
+      html: `<p>Xin chào ${fullName},</p><p>Yêu cầu đăng ký tài khoản doanh nghiệp <b>${shopName}</b> của bạn đang chờ quản trị viên duyệt. Chúng tôi sẽ báo qua email này khi tài khoản được kích hoạt.</p>`,
     });
   }
 
@@ -90,13 +90,13 @@ export async function register({ email, phone, password, fullName, customerType,
 }
 
 export async function refresh({ refreshToken }) {
-  if (!refreshToken) throw ErrorCodes.VALIDATION_ERROR("Thieu refreshToken");
+  if (!refreshToken) throw ErrorCodes.VALIDATION_ERROR("Thiếu refreshToken");
 
   let payload;
   try {
     payload = verifyRefreshToken(refreshToken);
   } catch {
-    throw ErrorCodes.UNAUTHORIZED("Refresh token khong hop le hoac da het han");
+    throw ErrorCodes.UNAUTHORIZED("Refresh token không hợp lệ hoặc đã hết hạn");
   }
 
   await assertRefreshTokenActive(payload);
@@ -127,6 +127,6 @@ export async function logoutAll(userId) {
 
 export async function getProfile(userId) {
   const user = await User.findById(userId).select("-passwordHash");
-  if (!user) throw ErrorCodes.NOT_FOUND("Khong tim thay nguoi dung");
+  if (!user) throw ErrorCodes.NOT_FOUND("Không tìm thấy người dùng");
   return user;
 }

@@ -42,6 +42,6 @@ export async function assertRefreshTokenActive(payload) {
     getUserTokenVersion(payload.sub),
   ]);
   if (blacklisted || payload.ver !== currentVer) {
-    throw ErrorCodes.UNAUTHORIZED("Refresh token da bi thu hoi");
+    throw ErrorCodes.UNAUTHORIZED("Refresh token đã bị thu hồi");
   }
 }
