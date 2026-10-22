@@ -1,61 +1,63 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import SiteLayout from "./components/SiteLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import Layout from "./components/Layout.jsx";
+import GuestOnlyRoute from "./components/GuestOnlyRoute.jsx";
+import HomePage from "./pages/HomePage.jsx";
+import PricingPage from "./pages/PricingPage.jsx";
+import CoveragePage from "./pages/CoveragePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
-import DashboardPage from "./pages/DashboardPage.jsx";
-import UsersPage from "./pages/UsersPage.jsx";
-import RoutesPage from "./pages/RoutesPage.jsx";
-import ServiceAreasPage from "./pages/ServiceAreasPage.jsx";
-import ServiceTypesPage from "./pages/ServiceTypesPage.jsx";
+import RegisterPage from "./pages/RegisterPage.jsx";
+import CreateOrderPage from "./pages/CreateOrderPage.jsx";
+import AccountPage from "./pages/AccountPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
 
+// Web Khach hang: khach vang lai xem duoc trang chu, bang gia, vung phuc vu.
+// Chi "Tao don" va "Tai khoan" moi doi dang nhap (ProtectedRoute).
+// Trang quan tri da chuyen sang App Nhan vien (apps/staff).
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<DashboardPage />} />
+          <Route element={<SiteLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="bang-gia" element={<PricingPage />} />
+            <Route path="vung-phuc-vu" element={<CoveragePage />} />
             <Route
-              path="/users"
+              path="tao-don"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
-                  <UsersPage />
+                <ProtectedRoute>
+                  <CreateOrderPage />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/routes"
+              path="tai-khoan"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
-                  <RoutesPage />
+                <ProtectedRoute>
+                  <AccountPage />
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/service-areas"
-              element={
-                <ProtectedRoute roles={["ADMIN"]}>
-                  <ServiceAreasPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/service-types"
-              element={
-                <ProtectedRoute roles={["ADMIN"]}>
-                  <ServiceTypesPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
+          <Route
+            path="dang-nhap"
+            element={
+              <GuestOnlyRoute>
+                <LoginPage />
+              </GuestOnlyRoute>
+            }
+          />
+          <Route
+            path="dang-ky"
+            element={
+              <GuestOnlyRoute>
+                <RegisterPage />
+              </GuestOnlyRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

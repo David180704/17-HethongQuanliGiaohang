@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Mau thuong hieu App Khach hang (tong cam thuong mai dien tu, tham khao bo cuc
+   Shopee). brand-600 dung cho nut/chu tren nen trang: tuong phan voi trang
+   4.99:1, dat WCAG AA cho chu thuong. brand-500 chi dung trang tri/chu lon. */
+@theme {
+  --color-brand-50: #fff5f2;
+  --color-brand-100: #ffe6de;
+  --color-brand-500: #ee4d2d;
+  --color-brand-600: #c93f1a;
+  --color-brand-700: #a83414;
+}

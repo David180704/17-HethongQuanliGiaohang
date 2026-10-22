@@ -1,11 +1,15 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
-export default function ProtectedRoute({ children, roles }) {
-  const { user, isAuthenticated } = useAuth();
+// Trang chi danh cho khach da dang nhap (tao don, tai khoan). Chua dang nhap ->
+// sang trang dang nhap kem ?next= de quay lai dung cho dang lam.
+export default function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />;
-
+  if (!isAuthenticated) {
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/dang-nhap?next=${next}`} replace />;
+  }
   return children;
 }
