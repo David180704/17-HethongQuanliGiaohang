@@ -24,13 +24,17 @@ export const authRouter = Router();
  *                 type: string
  *               password:
  *                 type: string
+ *               app:
+ *                 type: string
+ *                 enum: [CUSTOMER, STAFF]
+ *                 description: App goi dang nhap. Bo trong = khong gioi han vai tro
  *     responses:
  *       200:
  *         description: Dang nhap thanh cong, tra ve cap Access/Refresh Token
  *       401:
  *         description: Sai thong tin dang nhap
  *       403:
- *         description: Da dang nhap roi, hoac tai khoan chua duoc kich hoat
+ *         description: Da dang nhap roi, tai khoan chua kich hoat, hoac sai app (WRONG_APP)
  *       423:
  *         description: Tai khoan dang bi khoa (5 lan sai lien tiep, khoa 15 phut)
  */
@@ -38,11 +42,12 @@ authRouter.post(
   "/login",
   guardAuthenticated,
   asyncHandler(async (req, res) => {
-    const { emailOrPhone, password } = req.body || {};
-    if (!emailOrPhone || !password) {
+    const { emailOrPhone, password, app } = req.body || {};
+    // Chi nhan chuoi: chan object kieu {"$ne": null} (NoSQL injection) va loi 500.
+    if (typeof emailOrPhone !== "string" || typeof password !== "string" || !emailOrPhone || !password) {
       throw ErrorCodes.VALIDATION_ERROR("Thiếu emailOrPhone hoặc password");
     }
-    const result = await authService.login({ emailOrPhone, password });
+    const result = await authService.login({ emailOrPhone, password, app });
     return ok(res, result);
   }),
 );

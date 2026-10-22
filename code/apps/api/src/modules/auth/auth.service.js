@@ -4,10 +4,19 @@ import { ErrorCodes } from "../../core/errors.js";
 import { signTokenPair, verifyRefreshToken, assertRefreshTokenActive } from "../../core/jwt.js";
 import { assertNotLocked, recordFailure, resetAttempts } from "../../core/loginThrottle.js";
 import { sendMail } from "../../core/mailer.js";
-import { CUSTOMER_TYPE } from "../../constants/enums.js";
+import { APP_ROLES, CUSTOMER_TYPE } from "../../constants/enums.js";
 import { blacklistToken, bumpUserTokenVersion, remainingSeconds } from "../../core/refreshTokenStore.js";
 
-export async function login({ emailOrPhone, password }) {
+const WRONG_APP_MESSAGES = {
+  STAFF: "Tài khoản khách hàng không đăng nhập được App Nhân viên. Vui lòng dùng App Khách hàng.",
+  CUSTOMER: "Tài khoản nhân viên không dùng App Khách hàng. Vui lòng dùng App Nhân viên.",
+};
+
+// app: "CUSTOMER" | "STAFF" | undefined. Bo trong = khong gioi han (Swagger, test, script).
+export async function login({ emailOrPhone, password, app }) {
+  if (app !== undefined && !Object.hasOwn(APP_ROLES, app)) {
+    throw ErrorCodes.VALIDATION_ERROR("app phải là CUSTOMER hoặc STAFF");
+  }
   await assertNotLocked(emailOrPhone);
 
   const user = await User.findOne({
@@ -28,6 +37,13 @@ export async function login({ emailOrPhone, password }) {
   }
 
   await resetAttempts(emailOrPhone);
+
+  // Kiem tra SAU khi dung mat khau: neu kiem tra truoc, nguoi la chi can biet
+  // email la do duoc vai tro cua tai khoan. Tu choi o day thi khong cap token.
+  if (app && !APP_ROLES[app].includes(user.role)) {
+    throw ErrorCodes.WRONG_APP(WRONG_APP_MESSAGES[app]);
+  }
+
   const tokens = await signTokenPair(user);
   return {
     ...tokens,
@@ -126,7 +142,11 @@ export async function logoutAll(userId) {
 }
 
 export async function getProfile(userId) {
-  const user = await User.findById(userId).select("-passwordHash");
+  // Kem ten hub/tuyen de App Nhan vien hien thi "Hub phu trach", "Tuyen" ma khong goi them API.
+  const user = await User.findById(userId)
+    .select("-passwordHash")
+    .populate("hubId", "code name")
+    .populate("routeIds", "code name");
   if (!user) throw ErrorCodes.NOT_FOUND("Không tìm thấy người dùng");
   return user;
 }

@@ -4,6 +4,13 @@ export const USER_STATUS = ["PENDING", "ACTIVE", "LOCKED"];
 
 export const CUSTOMER_TYPE = ["INDIVIDUAL", "BUSINESS"];
 
+// Hai san pham client tach theo doi tuong dung (CLAUDE.md muc 2): moi app chi
+// cho dang nhap cac vai tro cua minh. GUEST khong co tai khoan nen khong nam o day.
+export const APP_ROLES = {
+  CUSTOMER: ["CUSTOMER"],
+  STAFF: ["ADMIN", "HUB_STAFF", "SHIPPER"],
+};
+
 export const HUB_TYPE = ["HUB", "POST_OFFICE"];
 
 export const REGION = ["BAC", "TRUNG", "NAM"];
