@@ -94,6 +94,20 @@ Demo một giao dịch cần khách và nhân viên thao tác **cùng lúc** tr�
 - Seed phải có ca trực **của ngày chạy demo** để phân công tự động tìm được shipper.
 - Kiểm thử tự động: một bài Playwright mở **nhiều browser context** (mỗi context
   một vai trò) chạy trọn vòng đời đơn: khách tạo → hub duyệt → shipper lấy/giao → khách thấy DELIVERED.
+  Hiện có `apps/web/tests-e2e/cross-app.spec.js`: admin thêm vùng phục vụ trên App
+  Nhân viên → khách thấy ngay trên Web Khách hàng (mở rộng thành vòng đời đơn khi có module đơn hàng).
+
+Bật toàn bộ môi trường (Docker, API, web, app nhân viên, mỗi cái một cửa sổ, in sẵn
+IP LAN cho điện thoại): `cd code; powershell -ExecutionPolicy Bypass -File .\start-dev.ps1`.
+
+| Thành phần | Cổng | Kiểm thử E2E |
+|---|---|---|
+| API | 4044 (cổng 4000 trên máy dev bị container khác chiếm) | `apps/api`: `npm test` |
+| Web Khách hàng | 5173 | `apps/web`: `npm run test:e2e` |
+| App Nhân viên (web) | 8082 | `apps/staff`: `npm run test:e2e` |
+
+Dev server Expo chạy với `CI=1` thì **tắt theo dõi file** — sửa code xong phải khởi
+động lại, nếu không trình duyệt vẫn chạy bundle cũ và E2E kiểm tra nhầm code cũ.
 
 Cấu trúc thư mục:
 
