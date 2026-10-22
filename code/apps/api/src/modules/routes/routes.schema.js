@@ -3,7 +3,7 @@ import { ErrorCodes } from "../../core/errors.js";
 export function createRouteSchema(body) {
   const { code, name, hubId, maxPickupPerShift, maxDeliveryPerShift } = body;
   if (!code || !name || !hubId || maxPickupPerShift == null || maxDeliveryPerShift == null) {
-    throw ErrorCodes.VALIDATION_ERROR("Thieu code/name/hubId/maxPickupPerShift/maxDeliveryPerShift");
+    throw ErrorCodes.VALIDATION_ERROR("Thiếu code/name/hubId/maxPickupPerShift/maxDeliveryPerShift");
   }
   return {
     code,

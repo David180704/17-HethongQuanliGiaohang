@@ -53,7 +53,7 @@ export const serviceTypesRouter = crudRouter({
   beforeDelete: async (item) => {
     const usedInPriceTable = await PriceTable.exists({ serviceTypeId: item._id });
     if (usedInPriceTable) {
-      throw ErrorCodes.CONFLICT("Loai dich vu dang duoc dung trong bang gia, khong the xoa");
+      throw ErrorCodes.CONFLICT("Loại dịch vụ đang được dùng trong bảng giá, không thể xóa");
     }
   },
 });

@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
 
-const HO = ["Nguyen", "Tran", "Le", "Pham", "Hoang", "Huynh", "Vu", "Vo", "Dang", "Bui", "Do", "Ngo", "Duong"];
-const TEN_DEM = ["Van", "Thi", "Minh", "Quoc", "Thanh", "Huu", "Ngoc", "Gia", "Xuan"];
-const TEN = ["An", "Binh", "Chau", "Dung", "Giang", "Ha", "Khanh", "Lan", "Linh", "Long", "Mai", "Nam", "Phuong", "Quyen", "Son", "Tam", "Thao", "Trang", "Tuan", "Yen"];
+const HO = ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Vũ", "Võ", "Đặng", "Bùi", "Đỗ", "Ngô", "Dương"];
+const TEN_DEM = ["Văn", "Thị", "Minh", "Quốc", "Thanh", "Hữu", "Ngọc", "Gia", "Xuân"];
+const TEN = ["An", "Bình", "Châu", "Dũng", "Giang", "Hà", "Khánh", "Lan", "Linh", "Long", "Mai", "Nam", "Phương", "Quyên", "Sơn", "Tâm", "Thảo", "Trang", "Tuấn", "Yến"];
 
 export function randomVnName() {
   return `${faker.helpers.arrayElement(HO)} ${faker.helpers.arrayElement(TEN_DEM)} ${faker.helpers.arrayElement(TEN)}`;

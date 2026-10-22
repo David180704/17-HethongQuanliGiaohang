@@ -40,7 +40,7 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const { emailOrPhone, password } = req.body || {};
     if (!emailOrPhone || !password) {
-      throw ErrorCodes.VALIDATION_ERROR("Thieu emailOrPhone hoac password");
+      throw ErrorCodes.VALIDATION_ERROR("Thiếu emailOrPhone hoặc password");
     }
     const result = await authService.login({ emailOrPhone, password });
     return ok(res, result);

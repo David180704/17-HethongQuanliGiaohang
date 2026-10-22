@@ -5,14 +5,14 @@ import { ServiceArea } from "../../models/ServiceArea.js";
 export async function createServiceAreaSchema(body) {
   const { province, district, region, routeId } = body;
   if (!province || !district || !region || !routeId) {
-    throw ErrorCodes.VALIDATION_ERROR("Thieu province/district/region/routeId");
+    throw ErrorCodes.VALIDATION_ERROR("Thiếu province/district/region/routeId");
   }
-  if (!REGION.includes(region)) throw ErrorCodes.VALIDATION_ERROR("region khong hop le");
+  if (!REGION.includes(region)) throw ErrorCodes.VALIDATION_ERROR("region không hợp lệ");
 
   // Chan som bang message ro nghia, thay vi de roi vao loi trung khoa chung
   // (unique index tren province+district la tuyen phong ngu cuoi).
   const existing = await ServiceArea.findOne({ province, district });
-  if (existing) throw ErrorCodes.CONFLICT("Quan/huyen nay da thuoc mot tuyen khac");
+  if (existing) throw ErrorCodes.CONFLICT("Quận/huyện này đã thuộc một tuyến khác");
 
   return {
     province,
@@ -33,7 +33,7 @@ export function updateServiceAreaSchema(body) {
     if (body[field] !== undefined) sanitized[field] = body[field];
   }
   if (sanitized.region && !REGION.includes(sanitized.region)) {
-    throw ErrorCodes.VALIDATION_ERROR("region khong hop le");
+    throw ErrorCodes.VALIDATION_ERROR("region không hợp lệ");
   }
   return sanitized;
 }
