@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { User } from "../src/models/User.js";
-import { Hub } from "../src/models/Hub.js";
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27017/edms?directConnection=true";
@@ -26,13 +25,18 @@ before(async () => {
   app = createApp();
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
-  hub = await Hub.create({
+  // Tao hub bang collection tho, KHONG import model Hub: server that cung khong
+  // import Hub o dau ca, nen test phai chung minh auth.service tu dang ky model
+  // truoc khi populate (loi MissingSchemaError da gap tren server that).
+  const { insertedId } = await mongoose.connection.collection("hubs").insertOne({
     code: "HUB-TEST-APPLOGIN",
     name: "Hub Test App Login",
     type: "HUB",
     province: "Hà Nội",
     district: "Hoàn Kiếm",
+    isActive: true,
   });
+  hub = { _id: insertedId };
   customer = await User.create({
     email: "applogin-customer@edms.vn",
     phone: "0909994001",
@@ -63,7 +67,7 @@ before(async () => {
 
 after(async () => {
   await User.deleteMany({ _id: { $in: [customer._id, shipper._id, hubStaff._id] } });
-  await Hub.deleteOne({ _id: hub._id });
+  await mongoose.connection.collection("hubs").deleteOne({ _id: hub._id });
   await getRedis().quit();
   await mongoose.disconnect();
 });
