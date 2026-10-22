@@ -16,6 +16,9 @@ export const env = {
 
   redisUrl: required("REDIS_URL", "redis://localhost:6379"),
 
+  // Vite dev mac dinh 5173; them domain that vao .env (CORS_ORIGIN) khi deploy.
+  corsOrigins: (process.env.CORS_ORIGIN || "http://localhost:5173").split(",").map((s) => s.trim()),
+
   jwt: {
     accessSecret: required("JWT_ACCESS_SECRET", "dev-access-secret"),
     refreshSecret: required("JWT_REFRESH_SECRET", "dev-refresh-secret"),

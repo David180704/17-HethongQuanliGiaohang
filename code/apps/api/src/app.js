@@ -1,7 +1,9 @@
 import express from "express";
+import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger.js";
 import { errorHandler, ErrorCodes } from "./core/errors.js";
+import { env } from "./config/env.js";
 import { authRouter } from "./modules/auth/auth.router.js";
 import { usersRouter } from "./modules/users/users.router.js";
 import { routesRouter } from "./modules/routes/routes.router.js";
@@ -10,6 +12,7 @@ import { serviceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.j
 
 export function createApp() {
   const app = express();
+  app.use(cors({ origin: env.corsOrigins, credentials: true }));
   app.use(express.json());
 
   app.get("/health", (req, res) => res.json({ success: true, data: { status: "ok" } }));
