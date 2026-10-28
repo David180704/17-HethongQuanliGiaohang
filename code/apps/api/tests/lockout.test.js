@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { getContainer } from "../src/container.js";
 
@@ -18,6 +19,7 @@ let user;
 
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+  await removeLeftovers({ emails: ["lockout-test@edms.vn"] });
   app = createApp();
   user = await User.create({
     email: "lockout-test@edms.vn",
@@ -38,7 +40,7 @@ after(async () => {
   await mongoose.disconnect();
 });
 
-test("khoa tai khoan 15 phut sau 5 lan sai mat khau lien tiep", async () => {
+test("[US-06] khoa tai khoan 15 phut sau 5 lan sai mat khau lien tiep", async () => {
   for (let i = 0; i < 4; i++) {
     const res = await request(app).post("/auth/login").send({ emailOrPhone: user.email, password: "sai" });
     assert.equal(res.status, 401, `lan sai thu ${i + 1} phai la 401`);
@@ -58,7 +60,7 @@ test("khoa tai khoan 15 phut sau 5 lan sai mat khau lien tiep", async () => {
   assert.equal(lockedRes.body.error.code, "ACCOUNT_LOCKED");
 });
 
-test("dang nhap dung truoc khi du 5 lan se reset bo dem", async () => {
+test("[US-06] dang nhap dung truoc khi du 5 lan se reset bo dem", async () => {
   await resetAttempts(user.email);
 
   for (let i = 0; i < 3; i++) {

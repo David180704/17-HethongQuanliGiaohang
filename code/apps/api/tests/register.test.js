@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { getRedis } from "../src/config/redis.js";
 
@@ -12,6 +13,7 @@ const createdEmails = [];
 
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+  await removeLeftovers({ emails: ["khong-quan-trong@edms.vn", "reg-missing@edms.vn"] });
   app = createApp();
 });
 
@@ -21,7 +23,7 @@ after(async () => {
   await mongoose.disconnect();
 });
 
-test("dang ky ca nhan duoc kich hoat ACTIVE ngay", async () => {
+test("[US-07] dang ky ca nhan duoc kich hoat ACTIVE ngay", async () => {
   const email = "reg-individual@edms.vn";
   createdEmails.push(email);
 
@@ -38,7 +40,7 @@ test("dang ky ca nhan duoc kich hoat ACTIVE ngay", async () => {
   assert.equal(res.body.data.customerType, "INDIVIDUAL");
 });
 
-test("dang ky doanh nghiep bi PENDING cho duyet", async () => {
+test("[US-07] dang ky doanh nghiep bi PENDING cho duyet", async () => {
   const email = "reg-business@edms.vn";
   createdEmails.push(email);
 
@@ -56,7 +58,7 @@ test("dang ky doanh nghiep bi PENDING cho duyet", async () => {
   assert.equal(res.body.data.status, "PENDING");
 });
 
-test("doanh nghiep thieu shopName/taxCode bi tu choi 400", async () => {
+test("[US-07] doanh nghiep thieu shopName/taxCode bi tu choi 400", async () => {
   const res = await request(app).post("/auth/register").send({
     email: "reg-missing@edms.vn",
     phone: "0909991003",
@@ -69,7 +71,7 @@ test("doanh nghiep thieu shopName/taxCode bi tu choi 400", async () => {
   assert.equal(res.body.error.code, "VALIDATION_ERROR");
 });
 
-test("email da ton tai bi tu choi 409", async () => {
+test("[US-07] email da ton tai bi tu choi 409", async () => {
   const email = "reg-dup@edms.vn";
   createdEmails.push(email);
 
@@ -93,7 +95,7 @@ test("email da ton tai bi tu choi 409", async () => {
   assert.equal(dup.body.error.code, "EMAIL_ALREADY_EXISTS");
 });
 
-test("da dang nhap roi goi /auth/register bi chan (guard nguoc)", async () => {
+test("[US-09] da dang nhap roi goi /auth/register bi chan (guard nguoc)", async () => {
   const email = "reg-guard@edms.vn";
   createdEmails.push(email);
 

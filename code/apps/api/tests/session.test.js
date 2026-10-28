@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { getRedis } from "../src/config/redis.js";
 
@@ -14,6 +15,7 @@ let user;
 
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+  await removeLeftovers({ emails: ["session-test@edms.vn"] });
   app = createApp();
   user = await User.create({
     email: "session-test@edms.vn",
@@ -37,7 +39,7 @@ async function doLogin() {
   return res.body.data;
 }
 
-test("refresh phat cap token moi va vo hieu refresh token cu", async () => {
+test("[US-08] refresh phat cap token moi va vo hieu refresh token cu", async () => {
   const { refreshToken } = await doLogin();
 
   const res = await request(app).post("/auth/refresh").send({ refreshToken });
@@ -49,7 +51,7 @@ test("refresh phat cap token moi va vo hieu refresh token cu", async () => {
   assert.equal(reuse.status, 401);
 });
 
-test("logout vo hieu refresh token hien tai", async () => {
+test("[US-08] logout vo hieu refresh token hien tai", async () => {
   const { refreshToken } = await doLogin();
 
   const out = await request(app).post("/auth/logout").send({ refreshToken });
@@ -59,7 +61,7 @@ test("logout vo hieu refresh token hien tai", async () => {
   assert.equal(res.status, 401);
 });
 
-test("logout-all vo hieu toan bo refresh token da phat truoc do", async () => {
+test("[US-08] logout-all vo hieu toan bo refresh token da phat truoc do", async () => {
   const session1 = await doLogin();
   const session2 = await doLogin();
 
@@ -78,7 +80,7 @@ test("logout-all vo hieu toan bo refresh token da phat truoc do", async () => {
   assert.equal(r3.status, 200);
 });
 
-test("logout-all khong co token tra ve 401", async () => {
+test("[US-08] logout-all khong co token tra ve 401", async () => {
   const res = await request(app).post("/auth/logout-all");
   assert.equal(res.status, 401);
 });

@@ -50,26 +50,26 @@ after(async () => {
   await mongoose.disconnect();
 });
 
-test("CUSTOMER ke thua toan bo quyen cua GUEST (duyet cay, khong so khop phang)", async () => {
+test("[US-09] CUSTOMER ke thua toan bo quyen cua GUEST (duyet cay, khong so khop phang)", async () => {
   const permissions = await permissionService.resolve("CUSTOMER");
   assert.ok(permissions.includes("order:create"), "phai co quyen rieng cua CUSTOMER");
   assert.ok(permissions.includes("order:track"), "phai ke thua quyen order:track tu GUEST");
   assert.ok(permissions.includes("priceTable:read"), "phai ke thua quyen priceTable:read tu GUEST");
 });
 
-test("GUEST khong co quyen rieng cua CUSTOMER", async () => {
+test("[US-09] GUEST khong co quyen rieng cua CUSTOMER", async () => {
   const permissions = await permissionService.resolve("GUEST");
   assert.ok(!permissions.includes("order:create"));
 });
 
-test("Ket qua duyet cay duoc cache tren Redis", async () => {
+test("[US-09] Ket qua duyet cay duoc cache tren Redis", async () => {
   await permissionService.resolve("CUSTOMER");
   const cached = await cache.peek("permissions", ["CUSTOMER"]);
   assert.ok(cached, "phai co cache sau khi resolve");
   assert.ok(cached.includes("order:track"));
 });
 
-test("Doi quyen GUEST thi CUSTOMER (vai tro ke thua) thay ngay, khong doi cache het han", async () => {
+test("[US-09] Doi quyen GUEST thi CUSTOMER (vai tro ke thua) thay ngay, khong doi cache het han", async () => {
   await permissionService.resolve("CUSTOMER"); // nap cache truoc
   await Role.updateOne({ code: "GUEST" }, { $addToSet: { permissions: "tracking:view-map" } });
   await permissionService.invalidate();
@@ -78,7 +78,7 @@ test("Doi quyen GUEST thi CUSTOMER (vai tro ke thua) thay ngay, khong doi cache 
   assert.ok(permissions.includes("tracking:view-map"), "CUSTOMER phai thay quyen moi cua GUEST ngay");
 });
 
-test("ADMIN voi quyen wildcard '*' duoc phep lam moi hanh dong", async () => {
+test("[US-09] ADMIN voi quyen wildcard '*' duoc phep lam moi hanh dong", async () => {
   let calledWith;
   const req = { user: { role: "ADMIN" } };
   const next = (err) => (calledWith = err);
@@ -88,7 +88,7 @@ test("ADMIN voi quyen wildcard '*' duoc phep lam moi hanh dong", async () => {
   assert.equal(calledWith, undefined, "next() phai duoc goi khong co loi");
 });
 
-test("CUSTOMER khong co quyen rieng cua ADMIN bi FORBIDDEN", async () => {
+test("[US-09] CUSTOMER khong co quyen rieng cua ADMIN bi FORBIDDEN", async () => {
   let calledWith;
   const req = { user: { role: "CUSTOMER" } };
   const next = (err) => (calledWith = err);
