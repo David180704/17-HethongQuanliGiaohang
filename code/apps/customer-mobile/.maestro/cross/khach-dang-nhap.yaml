@@ -1,0 +1,28 @@
+appId: host.exp.exponent
+name: "[Lien thiet bi] Khach dang nhap App Khach hang bang USER_EMAIL, EXPECT = ok hoac locked"
+---
+# Khong chay rieng: test Playwright (tests-e2e/cross-device.spec.js) goi kem tham so.
+# Tham so chi dung chu ASCII (chu co dau di qua maestro.bat bi vo ma).
+- runFlow: ../subflows/open-app.yaml
+- tapOn:
+    id: "home-login"
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      USER_EMAIL: ${USER_EMAIL}
+- runFlow:
+    when:
+      true: ${EXPECT == "ok"}
+    commands:
+      - extendedWaitUntil:
+          visible: "Tài khoản của tôi"
+          timeout: 20000
+      - takeScreenshot: x01-khach-dang-nhap-duoc
+- runFlow:
+    when:
+      true: ${EXPECT == "locked"}
+    commands:
+      - extendedWaitUntil:
+          visible: "Tài khoản đã bị quản trị viên khóa"
+          timeout: 20000
+      - takeScreenshot: x02-khach-bi-khoa

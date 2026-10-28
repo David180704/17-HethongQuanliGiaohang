@@ -1,0 +1,43 @@
+appId: host.exp.exponent
+name: "[US-08] Dang xuat - ve Trang chu, mo lai app van la khach vang lai"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-login"
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: shop1@edms.vn
+- extendedWaitUntil:
+    visible: "Tài khoản của tôi"
+    timeout: 20000
+- assertVisible: "Doanh nghiệp / shop"
+- assertVisible: "Shop 1"
+- takeScreenshot: c14-tai-khoan-shop
+- tapOn:
+    id: "account-logout"
+- tapOn:
+    id: "android:id/button1"
+- extendedWaitUntil:
+    visible:
+      id: "home-login"
+    timeout: 15000
+# Tat han roi mo lai: phien da xoa khoi bo nho may (AsyncStorage) thi khong tu dang nhap lai.
+- stopApp
+- waitForAnimationToEnd:
+    timeout: 3000
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: exp://127.0.0.1:8083
+      - extendedWaitUntil:
+          visible: "EDMS Express"
+          timeout: 30000
+- assertVisible:
+    id: "home-login"
+- tapOn:
+    id: "tab-account"
+- assertVisible: "Bạn chưa đăng nhập"
+- takeScreenshot: c15-sau-dang-xuat

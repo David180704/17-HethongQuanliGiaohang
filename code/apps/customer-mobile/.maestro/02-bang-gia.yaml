@@ -1,0 +1,17 @@
+appId: host.exp.exponent
+name: "[PB-04] Bang gia - doi Giao hang nhanh thi gia tang theo phu phi 50%"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "tab-pricing"
+- assertVisible: "Nội quận"
+# Seed: noi quan bac 0 - 500 g la 15.000 d; gui nhanh he so 0.5 -> 22.500 d
+- assertVisible: "15.000 ₫"
+- takeScreenshot: c03-bang-gia-thuong
+- tapOn:
+    id: "service-EXPRESS"
+- assertVisible: "22.500 ₫"
+- assertVisible: "Phụ phí dịch vụ \\+50%.*"
+- takeScreenshot: c04-bang-gia-nhanh

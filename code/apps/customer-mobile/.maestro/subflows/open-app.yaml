@@ -1,0 +1,57 @@
+appId: host.exp.exponent
+name: Mo App Khach hang trong Expo Go, ve Trang chu o trang thai CHUA dang nhap
+---
+# Can truoc: Metro App Khach hang dang chay (apps/customer-mobile: npm start, cong 8083) va
+#   adb reverse tcp:8083 tcp:8083 ; adb reverse tcp:4044 tcp:4044   (code/test-mobile.ps1 tu lam)
+# "127.0.0.1" tren may ao tro ve may dev.
+#
+# Tat han Expo Go truoc de moi flow bat dau tu man hinh dau tien (giong App Nhan vien).
+- stopApp
+- waitForAnimationToEnd:
+    timeout: 3000
+# openLink ngay sau stopApp doi khi bi Android bo qua -> thu lai toi da 3 lan.
+# Lan dau mo du an, Metro phai dong goi JS cho Android (~1 phut) nen cho lau.
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: exp://127.0.0.1:8083
+      - extendedWaitUntil:
+          visible: "EDMS Express"
+          timeout: 90000
+# Lan dau mo, Expo Go hien bang "developer menu" che mat man hinh.
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+# Nut noi "Tools" cua Expo Go (cai dat chung cho moi du an) - tat neu con.
+- runFlow:
+    when:
+      visible: "Tools"
+    commands:
+      - tapOn: "Tools"
+      - scrollUntilVisible:
+          element:
+            text: "Tools button"
+          direction: DOWN
+      - tapOn: "Tools button"
+      - tapOn: "Close"
+# Con phien dang nhap tu lan truoc -> dang xuat de flow nao cung bat dau nhu khach vang lai.
+- tapOn:
+    id: "tab-account"
+- runFlow:
+    when:
+      visible:
+        id: "account-logout"
+    commands:
+      - tapOn:
+          id: "account-logout"
+      # Nut "Đăng xuất" trong hop thoai xac nhan (nut positive cua Android)
+      - tapOn:
+          id: "android:id/button1"
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "home-login"
+    timeout: 15000
