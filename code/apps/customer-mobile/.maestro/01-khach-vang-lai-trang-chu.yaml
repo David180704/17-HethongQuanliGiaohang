@@ -1,0 +1,23 @@
+appId: host.exp.exponent
+name: "[PB-01] Khach vang lai xem trang chu, dich vu, so lieu - khong can dang nhap"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- assertVisible: "Gửi hàng toàn quốc, theo dõi từng chặng"
+- assertVisible: "Tạo đơn ngay"
+- assertVisible:
+    id: "home-login"
+- takeScreenshot: c01-trang-chu
+- scrollUntilVisible:
+    element:
+      text: "Giao hàng nhanh"
+    direction: DOWN
+- assertVisible: "Giao hàng tiêu chuẩn"
+- assertVisible: "Phụ phí dịch vụ \\+50%"
+- scrollUntilVisible:
+    element:
+      text: "quận/huyện đang phục vụ"
+    direction: DOWN
+- assertVisible: "20 triệu ₫"
+- takeScreenshot: c02-trang-chu-dich-vu

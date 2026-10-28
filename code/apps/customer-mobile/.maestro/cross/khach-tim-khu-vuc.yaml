@@ -1,0 +1,30 @@
+appId: host.exp.exponent
+name: "[Lien thiet bi] Khach tim quan SEARCH tren App Khach hang, FOUND = true hoac false"
+---
+# Khong chay rieng: test Playwright (tests-e2e/cross-device.spec.js) goi kem tham so (ASCII).
+# Khong kiem "thay chu SEARCH": chinh o tim kiem cung chua chu do -> pass nham.
+- runFlow: ../subflows/open-app.yaml
+- tapOn:
+    id: "tab-coverage"
+- tapOn:
+    id: "coverage-search"
+- inputText: ${SEARCH}
+- hideKeyboard
+- runFlow:
+    when:
+      true: ${FOUND == "true"}
+    commands:
+      - extendedWaitUntil:
+          visible: "1 quận/huyện tại 1 tỉnh/thành"
+          timeout: 20000
+      # Tinh do test lien thiet bi tao (tests-e2e/cross-device.spec.js)
+      - assertVisible: "Tinh Lien Thiet Bi KH"
+      - takeScreenshot: x03-khach-thay-khu-vuc-moi
+- runFlow:
+    when:
+      true: ${FOUND == "false"}
+    commands:
+      - extendedWaitUntil:
+          visible: "Chưa phục vụ khu vực.*"
+          timeout: 20000
+      - takeScreenshot: x04-khach-khong-thay-khu-vuc
