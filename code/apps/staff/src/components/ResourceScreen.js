@@ -179,6 +179,7 @@ export default function ResourceScreen({ config, accent, onBack }) {
   const header = (
     <View style={styles.toolbar}>
       <TextField
+        testID="search-input"
         placeholder={config.searchPlaceholder || "Tìm kiếm..."}
         value={searchInput}
         onChangeText={setSearchInput}

@@ -4,7 +4,19 @@ import { colors } from "../theme";
 // Thay cho <select>: React Native khong co dropdown san, ma danh muc o day it
 // lua chon (vai tro, mien, tuyen) nen bay het ra dang chip de bam 1 cham.
 // multiple=true -> value la mang (vd routeIds cua tai xe).
-export default function ChipSelect({ label, required = false, help, options, value, onChange, multiple = false, loading = false }) {
+// testID: moi chip nhan testID "<testID>-<value>" (vd field-status-LOCKED) de test
+// tu dong bam dung chip, khong nham voi chu giong het o noi khac tren man hinh.
+export default function ChipSelect({
+  label,
+  required = false,
+  help,
+  options,
+  value,
+  onChange,
+  multiple = false,
+  loading = false,
+  testID,
+}) {
   const selected = multiple ? (Array.isArray(value) ? value : []) : value;
 
   function toggle(optionValue) {
@@ -31,6 +43,7 @@ export default function ChipSelect({ label, required = false, help, options, val
           return (
             <Pressable
               key={String(option.value)}
+              testID={testID ? `${testID}-${option.value}` : undefined}
               role={multiple ? "checkbox" : "radio"}
               aria-checked={active}
               aria-label={option.label}
