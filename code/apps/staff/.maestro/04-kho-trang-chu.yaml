@@ -1,0 +1,13 @@
+appId: host.exp.exponent
+name: HUB_STAFF thay hub phu trach, khong co menu quan tri
+tags:
+  - smoke
+---
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: hubstaff1@edms.vn
+- assertVisible: "Hub phụ trách: .*\\((HUB|PO)-.*\\)"
+- assertVisible: "Duyệt đơn mới"
+- assertNotVisible: "Người dùng"
+- takeScreenshot: 04-kho-trang-chu

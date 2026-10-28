@@ -1,0 +1,18 @@
+appId: host.exp.exponent
+name: ADMIN thay trang quan tri voi 4 danh muc va so ban ghi that
+tags:
+  - smoke
+---
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: admin@edms.vn
+- assertVisible: "Quản Trị Hệ Thống"
+- assertVisible: "Người dùng"
+- assertVisible: "Tuyến"
+- assertVisible: "Khu vực phục vụ"
+- assertVisible: "Loại dịch vụ"
+- extendedWaitUntil:
+    visible: "\\d+ bản ghi"
+    timeout: 15000
+- takeScreenshot: 03-admin-trang-chu

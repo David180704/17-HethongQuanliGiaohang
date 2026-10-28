@@ -48,3 +48,6 @@ playwright-report/
 # Bien moi truong may ca nhan
 .env
 .env.local
+
+# Bao cao Maestro (anh chup, log tung buoc)
+maestro-report/

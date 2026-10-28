@@ -1,0 +1,22 @@
+appId: host.exp.exponent
+name: "[Lien app] ADMIN doi trang thai tai khoan TARGET_EMAIL thanh STATUS"
+---
+# Khong chay rieng: duoc test web goi kem tham so
+#   TARGET_EMAIL (vd customer3@edms.vn), STATUS (ACTIVE | LOCKED)
+- runFlow:
+    file: ../subflows/login-ok.yaml
+    env:
+      USER_EMAIL: admin@edms.vn
+- tapOn: "Người dùng"
+- tapOn:
+    id: "search-input"
+- inputText: ${TARGET_EMAIL}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Tổng 1 bản ghi.*"
+    timeout: 15000
+- tapOn: "Sửa"
+- tapOn:
+    id: "field-status-${STATUS}"
+- tapOn: "Lưu"
+- assertVisible: "Đã lưu thay đổi"
