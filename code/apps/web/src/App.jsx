@@ -15,9 +15,15 @@ import NotFoundPage from "./pages/NotFoundPage.jsx";
 // Web Khach hang: khach vang lai xem duoc trang chu, bang gia, vung phuc vu.
 // Chi "Tao don" va "Tai khoan" moi doi dang nhap (ProtectedRoute).
 // Trang quan tri da chuyen sang App Nhan vien (apps/staff).
+//
+// useTransitions={false}: mac dinh react-router boc moi lan doi URL trong
+// startTransition (uu tien thap hon setState thuong). Khi dang xuat o trang can
+// dang nhap, React ve user=null TRUOC khi URL kip doi -> ProtectedRoute day sang
+// /dang-nhap?next=..., de mat lenh navigate("/"). Tat transition thi hai cap nhat
+// duoc gop vao cung mot lan ve. App khong dung Suspense nen khong mat gi.
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter useTransitions={false}>
       <AuthProvider>
         <Routes>
           <Route element={<SiteLayout />}>
