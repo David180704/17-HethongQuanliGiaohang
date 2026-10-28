@@ -61,6 +61,7 @@ export default function LoginScreen() {
 
         <View style={styles.card}>
           <TextField
+            testID="login-identity"
             label="Email hoặc số điện thoại"
             placeholder="vd: shipper1@edms.vn"
             value={emailOrPhone}
@@ -73,6 +74,7 @@ export default function LoginScreen() {
             returnKeyType="next"
           />
           <TextField
+            testID="login-password"
             label="Mật khẩu"
             value={password}
             onChangeText={setPassword}

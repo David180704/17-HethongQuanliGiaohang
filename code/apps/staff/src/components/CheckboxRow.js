@@ -1,10 +1,17 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme";
 
-export default function CheckboxRow({ label, value, onChange }) {
+export default function CheckboxRow({ label, value, onChange, testID }) {
   const checked = Boolean(value);
   return (
-    <Pressable role="checkbox" aria-checked={checked} aria-label={label} onPress={() => onChange(!checked)} style={styles.row}>
+    <Pressable
+      testID={testID}
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label}
+      onPress={() => onChange(!checked)}
+      style={styles.row}
+    >
       <View style={[styles.box, checked && styles.boxChecked]}>{checked ? <Text style={styles.tick}>✓</Text> : null}</View>
       <Text style={styles.label}>{label}</Text>
     </Pressable>
