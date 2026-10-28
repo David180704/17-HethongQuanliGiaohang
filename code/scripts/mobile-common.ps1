@@ -76,18 +76,42 @@ function Get-BootedDevice {
   return $null
 }
 
-# Bat may ao neu chua chay, cho boot xong (toi da 4 phut)
+# Tien trinh may ao cua du an (dong lenh co "-avd <ten>"), khong dung toi may ao khac.
+function Get-ProjectEmulatorProcess {
+  Get-CimInstance Win32_Process -Filter "Name='qemu-system-x86_64.exe' OR Name='emulator.exe'" |
+    Where-Object { $_.CommandLine -match "-avd\s+$([regex]::Escape($script:AvdName))(\s|$)" }
+}
+
+# Doi may ao boot xong (adb thay thiet bi + sys.boot_completed=1). Tra ve serial hoac $null.
+function Wait-EmulatorBooted($seconds) {
+  for ($waited = 0; $waited -lt $seconds; $waited += 2) {
+    Start-Sleep -Seconds 2
+    $serial = Get-BootedDevice
+    if ($serial) { Write-Step "May ao boot xong sau ~${waited}s: $serial"; return $serial }
+  }
+  return $null
+}
+
+# Bat may ao neu chua chay. LUON khoi dong nguoi (-no-snapshot), cham hon ~20 giay nhung:
+#   - khoi dong nhanh tu snapshot lam may ao giu ~10 GB bo nho ao (khoi dong nguoi ~2 GB);
+#     tren may dev o C: gan day, het bo nho ao -> Windows buoc dung Vite/Playwright giua chung
+#   - snapshot hay hong khi may ao bi tat ngang -> lan sau treo man hinh den, adb "offline"
 function Start-EmulatorIfNeeded {
   $serial = Get-BootedDevice
   if ($serial) { Write-Step "May ao da chay: $serial"; return $serial }
-  Write-Step "Bat may ao $script:AvdName (cua so may ao se hien len)..."
-  Start-Process -FilePath $script:Emulator -ArgumentList @("-avd", $script:AvdName, "-no-boot-anim", "-netdelay", "none", "-netspeed", "full")
-  for ($i = 0; $i -lt 120; $i++) {
-    Start-Sleep -Seconds 2
-    $serial = Get-BootedDevice
-    if ($serial) { Write-Step "May ao boot xong sau ~$($i * 2)s: $serial"; return $serial }
+  if (Get-ProjectEmulatorProcess) {
+    Write-Step "May ao $script:AvdName da bat nhung chua san sang, cho toi da 60 giay..."
+    $serial = Wait-EmulatorBooted 60
+    if ($serial) { return $serial }
+    Write-Step "Van chua san sang (may ao treo) -> tat de bat lai tu dau"
+    Get-ProjectEmulatorProcess | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Start-Sleep -Seconds 3
   }
-  Write-Fail "May ao khong boot xong sau 4 phut"
+  Write-Step "Bat may ao $script:AvdName, khoi dong nguoi khoang 40 giay (cua so may ao se hien len)..."
+  Start-Process -FilePath $script:Emulator -ArgumentList @("-avd", $script:AvdName, "-no-snapshot", "-no-boot-anim", "-netdelay", "none", "-netspeed", "full")
+  $serial = Wait-EmulatorBooted 240
+  if ($serial) { return $serial }
+  Write-Fail "May ao khong boot xong sau 4 phut. Thuong do may thieu bo nho ao: xem docs/HuongDanChayThu.md, muc Loi thuong gap"
   exit 1
 }
 
