@@ -1,0 +1,57 @@
+{
+  // Terminal -> Run Task... (hoac Ctrl+Shift+P -> "Tasks: Run Task") -> chon "EDMS: ..."
+  // Lan dau sau khi cai Android SDK/Maestro: khoi dong lai VS Code de nhan bien moi truong.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "EDMS: 1. Bat moi truong dev (Docker, API, Web, App Nhan vien)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: 2. Mo may ao Android + App Nhan vien",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\" -OpenOnly",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test mobile (Maestro tren may ao)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\"",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test web (Playwright)",
+      "type": "shell",
+      "command": "npx playwright test",
+      "options": { "cwd": "${workspaceFolder}/code/apps/web" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test song song web + mobile",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-song-song.ps1\"",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test backend (API)",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/code/apps/api" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Maestro Studio (bam chon phan tu tren may ao de viet flow)",
+      "type": "shell",
+      "command": "maestro studio",
+      "options": { "cwd": "${workspaceFolder}/code/apps/staff" },
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
