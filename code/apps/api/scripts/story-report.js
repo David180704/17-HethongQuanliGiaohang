@@ -65,7 +65,7 @@ const UI_TESTS = {
   "US-26": "Maestro 01–07 trên máy ảo Android · App NV: 13 kịch bản",
   "PB-01": "Web: trang chủ, vùng phục vụ",
   "PB-04": "Web: bảng giá đổi theo dịch vụ",
-  CACHE: "Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây",
+  CACHE: "Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây, đổi tài khoản không lộ hồ sơ người trước",
 };
 
 console.log("Dang chay toan bo test API (mat khoang 10-20 giay)...");
