@@ -1,6 +1,5 @@
-import { crudRouter } from "../../core/crudRouter.js";
-import { ServiceArea } from "../../models/ServiceArea.js";
-import { createServiceAreaSchema, updateServiceAreaSchema } from "./serviceAreas.schema.js";
+import { createCrudRouter } from "../../core/createCrudRouter.js";
+import { CrudController } from "../../core/CrudController.js";
 
 /**
  * @openapi
@@ -42,10 +41,10 @@ import { createServiceAreaSchema, updateServiceAreaSchema } from "./serviceAreas
  *       200: { description: Da xoa }
  */
 
-export const serviceAreasRouter = crudRouter({
-  model: ServiceArea,
-  resource: "serviceAreas",
-  createSchema: createServiceAreaSchema,
-  updateSchema: updateServiceAreaSchema,
-  searchFields: ["province", "district"],
-});
+export function buildServiceAreasRouter({ services, middleware }) {
+  return createCrudRouter({
+    controller: new CrudController(services.serviceAreas),
+    permission: "serviceAreas:manage",
+    ...middleware,
+  });
+}

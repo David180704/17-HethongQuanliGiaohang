@@ -2,10 +2,14 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import { Role } from "../src/models/Role.js";
-import { resolvePermissions, invalidatePermissionsCache, requirePermission } from "../src/middleware/rbac.js";
+import { getContainer } from "../src/container.js";
+import { createRequirePermission } from "../src/middleware/rbac.js";
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27017/edms?directConnection=true";
+
+const { permissionService, cache } = getContainer();
+const requirePermission = createRequirePermission(permissionService);
 
 let originalGuest;
 let originalCustomer;
@@ -25,42 +29,53 @@ before(async () => {
     { $set: { permissions: ["order:create"], inheritsFrom: "GUEST" } },
     { upsert: true },
   );
-
-  await invalidatePermissionsCache("GUEST");
-  await invalidatePermissionsCache("CUSTOMER");
+  await permissionService.invalidate();
 });
 
 after(async () => {
   if (originalGuest) {
-    await Role.updateOne({ code: "GUEST" }, { $set: { permissions: originalGuest.permissions, inheritsFrom: originalGuest.inheritsFrom } });
+    await Role.updateOne(
+      { code: "GUEST" },
+      { $set: { permissions: originalGuest.permissions, inheritsFrom: originalGuest.inheritsFrom } },
+    );
   }
   if (originalCustomer) {
-    await Role.updateOne({ code: "CUSTOMER" }, { $set: { permissions: originalCustomer.permissions, inheritsFrom: originalCustomer.inheritsFrom } });
+    await Role.updateOne(
+      { code: "CUSTOMER" },
+      { $set: { permissions: originalCustomer.permissions, inheritsFrom: originalCustomer.inheritsFrom } },
+    );
   }
-  await invalidatePermissionsCache("GUEST");
-  await invalidatePermissionsCache("CUSTOMER");
+  await permissionService.invalidate();
   await getRedis().quit();
   await mongoose.disconnect();
 });
 
 test("CUSTOMER ke thua toan bo quyen cua GUEST (duyet cay, khong so khop phang)", async () => {
-  const permissions = await resolvePermissions("CUSTOMER");
+  const permissions = await permissionService.resolve("CUSTOMER");
   assert.ok(permissions.includes("order:create"), "phai co quyen rieng cua CUSTOMER");
   assert.ok(permissions.includes("order:track"), "phai ke thua quyen order:track tu GUEST");
   assert.ok(permissions.includes("priceTable:read"), "phai ke thua quyen priceTable:read tu GUEST");
 });
 
 test("GUEST khong co quyen rieng cua CUSTOMER", async () => {
-  const permissions = await resolvePermissions("GUEST");
+  const permissions = await permissionService.resolve("GUEST");
   assert.ok(!permissions.includes("order:create"));
 });
 
 test("Ket qua duyet cay duoc cache tren Redis", async () => {
-  await resolvePermissions("CUSTOMER");
-  const cached = await getRedis().get("perm:CUSTOMER");
+  await permissionService.resolve("CUSTOMER");
+  const cached = await cache.peek("permissions", ["CUSTOMER"]);
   assert.ok(cached, "phai co cache sau khi resolve");
-  const parsed = JSON.parse(cached);
-  assert.ok(parsed.includes("order:track"));
+  assert.ok(cached.includes("order:track"));
+});
+
+test("Doi quyen GUEST thi CUSTOMER (vai tro ke thua) thay ngay, khong doi cache het han", async () => {
+  await permissionService.resolve("CUSTOMER"); // nap cache truoc
+  await Role.updateOne({ code: "GUEST" }, { $addToSet: { permissions: "tracking:view-map" } });
+  await permissionService.invalidate();
+
+  const permissions = await permissionService.resolve("CUSTOMER");
+  assert.ok(permissions.includes("tracking:view-map"), "CUSTOMER phai thay quyen moi cua GUEST ngay");
 });
 
 test("ADMIN voi quyen wildcard '*' duoc phep lam moi hanh dong", async () => {

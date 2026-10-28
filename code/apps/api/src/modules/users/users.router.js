@@ -1,6 +1,5 @@
-import { crudRouter } from "../../core/crudRouter.js";
-import { User } from "../../models/User.js";
-import { createUserSchema, updateUserSchema } from "./users.schema.js";
+import { createCrudRouter } from "../../core/createCrudRouter.js";
+import { CrudController } from "../../core/CrudController.js";
 
 /**
  * @openapi
@@ -40,12 +39,11 @@ import { createUserSchema, updateUserSchema } from "./users.schema.js";
 // Chi ADMIN quan ly: tao tai khoan nhan vien (SHIPPER/HUB_STAFF/ADMIN khong tu
 // dang ky duoc o dau khac), doi vai tro, khoa/mo tai khoan. Khong cho DELETE
 // vi se mo cot du lieu dang tham chieu (orders.customerId, assignments.shipperId...).
-export const usersRouter = crudRouter({
-  model: User,
-  resource: "users",
-  createSchema: createUserSchema,
-  updateSchema: updateUserSchema,
-  searchFields: ["email", "phone", "fullName"],
-  allowDelete: false,
-  select: "-passwordHash",
-});
+export function buildUsersRouter({ services, middleware }) {
+  return createCrudRouter({
+    controller: new CrudController(services.users),
+    permission: "users:manage",
+    allowDelete: false,
+    ...middleware,
+  });
+}
