@@ -26,7 +26,8 @@ export const env = {
   },
 
   // Vite dev mac dinh 5173; them domain that vao .env (CORS_ORIGIN) khi deploy.
-  corsOrigins: (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:8081,http://localhost:8082").split(",").map((s) => s.trim()),
+  // 8082: App Nhan vien ban web; 8083: App Khach hang mobile ban web (apps/customer-mobile)
+  corsOrigins: (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:8081,http://localhost:8082,http://localhost:8083").split(",").map((s) => s.trim()),
 
   jwt: {
     accessSecret: required("JWT_ACCESS_SECRET", "dev-access-secret"),
