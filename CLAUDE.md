@@ -684,6 +684,9 @@ buộc, không phải tùy chọn). Xem Đợt 8.
 | Kết nối Mongo | Thêm `replicaSet=rs0` vào chuỗi kết nối từ host → treo |
 | Đối soát | Gom nhầm đơn đã thuộc kỳ khác |
 | crudRouter | Áp `select` (ẩn field nhạy cảm) chỉ ở GET, quên áp luôn cho response của POST/PUT |
+| Điều hướng web | react-router mặc định đổi URL trong `startTransition` (chậm hơn `setState`): đổi trạng thái đăng nhập rồi `navigate()` thì route guard chạy trước, đè mất đích đến. Web đã đặt `<BrowserRouter useTransitions={false}>`, đừng gỡ |
+| Cache phía app | `clear()`/`invalidate()` chỉ xóa dữ liệu đã lưu mà quên bỏ request đang chạy → kết quả của người dùng trước, hoặc từ trước khi ghi, lọt vào cache |
+| Test giao diện | Kiểm một trạng thái chỉ thoáng qua (link hiện 1 khung hình) → pass/fail tùy máy nhanh hay chậm. Kiểm trạng thái cuối, và thử gỡ bản sửa xem test có fail không |
 
 Khi viết các phần này, **viết unit test trước khi dựng giao diện**.
 
