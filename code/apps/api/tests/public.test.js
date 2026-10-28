@@ -61,6 +61,22 @@ test("[PB-01] GET /public/service-areas tim theo ten quan, khong lo routeId", as
   assert.equal(res.body.data[0].routeId, undefined);
 });
 
+test("[PB-01] GET /public/service-areas: go khong dau van tim ra (hoan kiem, dong da, TP HCM)", async () => {
+  for (const [search, district] of [
+    ["hoan kiem", "Hoàn Kiếm"],
+    ["DONG DA", "Đống Đa"],
+    ["quan 7", "Quận 7"],
+  ]) {
+    const res = await request(app).get("/public/service-areas").query({ search });
+    assert.equal(res.status, 200, search);
+    assert.deepEqual(
+      res.body.data.map((a) => a.district),
+      [district],
+      `"${search}" phai ra dung ${district}`,
+    );
+  }
+});
+
 test("[PB-01] GET /public/service-areas: ky tu dac biet trong search khong lam vo regex", async () => {
   const res = await request(app).get("/public/service-areas").query({ search: "(((" });
   assert.equal(res.status, 200);
