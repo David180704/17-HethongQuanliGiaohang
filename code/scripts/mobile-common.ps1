@@ -55,19 +55,43 @@ function Test-Url($url) {
   } catch { return $false }
 }
 
-# API (4044) va Metro cua App Nhan vien (8082) phai dang chay
-function Assert-Servers([switch]$NeedWeb) {
-  $checks = @(@("API", "http://localhost:4044/health"), @("Metro App Nhan vien", "http://localhost:8082"))
+# API (4044) va Metro cua app can test phai dang chay:
+#   App Nhan vien 8082 (-NeedStaff), App Khach hang mobile 8083 (-NeedCustomer), Web 5173 (-NeedWeb)
+function Assert-Servers([switch]$NeedWeb, [switch]$NeedStaff, [switch]$NeedCustomer) {
+  $checks = @(, @("API", "http://localhost:4044/health"))
+  if ($NeedStaff) { $checks += , @("Metro App Nhan vien", "http://localhost:8082") }
+  if ($NeedCustomer) { $checks += , @("Metro App Khach hang", "http://localhost:8083") }
   if ($NeedWeb) { $checks += , @("Web Khach hang", "http://localhost:5173") }
   $down = @($checks | Where-Object { -not (Test-Url $_[1]) } | ForEach-Object { "$($_[0]) ($($_[1]))" })
   if ($down.Count -gt 0) {
     Write-Fail "Chua chay: $($down -join ', ')"
-    Write-Host "Bat moi truong truoc: powershell -ExecutionPolicy Bypass -File code\start-dev.ps1"
+    Write-Host "Bat moi truong truoc: powershell -ExecutionPolicy Bypass -File code\start-dev.ps1 -Local"
+    exit 1
+  }
+}
+
+# Test tao/sua/xoa du lieu thu (khu vuc, khoa tai khoan, dang ky). Chi chay khi API dang noi
+# CSDL local; API noi Atlas (du lieu that) thi dung lai. Bo chot: dat bien E2E_ALLOW_CLOUD=1.
+function Assert-LocalDatabase {
+  if ($env:E2E_ALLOW_CLOUD -eq "1") { return }
+  try {
+    $health = Invoke-RestMethod -Uri "http://localhost:4044/health" -TimeoutSec 5
+  } catch {
+    Write-Fail "Khong goi duoc http://localhost:4044/health"
+    exit 1
+  }
+  if ($health.data.database.cloud) {
+    Write-Fail "API dang dung CSDL cloud ($($health.data.database.host)). Test se ghi du lieu thu len Atlas."
+    Write-Host "Chay API voi CSDL local: tat cua so API roi chay  code\start-dev.ps1 -Local"
     exit 1
   }
 }
 
 function Get-BootedDevice {
+  # Lan goi adb dau tien sau khi bat may tinh in "daemon not running; starting now" ra stderr.
+  # PowerShell 5.1 + ErrorActionPreference=Stop (cua script goi) + 2>$null -> dong stderr do
+  # thanh loi dung script. Ha xuong Continue trong pham vi ham nay.
+  $ErrorActionPreference = "Continue"
   $lines = & $script:Adb devices 2>$null | Select-Object -Skip 1 | Where-Object { $_ -match "^(emulator-\d+)\s+device$" }
   if (-not $lines) { return $null }
   $serial = ($lines | Select-Object -First 1) -replace "\s+device$", ""
@@ -118,8 +142,10 @@ function Start-EmulatorIfNeeded {
 # Cau hinh may ao cho test: noi cong ve may dev, tat bang "viet tay bang but"
 # (Gboard hien hop thoai "Try out your stylus" che form khi Maestro bam o nhap).
 function Initialize-Emulator($serial) {
-  & $script:Adb -s $serial reverse tcp:8082 tcp:8082 | Out-Null
-  & $script:Adb -s $serial reverse tcp:4044 tcp:4044 | Out-Null
+  # 8082: App Nhan vien, 8083: App Khach hang mobile, 4044: API, 5173: Web Khach hang (Chrome tren may ao)
+  foreach ($port in 8082, 8083, 4044, 5173) {
+    & $script:Adb -s $serial reverse "tcp:$port" "tcp:$port" | Out-Null
+  }
   & $script:Adb -s $serial shell settings put secure stylus_handwriting_enabled 0 | Out-Null
   & $script:Adb -s $serial shell input keyevent KEYCODE_WAKEUP | Out-Null
   $expoGo = & $script:Adb -s $serial shell pm list packages host.exp.exponent
@@ -128,7 +154,13 @@ function Initialize-Emulator($serial) {
     Write-Host "  adb install -r D:\DevTools\downloads\Expo-Go-58.0.5.apk"
     exit 1
   }
-  Write-Step "Da noi cong 8082 (Metro), 4044 (API) tu may ao ve may dev"
+  Write-Step "Da noi cong 8082, 8083 (Metro 2 app), 4044 (API), 5173 (web) tu may ao ve may dev"
+}
+
+# Mo mot app trong Expo Go tren may ao: staff (8082) hoac customer (8083)
+function Open-ExpoApp($serial, $app) {
+  $port = if ($app -eq "customer") { 8083 } else { 8082 }
+  & $script:Adb -s $serial shell am start -a android.intent.action.VIEW -d "exp://127.0.0.1:$port" host.exp.exponent | Out-Null
 }
 
 # Don du lieu test con sot neu flow dung giua chung (khu vuc co tinh "Tinh ...E2E/Thiet Bi")
@@ -149,4 +181,10 @@ function Remove-MobileTestData {
   } catch {
     Write-Host "(Bo qua don du lieu: $($_.Exception.Message))" -ForegroundColor Yellow
   }
+  # Tai khoan do flow dang ky tao ra (email maestro<so>@edms.vn). API khong co chuc nang xoa
+  # tai khoan (US-10) nen xoa thang trong CSDL local qua mongosh cua container Docker.
+  # Chi goi ham nay sau Assert-LocalDatabase (API dang dung CSDL local).
+  $ErrorActionPreference = "Continue"
+  $deleted = docker exec edms-mongo mongosh edms --quiet --eval 'db.users.deleteMany({ email: /^maestro\d+@edms\.vn$/ }).deletedCount' 2>$null
+  if ("$deleted".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$deleted".Trim()) tai khoan test do flow dang ky tao" }
 }
