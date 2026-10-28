@@ -4,34 +4,45 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "EDMS: 1. Bat moi truong dev (Docker, API, Web, App Nhan vien)",
+      "label": "EDMS: 1. DEMO - bat moi truong (du lieu Atlas) + may ao + App Khach hang",
       "type": "shell",
-      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\"",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\" -Emulator",
       "problemMatcher": []
     },
     {
-      "label": "EDMS: 2. Mo may ao Android + App Nhan vien",
+      "label": "EDMS: 1b. TEST - bat moi truong voi CSDL local (truoc khi chay test tu dong)",
       "type": "shell",
-      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\" -OpenOnly",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\" -Local",
       "problemMatcher": []
     },
     {
-      "label": "EDMS: Test mobile (Maestro tren may ao)",
+      "label": "EDMS: 2. Mo App Khach hang tren may ao",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\" -OpenOnly -App customer",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: 3. Mo App Nhan vien tren may ao",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\" -OpenOnly -App staff",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test mobile - 2 app (Maestro tren may ao)",
       "type": "shell",
       "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\"",
       "group": "test",
       "problemMatcher": []
     },
     {
-      "label": "EDMS: Test web (Playwright)",
+      "label": "EDMS: Test trinh duyet - 3 bo Playwright",
       "type": "shell",
-      "command": "npx playwright test",
-      "options": { "cwd": "${workspaceFolder}/code/apps/web" },
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\scripts\\run-playwright-all.ps1\"",
       "group": "test",
       "problemMatcher": []
     },
     {
-      "label": "EDMS: Test song song web + mobile",
+      "label": "EDMS: Test song song web + may ao + lien thiet bi",
       "type": "shell",
       "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-song-song.ps1\"",
       "group": { "kind": "test", "isDefault": true },
@@ -49,7 +60,7 @@
       "label": "EDMS: Maestro Studio (bam chon phan tu tren may ao de viet flow)",
       "type": "shell",
       "command": "maestro studio",
-      "options": { "cwd": "${workspaceFolder}/code/apps/staff" },
+      "options": { "cwd": "${workspaceFolder}/code/apps/customer-mobile" },
       "isBackground": true,
       "problemMatcher": []
     }
