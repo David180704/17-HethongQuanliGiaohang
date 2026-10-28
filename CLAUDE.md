@@ -85,8 +85,8 @@ phương án cũ "một app mobile chung cho CUSTOMER và SHIPPER"):
 
 Demo một giao dịch cần khách và nhân viên thao tác **cùng lúc** trên cùng dữ liệu:
 
-- Mỗi app chạy **một cổng riêng** (web khách `:5173`, app nhân viên web `:8082`)
-  vì token lưu theo origin — hai tab cùng origin sẽ ghi đè phiên của nhau.
+- Mỗi app chạy **một cổng riêng** (web khách `:5173`, app nhân viên web `:8082`, app khách
+  mobile `:8083`) vì token lưu theo origin — hai tab cùng origin sẽ ghi đè phiên của nhau.
 - Điện thoại thật (Expo Go) gọi API qua **IP LAN của máy** (vd `192.168.1.10:4044`),
   không phải `localhost`; mở cổng API trên Windows Firewall.
 - Màn hình cần thấy thay đổi từ phía bên kia (danh sách đơn của hub, trạng thái
@@ -99,14 +99,22 @@ Demo một giao dịch cần khách và nhân viên thao tác **cùng lúc** tr�
   Hiện có `apps/web/tests-e2e/cross-app.spec.js`: admin thêm vùng phục vụ trên App
   Nhân viên → khách thấy ngay trên Web Khách hàng (mở rộng thành vòng đời đơn khi có module đơn hàng).
 
-Bật toàn bộ môi trường (Docker, API, web, app nhân viên, mỗi cái một cửa sổ, in sẵn
-IP LAN cho điện thoại): `cd code; powershell -ExecutionPolicy Bypass -File .\start-dev.ps1`.
+Bật toàn bộ môi trường (Docker, API, web, app nhân viên, app khách mobile, mỗi cái một cửa sổ,
+in sẵn IP LAN cho điện thoại): `cd code; powershell -ExecutionPolicy Bypass -File .\start-dev.ps1`.
+Thêm `-Local` để API dùng CSDL Docker (bắt buộc trước khi chạy test), `-Emulator` để bật máy ảo
+và mở App Khách hàng. Kịch bản demo: `docs/KichBanDemo.md`.
+
+**Test giao diện/máy ảo chỉ chạy khi API dùng CSDL local**: Playwright có `globalSetup`
+`code/scripts/e2e-guard.mjs`, script PowerShell gọi `Assert-LocalDatabase` — cả hai đọc `/health`,
+API đang nối Atlas thì dừng (bỏ chốt: `E2E_ALLOW_CLOUD=1`). Đừng gỡ: test thêm/xóa khu vực,
+khóa tài khoản, đăng ký tài khoản mới.
 
 | Thành phần | Cổng | Kiểm thử E2E |
 |---|---|---|
 | API | 4044 (cổng 4000 trên máy dev bị container khác chiếm) | `apps/api`: `npm test` |
 | Web Khách hàng | 5173 | `apps/web`: `npm run test:e2e` |
 | App Nhân viên (web) | 8082 | `apps/staff`: `npm run test:e2e` |
+| App Khách hàng mobile (Expo, có bản web) | 8083 | `apps/customer-mobile`: `npm run test:e2e` |
 
 Dev server Expo chạy với `CI=1` thì **tắt theo dõi file** — sửa code xong phải khởi
 động lại, nếu không trình duyệt vẫn chạy bundle cũ và E2E kiểm tra nhầm code cũ.
@@ -120,16 +128,17 @@ Java 17, Expo Go 58.0.5 trên máy ảo. Tăng tốc dùng WHPX (sẵn có trên
 
 | Lệnh (trong `code/`) | Việc |
 |---|---|
-| `.\test-mobile.ps1 -OpenOnly` | Bật máy ảo (nếu chưa), nối cổng, mở App Nhân viên |
-| `.\test-mobile.ps1` | Chạy 7 flow Maestro `apps/staff/.maestro/*.yaml`, báo cáo HTML ở `apps/staff/maestro-report/` |
-| `.\test-song-song.ps1` | Web (Playwright) + mobile (Maestro) **cùng lúc**, rồi kịch bản liên thiết bị |
+| `.\test-mobile.ps1 -OpenOnly -App staff` (hoặc `customer`) | Bật máy ảo (nếu chưa), nối cổng, mở app |
+| `.\test-mobile.ps1` | Chạy Maestro cả 2 app: 7 flow `apps/staff/.maestro`, 8 flow `apps/customer-mobile/.maestro`; báo cáo HTML ở `maestro-report/` của từng app. Thêm `-App staff`/`customer`, `-Flow <tên>` để chạy riêng |
+| `.\test-song-song.ps1` | 3 bộ Playwright + Maestro 2 app **cùng lúc**, rồi kịch bản liên thiết bị cả hai chiều |
 
 Trong VS Code: Terminal → Run Task → `EDMS: ...` (`.vscode/tasks.json`).
-Kịch bản liên thiết bị `apps/web/tests-e2e/mobile-cross.spec.js` (chỉ chạy khi
-`E2E_MOBILE=1`): Playwright điều khiển web, gọi Maestro điều khiển máy ảo xen kẽ.
+Kịch bản liên thiết bị (chỉ chạy khi `E2E_MOBILE=1`): Playwright điều khiển web, gọi Maestro điều
+khiển máy ảo xen kẽ — `apps/web/tests-e2e/mobile-cross.spec.js` (nhân viên trên máy ảo → khách trên
+web) và `apps/customer-mobile/tests-e2e/cross-device.spec.js` (nhân viên trên web → khách trên máy ảo).
 
 Những bẫy đã gặp (đã xử lý trong flow/script, đừng gỡ):
-- Máy ảo gọi API qua `adb reverse tcp:4044/8082` → trong app là `127.0.0.1`.
+- Máy ảo gọi API qua `adb reverse tcp:4044/8082/8083/5173` → trong app là `127.0.0.1`.
 - `inputText` của Maestro **không gõ được Unicode trên Android** → dữ liệu nhập từ máy ảo dùng chữ không dấu.
 - Đường dẫn tuyệt đối có dấu truyền qua `maestro.bat` bị vỡ → luôn dùng đường dẫn tương đối.
 - Nút nổi "Tools" của Expo Go đè lên nút "Đăng xuất" → `open-app.yaml` tự tắt nó.
@@ -137,6 +146,15 @@ Những bẫy đã gặp (đã xử lý trong flow/script, đừng gỡ):
 - `openLink` ngay sau `stopApp` đôi khi bị Android bỏ qua → `retry`.
 - Git Bash đổi `/sdcard/...` thành đường dẫn Windows → dùng `MSYS_NO_PATHCONV=1` khi gọi adb.
 - Ô nhập/chip cần `testID` (`field-<name>`, `field-<name>-<value>`) để Maestro bấm đúng.
+- `name:` của flow không được chứa ký tự cấm trong tên file Windows (`: / \ | < > ? * "`): Maestro
+  dùng tên flow làm thư mục báo cáo → `InvalidPathException`.
+- Lần gọi adb đầu tiên sau khi bật máy in `daemon not running` ra stderr; PowerShell 5.1 với
+  `ErrorActionPreference = "Stop"` + `2>$null` coi đó là lỗi và dừng script → hàm gọi adb hạ về
+  `Continue` trong phạm vi hàm. adb daemon do một script có output chuyển hướng khởi động sẽ giữ
+  luôn file log đó: lần chạy sau ghi log khác tên.
+- Android 15 (edge-to-edge) không tự co màn hình khi bàn phím mở → ô ở cuối form dài bị che.
+  Khung `Screen` của App Khách hàng bọc `KeyboardAvoidingView behavior="padding"`; flow phải
+  `hideKeyboard` rồi `scrollUntilVisible` trước khi bấm ô tiếp theo.
 - Khởi động nhanh từ snapshot làm máy ảo giữ ~10 GB bộ nhớ ảo (khởi động nguội ~2–4 GB); ổ C:
   máy dev gần đầy nên page file không nở được → Windows buộc dừng Vite/Playwright giữa chừng.
   Snapshot còn hay hỏng khi máy ảo bị tắt ngang → treo màn hình đen, adb `offline`.
@@ -691,6 +709,7 @@ buộc, không phải tùy chọn). Xem Đợt 8.
 | Điều hướng web | react-router mặc định đổi URL trong `startTransition` (chậm hơn `setState`): đổi trạng thái đăng nhập rồi `navigate()` thì route guard chạy trước, đè mất đích đến. Web đã đặt `<BrowserRouter useTransitions={false}>`, đừng gỡ |
 | Cache phía app | `clear()`/`invalidate()` chỉ xóa dữ liệu đã lưu mà quên bỏ request đang chạy → kết quả của người dùng trước, hoặc từ trước khi ghi, lọt vào cache |
 | Test giao diện | Kiểm một trạng thái chỉ thoáng qua (link hiện 1 khung hình) → pass/fail tùy máy nhanh hay chậm. Kiểm trạng thái cuối, và thử gỡ bản sửa xem test có fail không |
+| Tài liệu Scrum | Ghi "Done" theo lịch dự kiến khi chưa có code (đã xảy ra với US-13, US-14 ở Sprint Planning 2–3). Chỉ ghi Done khi đủ Definition of Done; đối chiếu bằng `npm run report:stories` |
 
 Khi viết các phần này, **viết unit test trước khi dựng giao diện**.
 
