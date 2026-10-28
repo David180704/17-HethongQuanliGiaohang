@@ -1,0 +1,16 @@
+appId: host.exp.exponent
+name: Dang nhap App Nhan vien bang USER_EMAIL (chua kiem tra ket qua)
+---
+# inputText cua Maestro khong go duoc Unicode tren Android -> chi dung chuoi
+# ASCII (email, mat khau). Bam vao chu tieng Viet co dau thi van duoc.
+- runFlow: open-app.yaml
+- tapOn:
+    id: "login-identity"
+- eraseText: 60
+- inputText: ${USER_EMAIL}
+- tapOn:
+    id: "login-password"
+- eraseText: 60
+- inputText: "Password123!"
+- hideKeyboard
+- tapOn: "Đăng nhập"

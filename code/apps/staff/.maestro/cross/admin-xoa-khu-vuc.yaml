@@ -1,0 +1,20 @@
+appId: host.exp.exponent
+name: "[Lien app] ADMIN xoa khu vuc DISTRICT tren may ao"
+---
+# Khong chay rieng: duoc test web goi kem tham so DISTRICT.
+- runFlow:
+    file: ../subflows/login-ok.yaml
+    env:
+      USER_EMAIL: admin@edms.vn
+- tapOn: "Khu vực phục vụ"
+- tapOn:
+    id: "search-input"
+- inputText: ${DISTRICT}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Tổng 1 bản ghi.*"
+    timeout: 15000
+- tapOn: "Xóa ${DISTRICT}"
+- tapOn:
+    id: "android:id/button1"
+- assertVisible: "Đã xóa.*"

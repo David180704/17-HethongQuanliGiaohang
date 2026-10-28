@@ -1,0 +1,10 @@
+appId: host.exp.exponent
+name: Chua dang nhap chi thay man hinh dang nhap
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- assertVisible: "Đăng nhập"
+- assertVisible: "Máy chủ: http://127.0.0.1:4044"
+- assertNotVisible: "Đăng xuất"
+- takeScreenshot: 01-dang-nhap

@@ -1,0 +1,23 @@
+appId: host.exp.exponent
+name: "[Lien app] ADMIN them khu vuc PROVINCE / DISTRICT tren may ao"
+---
+# Khong chay rieng: duoc test web goi kem tham so (apps/web/tests-e2e/mobile-cross.spec.js)
+#   maestro test cross/admin-them-khu-vuc.yaml -e PROVINCE=... -e DISTRICT=...
+- runFlow:
+    file: ../subflows/login-ok.yaml
+    env:
+      USER_EMAIL: admin@edms.vn
+- tapOn: "Khu vực phục vụ"
+- tapOn: "+ Thêm mới"
+- tapOn:
+    id: "field-province"
+- inputText: ${PROVINCE}
+- tapOn:
+    id: "field-district"
+- inputText: ${DISTRICT}
+- hideKeyboard
+- tapOn:
+    id: "field-region-NAM"
+- tapOn: "R-HCM-NOI.*"
+- tapOn: "Lưu"
+- assertVisible: "Đã thêm mới"
