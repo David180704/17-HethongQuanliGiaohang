@@ -109,6 +109,33 @@ IP LAN cho điện thoại): `cd code; powershell -ExecutionPolicy Bypass -File 
 Dev server Expo chạy với `CI=1` thì **tắt theo dõi file** — sửa code xong phải khởi
 động lại, nếu không trình duyệt vẫn chạy bundle cũ và E2E kiểm tra nhầm code cũ.
 
+### Kiểm thử trên máy ảo Android (song song với web)
+
+Công cụ (cài trên ổ D: vì đường dẫn Android không được có dấu/khoảng trắng):
+Android SDK `D:\DevTools\android-sdk` (emulator, platform-tools, image API 35),
+máy ảo `edms_pixel` ở `D:\DevTools\android-avd`, Maestro 2.11 `D:\DevTools\maestro`,
+Java 17, Expo Go 58.0.5 trên máy ảo. Tăng tốc dùng WHPX (sẵn có trên Windows này).
+
+| Lệnh (trong `code/`) | Việc |
+|---|---|
+| `.\test-mobile.ps1 -OpenOnly` | Bật máy ảo (nếu chưa), nối cổng, mở App Nhân viên |
+| `.\test-mobile.ps1` | Chạy 7 flow Maestro `apps/staff/.maestro/*.yaml`, báo cáo HTML ở `apps/staff/maestro-report/` |
+| `.\test-song-song.ps1` | Web (Playwright) + mobile (Maestro) **cùng lúc**, rồi kịch bản liên thiết bị |
+
+Trong VS Code: Terminal → Run Task → `EDMS: ...` (`.vscode/tasks.json`).
+Kịch bản liên thiết bị `apps/web/tests-e2e/mobile-cross.spec.js` (chỉ chạy khi
+`E2E_MOBILE=1`): Playwright điều khiển web, gọi Maestro điều khiển máy ảo xen kẽ.
+
+Những bẫy đã gặp (đã xử lý trong flow/script, đừng gỡ):
+- Máy ảo gọi API qua `adb reverse tcp:4044/8082` → trong app là `127.0.0.1`.
+- `inputText` của Maestro **không gõ được Unicode trên Android** → dữ liệu nhập từ máy ảo dùng chữ không dấu.
+- Đường dẫn tuyệt đối có dấu truyền qua `maestro.bat` bị vỡ → luôn dùng đường dẫn tương đối.
+- Nút nổi "Tools" của Expo Go đè lên nút "Đăng xuất" → `open-app.yaml` tự tắt nó.
+- Gboard bật hộp thoại "Try out your stylus" → script tắt `stylus_handwriting_enabled`.
+- `openLink` ngay sau `stopApp` đôi khi bị Android bỏ qua → `retry`.
+- Git Bash đổi `/sdcard/...` thành đường dẫn Windows → dùng `MSYS_NO_PATHCONV=1` khi gọi adb.
+- Ô nhập/chip cần `testID` (`field-<name>`, `field-<name>-<value>`) để Maestro bấm đúng.
+
 Cấu trúc thư mục:
 
 ```
