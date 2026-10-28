@@ -31,6 +31,7 @@ App ──► API (4044) ────┤
 | Muốn | Làm |
 |---|---|
 | Đưa dữ liệu về trạng thái ban đầu (local) | `cd code/apps/api` → `npm run seed:local` |
+| Nối API với Atlas (cloud) | `npm run atlas:setup`, dán chuỗi kết nối (thử kết nối thật rồi mới ghi `.env`) |
 | Đưa dữ liệu mẫu lên cloud | `npm run seed -- --yes` (**xóa sạch** dữ liệu cloud cũ) |
 | Thêm / đổi tài khoản test | Sửa `code/apps/api/src/seed/testAccounts.js` rồi seed lại |
 | Đổi danh mục mẫu (tuyến, quận, bảng giá) | Sửa `code/apps/api/src/seed/referenceData.js` rồi seed lại |
