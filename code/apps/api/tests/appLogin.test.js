@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { getRedis } from "../src/config/redis.js";
 
@@ -22,6 +23,7 @@ function login(emailOrPhone, appName, password = PASSWORD) {
 
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+  await removeLeftovers({ emails: ["applogin-customer@edms.vn", "applogin-hub@edms.vn", "applogin-shipper@edms.vn"], hubCodes: ["HUB-TEST-APPLOGIN"] });
   app = createApp();
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
@@ -72,7 +74,7 @@ after(async () => {
   await mongoose.disconnect();
 });
 
-test("CUSTOMER dang nhap App Nhan vien bi tu choi WRONG_APP, khong duoc cap token", async () => {
+test("[US-26] CUSTOMER dang nhap App Nhan vien bi tu choi WRONG_APP, khong duoc cap token", async () => {
   const res = await login(customer.email, "STAFF");
   assert.equal(res.status, 403);
   assert.equal(res.body.error.code, "WRONG_APP");
@@ -80,14 +82,14 @@ test("CUSTOMER dang nhap App Nhan vien bi tu choi WRONG_APP, khong duoc cap toke
   assert.equal(res.body.data, undefined);
 });
 
-test("SHIPPER dang nhap App Khach hang bi tu choi WRONG_APP", async () => {
+test("[US-06] SHIPPER dang nhap App Khach hang bi tu choi WRONG_APP", async () => {
   const res = await login(shipper.email, "CUSTOMER");
   assert.equal(res.status, 403);
   assert.equal(res.body.error.code, "WRONG_APP");
   assert.match(res.body.error.message, /App Nhân viên/);
 });
 
-test("Dung app thi dang nhap binh thuong: SHIPPER/HUB_STAFF -> STAFF, CUSTOMER -> CUSTOMER", async () => {
+test("[US-26] Dung app thi dang nhap binh thuong: SHIPPER/HUB_STAFF -> STAFF, CUSTOMER -> CUSTOMER", async () => {
   for (const [user, appName] of [
     [shipper, "STAFF"],
     [hubStaff, "STAFF"],
@@ -100,13 +102,13 @@ test("Dung app thi dang nhap binh thuong: SHIPPER/HUB_STAFF -> STAFF, CUSTOMER -
   }
 });
 
-test("Sai mat khau o sai app van bao INVALID_CREDENTIALS (khong lo vai tro khi chua xac thuc)", async () => {
+test("[US-06] Sai mat khau o sai app van bao INVALID_CREDENTIALS (khong lo vai tro khi chua xac thuc)", async () => {
   const res = await login(customer.email, "STAFF", "sai-mat-khau");
   assert.equal(res.status, 401);
   assert.equal(res.body.error.code, "INVALID_CREDENTIALS");
 });
 
-test("Dang nhap sai app nhieu lan khong tinh vao bo dem khoa tai khoan", async () => {
+test("[US-06] Dang nhap sai app nhieu lan khong tinh vao bo dem khoa tai khoan", async () => {
   for (let i = 0; i < 6; i += 1) {
     const res = await login(customer.email, "STAFF");
     assert.equal(res.body.error.code, "WRONG_APP");
@@ -115,12 +117,12 @@ test("Dang nhap sai app nhieu lan khong tinh vao bo dem khoa tai khoan", async (
   assert.equal(res.status, 200, "mat khau dung nen khong duoc bi khoa");
 });
 
-test("Khong gui app thi khong gioi han vai tro (tuong thich Swagger/test cu)", async () => {
+test("[US-06] Khong gui app thi khong gioi han vai tro (tuong thich Swagger/test cu)", async () => {
   const res = await request(app).post("/auth/login").send({ emailOrPhone: customer.email, password: PASSWORD });
   assert.equal(res.status, 200);
 });
 
-test("app khong hop le (ke ca ten thuoc tinh co san cua Object) tra 400, khong phai 500", async () => {
+test("[US-06] app khong hop le (ke ca ten thuoc tinh co san cua Object) tra 400, khong phai 500", async () => {
   for (const appName of ["ADMIN", "constructor", "__proto__", 123]) {
     const res = await login(customer.email, appName);
     assert.equal(res.status, 400, `app=${String(appName)}`);
@@ -128,7 +130,7 @@ test("app khong hop le (ke ca ten thuoc tinh co san cua Object) tra 400, khong p
   }
 });
 
-test("emailOrPhone dang object (thu NoSQL injection) tra 400, khong phai 500", async () => {
+test("[US-06] emailOrPhone dang object (thu NoSQL injection) tra 400, khong phai 500", async () => {
   const res = await request(app)
     .post("/auth/login")
     .send({ emailOrPhone: { $ne: null }, password: PASSWORD });
@@ -136,7 +138,7 @@ test("emailOrPhone dang object (thu NoSQL injection) tra 400, khong phai 500", a
   assert.equal(res.body.error.code, "VALIDATION_ERROR");
 });
 
-test("GET /auth/me cua HUB_STAFF kem ten hub phu trach", async () => {
+test("[US-26] GET /auth/me cua HUB_STAFF kem ten hub phu trach", async () => {
   const loginRes = await login(hubStaff.email, "STAFF");
   const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${loginRes.body.data.accessToken}`);
   assert.equal(res.status, 200);

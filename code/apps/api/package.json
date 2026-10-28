@@ -11,8 +11,10 @@
     "dev": "node --watch src/server.js",
     "seed": "node src/seed/index.js",
     "test": "node --test",
-    "lint": "eslint src",
-    "seed:local": "node src/seed/index.js --local"
+    "lint": "eslint src scripts tests",
+    "seed:local": "node src/seed/index.js --local",
+    "test:story": "node scripts/run-story.js",
+    "report:stories": "node scripts/story-report.js"
   },
   "keywords": [],
   "author": "",
