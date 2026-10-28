@@ -71,7 +71,7 @@ Android) đã chạy — cần bật server nên không nằm trong lệnh này.
 |---|---|---|---|---|
 | PB-01 | Khách vãng lai xem dịch vụ và vùng phục vụ (Product Backlog #1) | 🟢 Đạt | 3/3 | Web: trang chủ, vùng phục vụ |
 | PB-04 | Khách vãng lai xem bảng giá theo khu vực (Product Backlog #4) | 🟢 Đạt | 2/2 | Web: bảng giá đổi theo dịch vụ |
-| CACHE | Cache 30 giây: dữ liệu cloud cache xuống Redis, app không gọi API liên tục | 🟢 Đạt | 8/8 | Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây |
+| CACHE | Cache 30 giây: dữ liệu cloud cache xuống Redis, app không gọi API liên tục | 🟢 Đạt | 8/8 | Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây, đổi tài khoản không lộ hồ sơ người trước |
 
 ## Lưu ý cho Sprint Review
 
