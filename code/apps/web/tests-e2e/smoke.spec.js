@@ -161,4 +161,37 @@ test.describe("cache 30 giay phia web", () => {
     await expect.poll(() => calls, { timeout: 40_000, intervals: [1000] }).toBe(2);
     await expect(page.getByTestId("updated-at")).not.toHaveText(firstStamp);
   });
+
+  test("ho so nguoi truoc ve tre sau khi doi nguoi dung thi khong vao cache", async ({ page }) => {
+    // Giu phan hoi /auth/me dau tien (cua khach1) lai, chi tra ve SAU khi khach2 da dang nhap.
+    let openGate;
+    const gate = new Promise((resolve) => (openGate = resolve));
+    let seen = 0;
+    await page.route("**/auth/me", async (route) => {
+      if (route.request().method() !== "GET" || seen++ > 0) return route.continue();
+      const response = await route.fetch();
+      await gate;
+      await route.fulfill({ response });
+    });
+
+    await page.goto("/dang-nhap");
+    await loginOnPage(page, "khach1@edms.vn");
+    await expect(page).toHaveURL(/\/$/);
+    await page.getByRole("link", { name: "Khách Hàng 1" }).click(); // /auth/me cua khach1 bat dau, bi giu lai
+    await expect(page.getByText("Đang tải...")).toBeVisible();
+    await page.getByRole("button", { name: "Đăng xuất" }).click();
+    await page.getByRole("link", { name: "Đăng nhập" }).click();
+    await loginOnPage(page, "khach2@edms.vn");
+    await expect(page.getByRole("link", { name: "Khách Hàng 2" })).toBeVisible();
+
+    const delivered = page.waitForResponse("**/auth/me");
+    openGate(); // phan hoi cua khach1 gio moi ve
+    await delivered;
+    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50)));
+
+    // Dieu huong trong SPA (khong tai lai trang) de cache trong bo nho van con
+    await page.getByRole("link", { name: "Khách Hàng 2" }).click();
+    await expect(page.getByText("khach2@edms.vn")).toBeVisible();
+    await expect(page.getByText("khach1@edms.vn")).toHaveCount(0);
+  });
 });

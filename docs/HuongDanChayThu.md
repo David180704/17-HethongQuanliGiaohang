@@ -92,7 +92,7 @@ Thử nhanh:
 **Test tự động** (cần API và web đang chạy):
 
 ```powershell
-npm run test:e2e                         # 13 kịch bản
+npm run test:e2e                         # 14 kịch bản
 npx playwright test --headed             # xem trình duyệt tự bấm
 npx playwright test --ui                 # bảng điều khiển, tua từng bước
 ```

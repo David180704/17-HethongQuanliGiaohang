@@ -39,22 +39,30 @@ export class QueryCache {
       .get(url, { params })
       .then((res) => {
         const fresh = { body: res.data, fetchedAt: Date.now() };
-        this.#entries.set(key, fresh);
+        // Chi luu neu request nay chua bi invalidate()/clear() bo di trong luc cho:
+        // ket qua bat dau TRUOC khi ghi, hoac cua nguoi dung truoc, khong vao cache.
+        if (this.#inflight.get(key) === request) this.#entries.set(key, fresh);
         return { ...fresh, fromCache: false };
       })
-      .finally(() => this.#inflight.delete(key));
+      .finally(() => {
+        if (this.#inflight.get(key) === request) this.#inflight.delete(key);
+      });
     this.#inflight.set(key, request);
     return request;
   }
 
+  // Bo ca request dang chay: lan get() sau phai goi API moi, khong noi vao request cu.
   invalidate(urlPrefix) {
-    for (const key of [...this.#entries.keys()]) {
-      if (key.startsWith(urlPrefix)) this.#entries.delete(key);
+    for (const map of [this.#entries, this.#inflight]) {
+      for (const key of [...map.keys()]) {
+        if (key.startsWith(urlPrefix)) map.delete(key);
+      }
     }
   }
 
   clear() {
     this.#entries.clear();
+    this.#inflight.clear();
   }
 }
 
