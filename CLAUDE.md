@@ -137,6 +137,10 @@ Những bẫy đã gặp (đã xử lý trong flow/script, đừng gỡ):
 - `openLink` ngay sau `stopApp` đôi khi bị Android bỏ qua → `retry`.
 - Git Bash đổi `/sdcard/...` thành đường dẫn Windows → dùng `MSYS_NO_PATHCONV=1` khi gọi adb.
 - Ô nhập/chip cần `testID` (`field-<name>`, `field-<name>-<value>`) để Maestro bấm đúng.
+- Khởi động nhanh từ snapshot làm máy ảo giữ ~10 GB bộ nhớ ảo (khởi động nguội ~2–4 GB); ổ C:
+  máy dev gần đầy nên page file không nở được → Windows buộc dừng Vite/Playwright giữa chừng.
+  Snapshot còn hay hỏng khi máy ảo bị tắt ngang → treo màn hình đen, adb `offline`.
+  → `Start-EmulatorIfNeeded` luôn chạy `-no-snapshot`, máy ảo treo thì tự tắt và bật lại.
 
 Cấu trúc thư mục:
 
