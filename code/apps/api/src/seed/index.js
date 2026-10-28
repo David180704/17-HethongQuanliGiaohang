@@ -1,14 +1,24 @@
 import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
-import { connectDB, disconnectDB } from "../config/db.js";
+import { connectDB, disconnectDB, LOCAL_MONGO_URI, isLocalUri, describeUri } from "../config/db.js";
+import { env } from "../config/env.js";
 import { Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment } from "../models/index.js";
 import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables } from "./referenceData.js";
 import { buildStatusChain, countDeliveryAttempts, isAssignedStage } from "./orderHistory.js";
 import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
 import { ORDER_STATUS } from "../constants/enums.js";
-
 import { TEST_PASSWORD, buildTestAccounts } from "./testAccounts.js";
+
+// Cach chay:
+//   npm run seed              -> CSDL trong MONGO_URI (.env), co the la Atlas (cloud)
+//   npm run seed:local        -> CSDL Docker tren may (dung cho npm test)
+// Seed XOA SACH du lieu cu. CSDL khong phai local thi bat buoc them --yes de
+// tranh lo tay xoa du lieu that tren cloud.
+const args = process.argv.slice(2);
+const TARGET_URI = args.includes("--local") ? LOCAL_MONGO_URI : env.mongoUri;
+const CONFIRMED = args.includes("--yes");
+
 const TOTAL_ORDERS = 200;
 const BASE_COUNT_PER_STATUS = 8;
 
@@ -279,9 +289,22 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
 }
 
 async function main() {
-  await connectDB();
+  const target = describeUri(TARGET_URI);
+  if (!isLocalUri(TARGET_URI) && !CONFIRMED) {
+    console.error(`\nSeed se XOA TOAN BO du lieu tren: ${target}`);
+    console.error("Day khong phai CSDL local. Neu chac chan, chay lai: npm run seed -- --yes\n");
+    process.exit(1);
+  }
+  console.log(`CSDL dich: ${target}`);
+  await connectDB(TARGET_URI);
   console.log("Dang xoa du lieu cu...");
   await clearAll();
+  // Tao lai chi muc (unique, TTL...) ngay ca khi CSDL moi tinh tren cloud
+  await Promise.all(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment].map(
+      (m) => m.syncIndexes(),
+    ),
+  );
 
   console.log("Dang seed vai tro...");
   await seedRoles();
