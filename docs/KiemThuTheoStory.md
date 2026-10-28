@@ -31,7 +31,7 @@ Android) đã chạy — cần bật server nên không nằm trong lệnh này.
 | Sprint | Story | Tên | Điểm | Kết quả | Test API | Kiểm thử giao diện |
 |---|---|---|---|---|---|---|
 | 1 | US-01 | Khởi tạo dự án, môi trường Docker và quy ước mã nguồn | 3 | 🟢 Đạt | 4/4 |  |
-| 1 | US-02 | Thiết kế mô hình dữ liệu và sơ đồ lớp hệ thống | 5 | 🟢 Đạt | 15/15 |  |
+| 1 | US-02 | Thiết kế mô hình dữ liệu và sơ đồ lớp hệ thống | 5 | 🟢 Đạt | 18/18 |  |
 | 1 | US-03 | Xây dựng khung xác thực JWT và phân quyền theo vai trò | 5 | 🟢 Đạt | 5/5 |  |
 | 1 | US-04 | Chuẩn hóa response, mã lỗi và tài liệu Swagger | 3 | 🟢 Đạt | 6/6 |  |
 | 2 | US-05 | Thiết lập CI pipeline tự động kiểm thử và build | 2 | 🟢 Đạt | 1/1 |  |

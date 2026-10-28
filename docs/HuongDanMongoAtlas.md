@@ -73,6 +73,9 @@ Chạy lại lệnh này bất cứ lúc nào (đổi mật khẩu, đổi clust
 
 ## Bước 5 — Đổ dữ liệu mẫu lên cloud (seed)
 
+> Muốn **tự tạo database bằng code MongoDB** (mongosh: collection, ràng buộc, chỉ mục, dữ liệu)
+> thay vì dùng seed của Node: làm theo `HuongDanKhoiTaoCSDL.md`, rồi bỏ qua bước này.
+
 ```powershell
 cd code/apps/api
 npm run seed -- --yes
@@ -131,7 +134,7 @@ npm test
 | Thông báo | Nguyên nhân | Cách sửa |
 |---|---|---|
 | `querySrv ENOTFOUND` | Sai địa chỉ cluster, hoặc mạng/DNS không phân giải được | Copy lại chuỗi từ nút **Connect**; kiểm tra Internet |
-| `querySrv ECONNREFUSED` | DNS của máy từ chối truy vấn SRV (máy dev đã gặp: Node hỏi DNS `127.0.0.1`) | Không cần làm gì: API, seed và `atlas:setup` tự chuyển sang DNS 8.8.8.8 / 1.1.1.1 |
+| `querySrv ECONNREFUSED` | DNS mà Node đang dùng từ chối truy vấn SRV (đã gặp khi chạy qua Claude Code: Node hỏi DNS `127.0.0.1`) | Không cần làm gì: API, seed và `atlas:setup` tự chuyển sang DNS 8.8.8.8 / 1.1.1.1 |
 | `bad auth : authentication failed` | Sai user/mật khẩu, hoặc mật khẩu có ký tự đặc biệt chưa mã hóa | Đặt lại mật khẩu chỉ gồm chữ + số |
 | `Could not connect to any servers` / timeout | IP chưa có trong **Network Access** | Thêm IP hiện tại (Bước 2) |
 | Treo lâu ở mạng trường/công ty | Tường lửa chặn cổng 27017 | Dùng mạng khác (4G) |
