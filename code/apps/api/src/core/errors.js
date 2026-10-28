@@ -42,6 +42,14 @@ export function errorHandler(err, req, res, _next) {
     });
   }
 
+  // Ma dinh danh sai dinh dang (vd GET /users/abc) -> 400 thay vi loi 500.
+  if (err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      error: { code: "VALIDATION_ERROR", message: "Mã định danh không hợp lệ" },
+    });
+  }
+
   if (err.code === 11000) {
     return res.status(409).json({
       success: false,

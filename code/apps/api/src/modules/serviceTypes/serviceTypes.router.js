@@ -1,8 +1,5 @@
-import { crudRouter } from "../../core/crudRouter.js";
-import { ServiceType } from "../../models/ServiceType.js";
-import { PriceTable } from "../../models/PriceTable.js";
-import { ErrorCodes } from "../../core/errors.js";
-import { createServiceTypeSchema, updateServiceTypeSchema } from "./serviceTypes.schema.js";
+import { createCrudRouter } from "../../core/createCrudRouter.js";
+import { CrudController } from "../../core/CrudController.js";
 
 /**
  * @openapi
@@ -44,16 +41,10 @@ import { createServiceTypeSchema, updateServiceTypeSchema } from "./serviceTypes
  *       409: { description: Dang duoc dung trong bang gia, khong xoa duoc }
  */
 
-export const serviceTypesRouter = crudRouter({
-  model: ServiceType,
-  resource: "serviceTypes",
-  createSchema: createServiceTypeSchema,
-  updateSchema: updateServiceTypeSchema,
-  searchFields: ["code", "name"],
-  beforeDelete: async (item) => {
-    const usedInPriceTable = await PriceTable.exists({ serviceTypeId: item._id });
-    if (usedInPriceTable) {
-      throw ErrorCodes.CONFLICT("Loại dịch vụ đang được dùng trong bảng giá, không thể xóa");
-    }
-  },
-});
+export function buildServiceTypesRouter({ services, middleware }) {
+  return createCrudRouter({
+    controller: new CrudController(services.serviceTypes),
+    permission: "serviceTypes:manage",
+    ...middleware,
+  });
+}
