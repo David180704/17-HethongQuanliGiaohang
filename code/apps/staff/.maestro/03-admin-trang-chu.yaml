@@ -7,7 +7,7 @@ tags:
     file: subflows/login-ok.yaml
     env:
       USER_EMAIL: admin@edms.vn
-- assertVisible: "Quản Trị Hệ Thống"
+- assertVisible: "Admin EDMS"
 - assertVisible: "Người dùng"
 - assertVisible: "Tuyến"
 - assertVisible: "Khu vực phục vụ"

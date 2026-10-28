@@ -11,11 +11,11 @@ import { colors, radius } from "../theme";
 
 // Chi co o ban dev (__DEV__): dien nhanh tai khoan seed de chuyen vai tro khi
 // demo song song. Ban build that __DEV__ = false nen khoi nay khong hien.
-const DEV_PASSWORD = "Password123!";
+const DEV_PASSWORD = "123456";
 const DEV_ACCOUNTS = [
   { label: "Quản trị", email: "admin@edms.vn" },
-  { label: "Nhân viên kho", email: "hubstaff1@edms.vn" },
-  { label: "Tài xế", email: "shipper1@edms.vn" },
+  { label: "Nhân viên kho", email: "kho1@edms.vn" },
+  { label: "Tài xế", email: "taixe1@edms.vn" },
 ];
 
 export default function LoginScreen() {
@@ -63,7 +63,7 @@ export default function LoginScreen() {
           <TextField
             testID="login-identity"
             label="Email hoặc số điện thoại"
-            placeholder="vd: shipper1@edms.vn"
+            placeholder="vd: taixe1@edms.vn"
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
             autoCapitalize="none"

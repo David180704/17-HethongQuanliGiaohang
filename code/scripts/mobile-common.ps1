@@ -111,7 +111,7 @@ function Initialize-Emulator($serial) {
 function Remove-MobileTestData {
   try {
     $login = Invoke-RestMethod -Method Post -Uri "http://localhost:4044/auth/login" -ContentType "application/json" `
-      -Body '{"emailOrPhone":"admin@edms.vn","password":"Password123!"}'
+      -Body '{"emailOrPhone":"admin@edms.vn","password":"123456"}'
     $headers = @{ Authorization = "Bearer $($login.data.accessToken)" }
     $removed = 0
     foreach ($keyword in "Tinh Maestro E2E", "Tinh Lien Thiet Bi") {

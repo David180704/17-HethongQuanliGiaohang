@@ -14,11 +14,11 @@ const ENABLED = process.env.E2E_MOBILE === "1";
 const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
 const MAESTRO = process.env.MAESTRO_BIN || (process.platform === "win32" ? "maestro.bat" : "maestro");
 const STAFF_DIR = path.resolve(process.cwd(), "..", "staff");
-const PASSWORD = "Password123!";
+const PASSWORD = "123456";
 const SHOT_DIR = "tests-e2e/screenshots";
 // Go tren may ao bang inputText cua Maestro -> chi dung chu khong dau.
 const E2E_PROVINCE = "Tinh Lien Thiet Bi";
-const LOCK_TARGET = "customer3@edms.vn";
+const LOCK_TARGET = "khach3@edms.vn";
 
 const execAsync = promisify(exec);
 

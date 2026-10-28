@@ -6,7 +6,7 @@ import { test, expect, request } from "@playwright/test";
 // "npm run dev" (web) va "npm run web" (apps/staff) dang chay.
 const STAFF_URL = process.env.E2E_STAFF_URL || "http://localhost:8082";
 const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
-const PASSWORD = "Password123!";
+const PASSWORD = "123456";
 const SHOT_DIR = "tests-e2e/screenshots";
 const E2E_PROVINCE = "Tỉnh Liên App";
 
