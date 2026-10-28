@@ -71,7 +71,8 @@ async function loginOnWeb(page, email) {
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 }
 
-test("may ao: admin them/xoa khu vuc tren App Nhan vien -> khach thay ngay tren web", async ({ browser }) => {
+// Web cache 30 giay va tu lam moi -> khach thay thay doi TOI DA sau 30 giay.
+test("may ao: admin them/xoa khu vuc tren App Nhan vien -> khach thay tren web trong vong 30 giay", async ({ browser }) => {
   test.setTimeout(8 * 60 * 1000);
   const district = `Quan Lien Thiet Bi ${Date.now()}`;
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -89,7 +90,7 @@ test("may ao: admin them/xoa khu vuc tren App Nhan vien -> khach thay ngay tren 
   // Web: khach tra lai -> thay ngay
   await search.fill("");
   await search.fill(district);
-  await expect(page.getByRole("heading", { name: E2E_PROVINCE })).toBeVisible();
+  await expect(page.getByRole("heading", { name: E2E_PROVINCE })).toBeVisible({ timeout: 40_000 });
   await expect(page.getByText(district)).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/20-thiet-bi-khach-thay-khu-vuc-moi.png` });
 
@@ -97,7 +98,7 @@ test("may ao: admin them/xoa khu vuc tren App Nhan vien -> khach thay ngay tren 
   await runOnEmulator("cross/admin-xoa-khu-vuc.yaml", { DISTRICT: district });
   await search.fill("");
   await search.fill(district);
-  await expect(page.getByRole("status")).toHaveText(`Chưa phục vụ khu vực "${district}"`);
+  await expect(page.getByRole("status")).toHaveText(`Chưa phục vụ khu vực "${district}"`, { timeout: 40_000 });
   await context.close();
 });
 

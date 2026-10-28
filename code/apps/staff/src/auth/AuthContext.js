@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiClient, onUnauthorized } from "../lib/apiClient";
 import { clearTokens, getTokens, loadTokens, setTokens } from "../lib/tokenStore";
+import { queryCache } from "../lib/queryCache";
 import { STAFF_ROLES } from "../config";
 
 const AuthContext = createContext(null);
@@ -44,6 +45,8 @@ export function AuthProvider({ children }) {
     async (emailOrPhone, password) => {
       // app: "STAFF" -> server tu choi tai khoan CUSTOMER (WRONG_APP), khong cap token.
       const res = await apiClient.post("/auth/login", { emailOrPhone: emailOrPhone.trim(), password, app: "STAFF" });
+      // Nguoi dung khac co the khac quyen -> bo cache cua phien truoc
+      queryCache.clear();
       await setTokens(res.data.data);
       const profile = await fetchProfile();
       setBootError("");
@@ -60,6 +63,8 @@ export function AuthProvider({ children }) {
     } catch {
       // Token het han/khong hop le cung khong sao, van dang xuat phia client.
     }
+    // May dung chung nhieu ca: nguoi sau khong duoc thay du lieu cache cua nguoi truoc
+    queryCache.clear();
     await clearTokens();
     setUser(null);
   }, []);
