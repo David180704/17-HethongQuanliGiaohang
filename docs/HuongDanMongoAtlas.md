@@ -48,19 +48,28 @@ Ngay trong Security Quickstart:
    ```
    mongodb+srv://edms_app:<db_password>@edms.abcde.mongodb.net/?retryWrites=true&w=majority&appName=edms
    ```
-3. Sửa hai chỗ:
-   - thay `<db_password>` bằng mật khẩu ở Bước 2
-   - thêm `edms` ngay sau `.mongodb.net/` để dùng database tên `edms`:
-   ```
-   mongodb+srv://edms_app:MatKhau123@edms.abcde.mongodb.net/edms?retryWrites=true&w=majority&appName=edms
-   ```
+3. Thay `<db_password>` bằng mật khẩu ở Bước 2 (bỏ cả dấu `< >`). Không cần tự thêm tên
+   database hay mã hóa ký tự đặc biệt: lệnh ở Bước 4 tự làm.
 
-## Bước 4 — Cấu hình API dùng Atlas
+## Bước 4 — Nối API với Atlas (một lệnh)
 
-1. Trong `code/apps/api`, chép `.env.example` thành `.env` (nếu chưa có).
-2. Sửa dòng `MONGO_URI=` thành chuỗi ở Bước 3.
-3. **Không bao giờ commit file `.env`.** Repo đã chặn file này bằng `.gitignore`, vì
-   trong đó có mật khẩu CSDL.
+```powershell
+cd code/apps/api
+npm run atlas:setup
+```
+
+Dán chuỗi ở Bước 3 khi được hỏi rồi Enter. Chữ **không hiện lên màn hình**, đúng thiết kế, vì
+trong chuỗi có mật khẩu. Lệnh sẽ:
+
+- tự thêm `/edms` (tên database), tự mã hóa ký tự đặc biệt trong mật khẩu;
+- **thử kết nối thật** tới Atlas; lỗi thì nói rõ nguyên nhân và cách sửa (sai mật khẩu, IP
+  chưa được phép, sai địa chỉ cluster);
+- chỉ khi kết nối được mới ghi vào `code/apps/api/.env`. File này bị `.gitignore` chặn,
+  **không bao giờ lên GitHub**;
+- cho biết database đang trống hay đã có dữ liệu.
+
+Chạy lại lệnh này bất cứ lúc nào (đổi mật khẩu, đổi cluster). Quay về CSDL local: sửa
+`MONGO_URI` trong `.env` thành `mongodb://localhost:27017/edms?directConnection=true`.
 
 ## Bước 5 — Đổ dữ liệu mẫu lên cloud (seed)
 
@@ -121,7 +130,8 @@ npm test
 
 | Thông báo | Nguyên nhân | Cách sửa |
 |---|---|---|
-| `querySrv ENOTFOUND` | Mạng/DNS không phân giải được địa chỉ Atlas | Kiểm tra Internet; thử mạng khác |
+| `querySrv ENOTFOUND` | Sai địa chỉ cluster, hoặc mạng/DNS không phân giải được | Copy lại chuỗi từ nút **Connect**; kiểm tra Internet |
+| `querySrv ECONNREFUSED` | DNS của máy từ chối truy vấn SRV (máy dev đã gặp: Node hỏi DNS `127.0.0.1`) | Không cần làm gì: API, seed và `atlas:setup` tự chuyển sang DNS 8.8.8.8 / 1.1.1.1 |
 | `bad auth : authentication failed` | Sai user/mật khẩu, hoặc mật khẩu có ký tự đặc biệt chưa mã hóa | Đặt lại mật khẩu chỉ gồm chữ + số |
 | `Could not connect to any servers` / timeout | IP chưa có trong **Network Access** | Thêm IP hiện tại (Bước 2) |
 | Treo lâu ở mạng trường/công ty | Tường lửa chặn cổng 27017 | Dùng mạng khác (4G) |
@@ -129,7 +139,10 @@ npm test
 
 ## Bảo mật
 
-- Chuỗi kết nối chứa mật khẩu: chỉ để trong `.env`, không gửi qua chat, không chụp màn hình.
+- Chuỗi kết nối chứa mật khẩu: chỉ để trong `.env`, không gửi qua chat (kể cả cho Claude),
+  không chụp màn hình. Muốn Claude kiểm tra/đổ dữ liệu: chạy `npm run atlas:setup` rồi nhắn
+  "đã nối Atlas". Claude chạy trên chính máy bạn nên dùng được `.env` mà không cần thấy mật khẩu.
+  Lỡ gửi chuỗi đi rồi: Atlas → **Database Access** → Edit → đổi mật khẩu, chạy lại `atlas:setup`.
 - Mật khẩu `123456` chỉ dành cho dữ liệu thử nghiệm. Khi đưa hệ thống cho người ngoài dùng,
   phải đổi mật khẩu các tài khoản hoặc seed bộ tài khoản khác.
 - User `edms_app` chỉ cần quyền đọc/ghi database `edms`, không cần quyền quản trị Atlas.
