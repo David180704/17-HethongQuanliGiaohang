@@ -15,14 +15,14 @@ Bạn là người **tạo và quản lý** cluster Atlas. Code đã sẵn sàng
 - **API "cache xuống" Redis 30 giây**: cùng một câu hỏi trong 30 giây thì Redis trả lời,
   không gọi lên cloud. Admin sửa danh mục thì cache liên quan bị xóa ngay.
 - **Mỗi app cũng giữ dữ liệu 30 giây** và tự làm mới mỗi 30 giây, không gọi API liên tục.
-- Gói miễn phí M0 giới hạn **100 thao tác/giây, 0,5 GB, 500 kết nối**. Hai lớp cache
+- Gói miễn phí (Free, trước gọi là M0) giới hạn **100 thao tác/giây, 0,5 GB, 500 kết nối**. Hai lớp cache
   ở trên giúp app không chạm trần này.
 
 ## Bước 1 — Tạo tài khoản và cluster miễn phí
 
 1. Vào <https://www.mongodb.com/cloud/atlas/register>, đăng ký (miễn phí, không cần thẻ).
 2. Trong **Project Overview**, bấm **Create**.
-3. Chọn gói **M0** (Free).
+3. Chọn gói **Free** (tài liệu cũ gọi là **M0**).
 4. **Provider:** AWS. **Region:** chọn **Singapore (ap-southeast-1)**, gần Việt Nam nhất.
 5. **Name:** `edms` (không đổi được sau khi tạo).
 6. Bấm **Create**. Khoảng 15 giây sau cluster sẵn sàng, Atlas mở **Security Quickstart**.
@@ -100,7 +100,7 @@ không gọi lên cloud). Trên web, các trang có dòng *"Cập nhật lúc �
 |---|---|
 | Xem / sửa dữ liệu | Atlas → **Data Explorer** (Browse Collections), hoặc **MongoDB Compass** dán chuỗi kết nối |
 | Thêm, sửa tài khoản test | Sửa `code/apps/api/src/seed/testAccounts.js` rồi seed lại |
-| Sao lưu | Bật **Backup** trên cluster M0 (chụp mỗi ngày, giữ 4 bản), hoặc `mongodump --uri "<chuỗi>" --out backup` |
+| Sao lưu | Bật **Backup** trên cluster Free (mặc định tắt; bật thì chụp mỗi ngày, giữ 4 bản gần nhất), hoặc `mongodump --uri "<chuỗi>" --out backup` |
 | Khôi phục | `mongorestore --uri "<chuỗi>" backup` |
 | Theo dõi tải | Atlas → cluster → **Metrics**: xem số thao tác/giây so với trần 100 |
 
@@ -125,7 +125,7 @@ npm test
 | `bad auth : authentication failed` | Sai user/mật khẩu, hoặc mật khẩu có ký tự đặc biệt chưa mã hóa | Đặt lại mật khẩu chỉ gồm chữ + số |
 | `Could not connect to any servers` / timeout | IP chưa có trong **Network Access** | Thêm IP hiện tại (Bước 2) |
 | Treo lâu ở mạng trường/công ty | Tường lửa chặn cổng 27017 | Dùng mạng khác (4G) |
-| Thỉnh thoảng chậm hẳn | Vượt 100 thao tác/giây của M0, Atlas giảm tốc | Giữ cache bật (`CACHE_TTL_SECONDS=30`) |
+| Thỉnh thoảng chậm hẳn | Vượt 100 thao tác/giây của gói Free, Atlas giảm tốc | Giữ cache bật (`CACHE_TTL_SECONDS=30`) |
 
 ## Bảo mật
 
