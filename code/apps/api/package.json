@@ -14,6 +14,7 @@
     "lint": "eslint src scripts tests",
     "seed:local": "node src/seed/index.js --local",
     "atlas:setup": "node scripts/setup-atlas.js",
+    "db:export": "node scripts/export-mongosh.js",
     "test:story": "node scripts/run-story.js",
     "report:stories": "node scripts/story-report.js"
   },
