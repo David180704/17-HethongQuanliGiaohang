@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import { URL } from "node:url";
 import mongoose from "mongoose";
 import { env } from "./env.js";
@@ -19,8 +20,36 @@ export function describeUri(uri) {
   }
 }
 
+// Atlas dung chuoi "mongodb+srv://" -> driver tra ban ghi DNS SRV. Tren mot so may Windows,
+// Node gui truy van SRV toi DNS 127.0.0.1 va bi tu choi (querySrv ECONNREFUSED) du trinh duyet
+// van vao mang binh thuong (da gap tren may dev 29/10/2026). Khi DNS cua may TU CHOI/khong tra
+// loi thi chuyen sang DNS cong cong; "khong ton tai" (ENOTFOUND) thi giu nguyen de bao dung loi.
+export const FALLBACK_DNS_SERVERS = ["8.8.8.8", "1.1.1.1"];
+const DNS_BROKEN = new Set(["ECONNREFUSED", "ETIMEOUT", "ESERVFAIL", "ECONNRESET", "EREFUSED"]);
+
+/** @returns {Promise<boolean>} true neu da chuyen sang DNS cong cong */
+export async function ensureSrvDns(uri, dnsModule = dns) {
+  if (!String(uri).startsWith("mongodb+srv://")) return false;
+  let host;
+  try {
+    host = new URL(uri).hostname;
+  } catch {
+    return false; // chuoi sai dang: de driver bao loi
+  }
+  try {
+    await dnsModule.promises.resolveSrv(`_mongodb._tcp.${host}`);
+    return false;
+  } catch (err) {
+    if (!DNS_BROKEN.has(err.code)) return false;
+    dnsModule.setServers(FALLBACK_DNS_SERVERS);
+    console.warn(`[db] DNS cua may khong tra loi truy van SRV (${err.code}) -> dung ${FALLBACK_DNS_SERVERS.join(", ")}`);
+    return true;
+  }
+}
+
 export async function connectDB(uri = env.mongoUri) {
   mongoose.set("strictQuery", true);
+  await ensureSrvDns(uri);
   await mongoose.connect(uri, {
     // Cloud (Atlas) xa hon may local: cho phep cho lau hon khi chon may chu
     serverSelectionTimeoutMS: isLocalUri(uri) ? 5000 : 15000,
