@@ -5,7 +5,9 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { User } from "../src/models/User.js";
-import { resetAttempts } from "../src/core/loginThrottle.js";
+import { getContainer } from "../src/container.js";
+
+const resetAttempts = (identifier) => getContainer().loginThrottle.reset(identifier);
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27017/edms?directConnection=true";

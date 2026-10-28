@@ -5,7 +5,11 @@ import request from "supertest";
 import { createApp } from "../src/app.js";
 import { ServiceType } from "../src/models/ServiceType.js";
 import { PriceTable } from "../src/models/PriceTable.js";
-import { listActivePriceTables } from "../src/modules/public/public.service.js";
+import { getContainer } from "../src/container.js";
+import { getRedis } from "../src/config/redis.js";
+
+// Hoi theo thoi diem cu the -> service doc thang DB (khong qua cache)
+const listActivePriceTables = async (at) => (await getContainer().publicCatalogService.listActivePriceTables({ at })).value;
 
 const URI = "mongodb://localhost:27017/edms?directConnection=true";
 const TIERS = [{ fromGram: 0, toGram: 999999999, basePrice: 1000, pricePer500g: 0 }];
@@ -36,6 +40,7 @@ before(async () => {
 
 after(async () => {
   await PriceTable.deleteMany({ _id: { $in: [expiredTable._id, futureTable._id] } });
+  await getRedis().quit();
   await mongoose.disconnect();
 });
 

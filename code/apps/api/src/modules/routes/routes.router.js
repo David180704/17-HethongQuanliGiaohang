@@ -1,6 +1,5 @@
-import { crudRouter } from "../../core/crudRouter.js";
-import { Route } from "../../models/Route.js";
-import { createRouteSchema, updateRouteSchema } from "./routes.schema.js";
+import { createCrudRouter } from "../../core/createCrudRouter.js";
+import { CrudController } from "../../core/CrudController.js";
 
 /**
  * @openapi
@@ -41,10 +40,6 @@ import { createRouteSchema, updateRouteSchema } from "./routes.schema.js";
  *       200: { description: Da xoa }
  */
 
-export const routesRouter = crudRouter({
-  model: Route,
-  resource: "routes",
-  createSchema: createRouteSchema,
-  updateSchema: updateRouteSchema,
-  searchFields: ["code", "name"],
-});
+export function buildRoutesRouter({ services, middleware }) {
+  return createCrudRouter({ controller: new CrudController(services.routes), permission: "routes:manage", ...middleware });
+}
