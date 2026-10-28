@@ -122,3 +122,37 @@ test.describe("dien thoai", () => {
     await page.screenshot({ path: `${SHOT_DIR}/08-pricing-phone.png`, fullPage: true });
   });
 });
+
+test.describe("cache 30 giay phia web", () => {
+  test("chuyen qua lai cac trang trong 30 giay: API bang gia chi goi 1 lan", async ({ page }) => {
+    const calls = [];
+    page.on("request", (req) => {
+      if (req.url().includes("/public/price-tables")) calls.push(req.url());
+    });
+    await page.goto("/bang-gia");
+    await expect(page.getByRole("heading", { name: "Nội quận" })).toBeVisible();
+    // Dieu huong trong SPA (khong tai lai trang) -> cache trong bo nho van con
+    await page.getByRole("link", { name: "Trang chủ" }).first().click();
+    await page.getByRole("link", { name: "Bảng giá" }).first().click();
+    await expect(page.getByRole("heading", { name: "Nội quận" })).toBeVisible();
+    await page.getByRole("link", { name: "Vùng phục vụ" }).first().click();
+    await page.getByRole("link", { name: "Bảng giá" }).first().click();
+    await expect(page.getByTestId("updated-at")).toContainText("tự làm mới mỗi 30 giây");
+    expect(calls).toHaveLength(1);
+  });
+
+  test("de trang mo: sau 30 giay tu goi lai API dung 1 lan de lam moi", async ({ page }) => {
+    test.setTimeout(90_000);
+    let calls = 0;
+    page.on("request", (req) => {
+      if (req.url().includes("/public/price-tables")) calls += 1;
+    });
+    await page.goto("/bang-gia");
+    await expect(page.getByTestId("updated-at")).toBeVisible();
+    const firstStamp = await page.getByTestId("updated-at").textContent();
+    expect(calls).toBe(1);
+
+    await expect.poll(() => calls, { timeout: 40_000, intervals: [1000] }).toBe(2);
+    await expect(page.getByTestId("updated-at")).not.toHaveText(firstStamp);
+  });
+});

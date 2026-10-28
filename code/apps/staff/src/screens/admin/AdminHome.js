@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import RoleHome from "../RoleHome";
 import { CATALOGS } from "./catalogs";
-import { apiClient } from "../../lib/apiClient";
+import { queryCache } from "../../lib/queryCache";
 
 const CATALOG_TILES = [
   { key: "users", description: "Tài khoản, vai trò, khóa/mở" },
@@ -21,15 +21,15 @@ const UPCOMING_TILES = [
 export default function AdminHome({ user, theme, onLogout, onOpenCatalog }) {
   const [counts, setCounts] = useState({});
 
-  // So ban ghi that cua tung danh muc (limit=1, chi lay meta.total). Chay lai moi
-  // lan quay ve trang chu, nen them/xoa xong la so cap nhat ngay.
+  // So ban ghi that cua tung danh muc (limit=1, chi lay meta.total), doc qua cache
+  // 30 giay. Them/xoa trong danh muc da xoa cache endpoint do -> quay ve la so moi.
   useEffect(() => {
     let cancelled = false;
     for (const tile of CATALOG_TILES) {
-      apiClient
-        .get(CATALOGS[tile.key].endpoint, { params: { limit: 1 } })
-        .then((res) => {
-          if (!cancelled) setCounts((prev) => ({ ...prev, [tile.key]: res.data.meta.total }));
+      queryCache
+        .get(CATALOGS[tile.key].endpoint, { limit: 1 })
+        .then(({ body }) => {
+          if (!cancelled) setCounts((prev) => ({ ...prev, [tile.key]: body.meta.total }));
         })
         .catch(() => {});
     }

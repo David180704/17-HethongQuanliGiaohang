@@ -19,6 +19,7 @@ import Badge from "./Badge";
 import Banner from "./Banner";
 import ResourceForm from "./ResourceForm";
 import { apiClient, errorMessage } from "../lib/apiClient";
+import { queryCache, CACHE_TTL_MS, formatTime } from "../lib/queryCache";
 import { confirmAsync } from "../lib/dialog";
 import { colors, CONTENT_MAX_WIDTH, radius } from "../theme";
 
@@ -53,8 +54,10 @@ export default function ResourceScreen({ config, accent, onBack }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [editing, setEditing] = useState(null); // null = dong form, {} = tao moi, item = sua
+  const [updatedAt, setUpdatedAt] = useState(null);
   const requestSeq = useRef(0);
   const noticeTimer = useRef(null);
+  const pageRef = useRef(1);
 
   // Go tim kiem: doi 400ms moi goi API, khong goi moi lan go mot phim.
   useEffect(() => {
@@ -64,21 +67,27 @@ export default function ResourceScreen({ config, accent, onBack }) {
 
   useEffect(() => () => clearTimeout(noticeTimer.current), []);
 
+  // force: bo qua cache (lam moi, keo xuong, sau khi ghi). silent: lam moi nen
+  // dinh ky 30 giay, khong hien vong quay de man hinh khong nhap nhay.
   const load = useCallback(
-    async (page = 1, { pull = false } = {}) => {
+    async (page = 1, { pull = false, force = false, silent = false } = {}) => {
       // Danh so tung request: ket qua cua lan tim cu ve tre thi bo, khong de
       // de len ket qua cua lan tim moi.
       const seq = ++requestSeq.current;
       if (pull) setRefreshing(true);
-      else setLoading(true);
+      else if (!silent) setLoading(true);
       setError("");
       try {
-        const res = await apiClient.get(config.endpoint, {
-          params: { page, limit: PAGE_SIZE, search: query || undefined },
-        });
+        const { body, fetchedAt } = await queryCache.get(
+          config.endpoint,
+          { page, limit: PAGE_SIZE, search: query || undefined },
+          { force: force || pull },
+        );
         if (seq !== requestSeq.current) return;
-        setItems(res.data.data);
-        setMeta(res.data.meta);
+        setItems(body.data);
+        setMeta(body.meta);
+        setUpdatedAt(fetchedAt);
+        pageRef.current = body.meta.page;
       } catch (err) {
         if (seq === requestSeq.current) setError(errorMessage(err, "Không tải được dữ liệu"));
       } finally {
@@ -95,6 +104,13 @@ export default function ResourceScreen({ config, accent, onBack }) {
     load(1);
   }, [load]);
 
+  // Du lieu tu dong cap nhat moi 30 giay khi man hinh dang mo (thay doi do nguoi
+  // khac lam, vd admin khac them tuyen) - khong goi API lien tuc.
+  useEffect(() => {
+    const timer = setInterval(() => load(pageRef.current, { force: true, silent: true }), CACHE_TTL_MS);
+    return () => clearInterval(timer);
+  }, [load]);
+
   function flash(message) {
     setNotice(message);
     clearTimeout(noticeTimer.current);
@@ -105,6 +121,8 @@ export default function ResourceScreen({ config, accent, onBack }) {
     const isEdit = Boolean(editing?._id);
     if (isEdit) await apiClient.put(`${config.endpoint}/${editing._id}`, payload);
     else await apiClient.post(config.endpoint, payload);
+    // Ghi xong: bo moi ban cache cua danh muc nay (moi trang, so dem o trang chu)
+    queryCache.invalidate(config.endpoint);
     setEditing(null);
     flash(isEdit ? "Đã lưu thay đổi" : "Đã thêm mới");
     if (isEdit) {
@@ -124,6 +142,7 @@ export default function ResourceScreen({ config, accent, onBack }) {
     if (!confirmed) return;
     try {
       await apiClient.delete(`${config.endpoint}/${item._id}`);
+      queryCache.invalidate(config.endpoint);
       flash(`Đã xóa "${name}"`);
       // Xoa ban ghi cuoi cung cua trang -> lui ve trang truoc
       load(items.length === 1 && meta.page > 1 ? meta.page - 1 : meta.page);
@@ -195,10 +214,15 @@ export default function ResourceScreen({ config, accent, onBack }) {
           {loading && items.length > 0 ? <ActivityIndicator size="small" color={colors.muted} /> : null}
         </View>
         <View style={styles.toolbarActions}>
-          <Button title="Làm mới" variant="secondary" size="sm" onPress={() => load(meta.page)} />
+          <Button title="Làm mới" variant="secondary" size="sm" onPress={() => load(meta.page, { force: true })} />
           <Button title="+ Thêm mới" size="sm" onPress={() => setEditing({})} />
         </View>
       </View>
+      {updatedAt ? (
+        <Text style={styles.updatedAt} testID="updated-at">
+          Cập nhật lúc {formatTime(updatedAt)} · tự làm mới mỗi 30 giây
+        </Text>
+      ) : null}
       <Banner>{error}</Banner>
       <Banner tone="success">{notice}</Banner>
     </View>
@@ -292,6 +316,7 @@ const styles = StyleSheet.create({
   toolbarRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 },
   totalBlock: { flexDirection: "row", alignItems: "center", gap: 8 },
   total: { fontSize: 13, color: colors.muted },
+  updatedAt: { fontSize: 12, color: colors.faint },
   toolbarActions: { flexDirection: "row", gap: 8 },
   card: {
     backgroundColor: colors.surface,

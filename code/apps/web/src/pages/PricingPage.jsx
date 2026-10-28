@@ -1,22 +1,15 @@
-import { useEffect, useState } from "react";
-import { apiClient } from "../lib/apiClient.js";
+import { useState } from "react";
+import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { ZONES, formatTier, formatVnd, formatSurcharge, tierAllowsExtraSteps } from "../lib/format.js";
+import UpdatedAt from "../components/UpdatedAt.jsx";
 
 // Gia hien thi = cuoc co ban x (1 + he so phu phi dich vu). STANDARD va EXPRESS
 // dung chung bac khoi luong (CLAUDE.md muc 5) - chenh lech nam o phu phi dich vu.
 export default function PricingPage() {
-  const [tables, setTables] = useState([]);
   const [serviceCode, setServiceCode] = useState("STANDARD");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    apiClient
-      .get("/public/price-tables")
-      .then((res) => setTables(res.data.data))
-      .catch(() => setError("Không tải được bảng giá. Vui lòng thử lại sau."))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, loading, error: loadError, updatedAt, refresh } = useCachedQuery("/public/price-tables");
+  const tables = data || [];
+  const error = loadError ? "Không tải được bảng giá. Vui lòng thử lại sau." : "";
 
   const serviceTypes = [];
   for (const table of tables) {
@@ -34,6 +27,9 @@ export default function PricingPage() {
         Giá theo vùng gửi – nhận và khối lượng tính cước. Khối lượng tính cước là số lớn hơn giữa khối lượng thật và
         khối lượng quy đổi (dài × rộng × cao ÷ 5000).
       </p>
+      <div className="mt-2">
+        <UpdatedAt date={updatedAt} onRefresh={refresh} />
+      </div>
 
       {error && <div className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
       {loading && <p className="mt-6 text-gray-500">Đang tải bảng giá...</p>}
