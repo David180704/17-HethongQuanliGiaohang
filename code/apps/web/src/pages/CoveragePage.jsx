@@ -1,34 +1,25 @@
-import { useEffect, useRef, useState } from "react";
-import { apiClient } from "../lib/apiClient.js";
+import { useEffect, useState } from "react";
+import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { REGION_LABELS } from "../lib/format.js";
+import UpdatedAt from "../components/UpdatedAt.jsx";
 
 export default function CoveragePage() {
   const [search, setSearch] = useState("");
-  const [areas, setAreas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const requestSeq = useRef(0);
+  const [query, setQuery] = useState("");
 
-  // Doi 300ms sau phim go cuoi moi goi API; ket qua cu ve tre thi bo qua.
+  // Doi 300ms sau phim go cuoi moi tim (khong goi API moi lan go mot phim).
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const seq = ++requestSeq.current;
-      apiClient
-        .get("/public/service-areas", { params: { search: search.trim() || undefined } })
-        .then((res) => {
-          if (seq !== requestSeq.current) return;
-          setAreas(res.data.data);
-          setError("");
-        })
-        .catch(() => {
-          if (seq === requestSeq.current) setError("Không tải được vùng phục vụ. Vui lòng thử lại sau.");
-        })
-        .finally(() => {
-          if (seq === requestSeq.current) setLoading(false);
-        });
-    }, 300);
+    const timer = setTimeout(() => setQuery(search.trim()), 300);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Cung tu khoa trong 30 giay -> lay tu cache; man hinh dang mo tu lam moi moi 30 giay.
+  const { data, loading, error: loadError, updatedAt, refresh } = useCachedQuery(
+    "/public/service-areas",
+    query ? { search: query } : {},
+  );
+  const areas = data || [];
+  const error = loadError ? "Không tải được vùng phục vụ. Vui lòng thử lại sau." : "";
 
   const byProvince = new Map();
   for (const area of areas) {
@@ -58,9 +49,12 @@ export default function CoveragePage() {
         <p className="mt-4 text-sm text-gray-500" role="status">
           {areas.length > 0
             ? `${areas.length} quận/huyện tại ${byProvince.size} tỉnh/thành`
-            : `Chưa phục vụ khu vực "${search.trim()}"`}
+            : `Chưa phục vụ khu vực "${query}"`}
         </p>
       )}
+      <div className="mt-1">
+        <UpdatedAt date={updatedAt} onRefresh={refresh} />
+      </div>
 
       <div className="mt-4 space-y-3">
         {[...byProvince.entries()].map(([province, info]) => (

@@ -1,18 +1,11 @@
-import { useEffect, useState } from "react";
-import { apiClient, errorMessage } from "../lib/apiClient.js";
+import { errorMessage } from "../lib/apiClient.js";
+import { useCachedQuery } from "../lib/useCachedQuery.js";
 
 const CUSTOMER_TYPE_LABELS = { INDIVIDUAL: "Cá nhân", BUSINESS: "Doanh nghiệp / shop" };
 
 export default function AccountPage() {
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    apiClient
-      .get("/auth/me")
-      .then((res) => setProfile(res.data.data))
-      .catch((err) => setError(errorMessage(err, "Không tải được thông tin tài khoản")));
-  }, []);
+  const { data: profile, error: loadError } = useCachedQuery("/auth/me");
+  const error = loadError ? errorMessage(loadError, "Không tải được thông tin tài khoản") : "";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">

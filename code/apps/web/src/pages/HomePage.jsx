@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiClient } from "../lib/apiClient.js";
+import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { formatSurcharge } from "../lib/format.js";
 
 const STEPS = [
@@ -11,19 +10,13 @@ const STEPS = [
 ];
 
 export default function HomePage() {
-  const [serviceTypes, setServiceTypes] = useState([]);
-  const [areas, setAreas] = useState([]);
-  const [error, setError] = useState("");
-
-  // Du lieu cong khai: khong can dang nhap (GET /public/*)
-  useEffect(() => {
-    Promise.all([apiClient.get("/public/service-types"), apiClient.get("/public/service-areas")])
-      .then(([typesRes, areasRes]) => {
-        setServiceTypes(typesRes.data.data);
-        setAreas(areasRes.data.data);
-      })
-      .catch(() => setError("Không tải được dữ liệu từ máy chủ. Vui lòng thử lại sau."));
-  }, []);
+  // Du lieu cong khai (khong can dang nhap), cache 30 giay va tu lam moi
+  const typesQuery = useCachedQuery("/public/service-types");
+  const areasQuery = useCachedQuery("/public/service-areas");
+  const serviceTypes = typesQuery.data || [];
+  const areas = areasQuery.data || [];
+  const error =
+    typesQuery.error || areasQuery.error ? "Không tải được dữ liệu từ máy chủ. Vui lòng thử lại sau." : "";
 
   const provinceCount = new Set(areas.map((a) => a.province)).size;
 

@@ -22,7 +22,10 @@ async function cleanup() {
 test.beforeAll(cleanup);
 test.afterAll(cleanup);
 
-test("admin them vung phuc vu tren App Nhan vien -> khach thay ngay tren Web Khach hang", async ({ browser }) => {
+// Web Khach hang cache du lieu 30 giay va tu lam moi moi 30 giay (yeu cau "khong goi
+// API lien tuc") -> khach thay thay doi cua admin TOI DA sau 30 giay, khong phai ngay.
+test("admin them vung phuc vu tren App Nhan vien -> khach thay tren Web trong vong 30 giay", async ({ browser }) => {
+  test.setTimeout(3 * 60_000);
   const district = `Quận Liên App ${Date.now()}`;
 
   // Hai "thiet bi" doc lap: nhan vien (may tinh) va khach hang (dien thoai)
@@ -54,7 +57,7 @@ test("admin them vung phuc vu tren App Nhan vien -> khach thay ngay tren Web Kha
   // Khach tim lai (khong dang nhap) -> thay ngay quan vua them
   await customer.getByLabel("Tìm vùng phục vụ").fill("");
   await customer.getByLabel("Tìm vùng phục vụ").fill(district);
-  await expect(customer.getByRole("heading", { name: E2E_PROVINCE })).toBeVisible();
+  await expect(customer.getByRole("heading", { name: E2E_PROVINCE })).toBeVisible({ timeout: 40_000 });
   await expect(customer.getByText(district)).toBeVisible();
   await staff.screenshot({ path: `${SHOT_DIR}/10-cross-app-staff.png` });
   await customer.screenshot({ path: `${SHOT_DIR}/10-cross-app-customer.png` });
@@ -65,7 +68,7 @@ test("admin them vung phuc vu tren App Nhan vien -> khach thay ngay tren Web Kha
   await expect(staff.getByText(`Đã xóa "${district}"`)).toBeVisible();
   await customer.getByLabel("Tìm vùng phục vụ").fill("");
   await customer.getByLabel("Tìm vùng phục vụ").fill(district);
-  await expect(customer.getByRole("status")).toHaveText(`Chưa phục vụ khu vực "${district}"`);
+  await expect(customer.getByRole("status")).toHaveText(`Chưa phục vụ khu vực "${district}"`, { timeout: 40_000 });
 
   await staffContext.close();
   await customerContext.close();
