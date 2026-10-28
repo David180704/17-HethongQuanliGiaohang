@@ -60,4 +60,4 @@ if ($lanIp) {
   Write-Host "  New-NetFirewallRule -DisplayName 'EDMS dev' -Direction Inbound -Protocol TCP -LocalPort 4044,5173,8082 -Action Allow -Profile Private"
 }
 Write-Host ""
-Write-Host "Tai khoan demo (mat khau Password123!): admin@edms.vn, hubstaff1@edms.vn, shipper1@edms.vn, customer1@edms.vn"
+Write-Host "Tai khoan test (mat khau 123456): admin@edms.vn | kho1..3@edms.vn | taixe1..5@edms.vn | khach1..6@edms.vn | shop1..4@edms.vn"

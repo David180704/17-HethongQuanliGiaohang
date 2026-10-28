@@ -6,7 +6,7 @@ tags:
 - runFlow:
     file: subflows/login-ok.yaml
     env:
-      USER_EMAIL: shipper1@edms.vn
+      USER_EMAIL: taixe1@edms.vn
 - tapOn: "Đăng xuất"
 - tapOn:
     id: "android:id/button1"

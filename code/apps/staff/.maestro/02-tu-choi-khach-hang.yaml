@@ -6,7 +6,7 @@ tags:
 - runFlow:
     file: subflows/login.yaml
     env:
-      USER_EMAIL: customer1@edms.vn
+      USER_EMAIL: khach1@edms.vn
 - extendedWaitUntil:
     visible: ".*không đăng nhập được App Nhân viên.*"
     timeout: 30000

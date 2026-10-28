@@ -11,6 +11,6 @@ name: Dang nhap App Nhan vien bang USER_EMAIL (chua kiem tra ket qua)
 - tapOn:
     id: "login-password"
 - eraseText: 60
-- inputText: "Password123!"
+- inputText: "123456"
 - hideKeyboard
 - tapOn: "Đăng nhập"

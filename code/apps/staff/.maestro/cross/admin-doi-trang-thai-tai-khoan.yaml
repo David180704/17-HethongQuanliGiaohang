@@ -2,7 +2,7 @@ appId: host.exp.exponent
 name: "[Lien app] ADMIN doi trang thai tai khoan TARGET_EMAIL thanh STATUS"
 ---
 # Khong chay rieng: duoc test web goi kem tham so
-#   TARGET_EMAIL (vd customer3@edms.vn), STATUS (ACTIVE | LOCKED)
+#   TARGET_EMAIL (vd khach3@edms.vn), STATUS (ACTIVE | LOCKED)
 - runFlow:
     file: ../subflows/login-ok.yaml
     env:
