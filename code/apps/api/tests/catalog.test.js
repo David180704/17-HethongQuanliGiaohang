@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { Hub } from "../src/models/Hub.js";
 import { Route } from "../src/models/Route.js";
@@ -24,6 +25,7 @@ let hub;
 
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+  await removeLeftovers({ emails: ["catalog-admin@edms.vn", "catalog-created-shipper@edms.vn", "catalog-customer@edms.vn"], hubCodes: ["HUB-TEST-CATALOG"] });
   app = createApp();
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
@@ -70,19 +72,19 @@ after(async () => {
   await mongoose.disconnect();
 });
 
-test("CUSTOMER bi FORBIDDEN khi goi API quan tri danh muc", async () => {
+test("[US-09] CUSTOMER bi FORBIDDEN khi goi API quan tri danh muc", async () => {
   const res = await request(app).get("/routes").set("Authorization", `Bearer ${customerToken}`);
   assert.equal(res.status, 403);
   assert.equal(res.body.error.code, "FORBIDDEN");
 });
 
-test("khong co token bi UNAUTHORIZED", async () => {
+test("[US-03] khong co token bi UNAUTHORIZED", async () => {
   const res = await request(app).get("/routes");
   assert.equal(res.status, 401);
 });
 
 let routeId;
-test("ADMIN CRUD tuyen (routes)", async () => {
+test("[US-11] ADMIN CRUD tuyen (routes)", async () => {
   const createRes = await request(app)
     .post("/routes")
     .set("Authorization", `Bearer ${adminToken}`)
@@ -102,7 +104,7 @@ test("ADMIN CRUD tuyen (routes)", async () => {
   assert.equal(updateRes.body.data.maxPickupPerShift, 20);
 });
 
-test("mot quan/huyen chi thuoc mot tuyen - tao trung bi CONFLICT", async () => {
+test("[US-11] mot quan/huyen chi thuoc mot tuyen - tao trung bi CONFLICT", async () => {
   const first = await request(app)
     .post("/serviceAreas")
     .set("Authorization", `Bearer ${adminToken}`)
@@ -120,7 +122,7 @@ test("mot quan/huyen chi thuoc mot tuyen - tao trung bi CONFLICT", async () => {
   await Route.deleteOne({ _id: routeId });
 });
 
-test("ADMIN CRUD nguoi dung, mat khau duoc hash va khong lo passwordHash", async () => {
+test("[US-10] ADMIN CRUD nguoi dung, mat khau duoc hash va khong lo passwordHash", async () => {
   // Don truoc neu lan chay/test fail truoc do bo lai (tranh 409 gia do du lieu mo).
   await User.deleteOne({ email: "catalog-created-shipper@edms.vn" });
 
@@ -155,7 +157,7 @@ test("ADMIN CRUD nguoi dung, mat khau duoc hash va khong lo passwordHash", async
   await User.deleteOne({ _id: userId });
 });
 
-test("serviceTypes: khong xoa duoc khi da dung trong bang gia", async () => {
+test("[US-12] serviceTypes: khong xoa duoc khi da dung trong bang gia", async () => {
   // code bi gioi han boi enum STANDARD|EXPRESS va co unique index, nen tai
   // su dung ban ghi co san (tu seed) neu da ton tai thay vi tao moi bi trung.
   let serviceType = await ServiceType.findOne({ code: "STANDARD" });

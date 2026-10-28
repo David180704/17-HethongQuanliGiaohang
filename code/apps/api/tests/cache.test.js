@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { Route } from "../src/models/Route.js";
 import { ServiceArea } from "../src/models/ServiceArea.js";
@@ -19,7 +20,7 @@ const PROVINCE = "Tỉnh Kiểm Thử Cache";
 // ---------- Unit test: khong can MongoDB/Redis ----------
 
 describe("CacheService (kho bo nho)", () => {
-  test("lan dau MISS goi loader, lan sau HIT khong goi loader", async () => {
+  test("[CACHE] lan dau MISS goi loader, lan sau HIT khong goi loader", async () => {
     const cache = new CacheService({ store: new MemoryCacheStore(), defaultTtlSeconds: 30 });
     let calls = 0;
     const loader = async () => ({ n: ++calls });
@@ -31,7 +32,7 @@ describe("CacheService (kho bo nho)", () => {
     assert.deepEqual(second.value, { n: 1 });
   });
 
-  test("invalidate(scope) xoa ca vung -> lan doc sau lai goi loader", async () => {
+  test("[CACHE] invalidate(scope) xoa ca vung -> lan doc sau lai goi loader", async () => {
     const cache = new CacheService({ store: new MemoryCacheStore() });
     let calls = 0;
     await cache.getOrSet("x", ["a"], async () => ++calls);
@@ -41,14 +42,14 @@ describe("CacheService (kho bo nho)", () => {
     assert.equal(calls, 2);
   });
 
-  test("tham so cung noi dung khac thu tu khoa dung chung mot khoa cache", async () => {
+  test("[CACHE] tham so cung noi dung khac thu tu khoa dung chung mot khoa cache", async () => {
     const cache = new CacheService({ store: new MemoryCacheStore() });
     await cache.getOrSet("x", [{ page: 1, search: "a" }], async () => "v");
     const again = await cache.getOrSet("x", [{ search: "a", page: 1 }], async () => "khac");
     assert.equal(again.hit, true);
   });
 
-  test("TTL = 0 tat cache: luon goi loader", async () => {
+  test("[CACHE] TTL = 0 tat cache: luon goi loader", async () => {
     const cache = new CacheService({ store: new MemoryCacheStore(), defaultTtlSeconds: 0 });
     let calls = 0;
     await cache.getOrSet("x", ["a"], async () => ++calls);
@@ -56,7 +57,7 @@ describe("CacheService (kho bo nho)", () => {
     assert.equal(calls, 2);
   });
 
-  test("kho cache loi (Redis chet) -> van tra du lieu tu nguon, khong nem loi", async () => {
+  test("[CACHE] kho cache loi (Redis chet) -> van tra du lieu tu nguon, khong nem loi", async () => {
     const brokenStore = {
       get: async () => {
         throw new Error("ECONNREFUSED");
@@ -84,7 +85,7 @@ describe("CachedRepository (Decorator)", () => {
     };
   }
 
-  test("doc 2 lan chi cham repository goc 1 lan; ghi xong thi doc lai tu nguon", async () => {
+  test("[CACHE] doc 2 lan chi cham repository goc 1 lan; ghi xong thi doc lai tu nguon", async () => {
     const inner = fakeRepository();
     const repo = new CachedRepository(inner, { cache: new CacheService({ store: new MemoryCacheStore() }), scope: "t" });
 
@@ -108,6 +109,7 @@ describe("Cache trang cong khai qua HTTP", () => {
 
   before(async () => {
     await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+    await removeLeftovers({ emails: ["cache-admin@edms.vn"] });
     app = createApp();
     await ServiceArea.deleteMany({ province: PROVINCE });
     route = await Route.findOne();
@@ -130,7 +132,7 @@ describe("Cache trang cong khai qua HTTP", () => {
     await mongoose.disconnect();
   });
 
-  test("goi 2 lan: lan sau X-Cache HIT (khong truy van MongoDB)", async () => {
+  test("[CACHE] goi 2 lan: lan sau X-Cache HIT (khong truy van MongoDB)", async () => {
     const search = `cache-${Date.now()}`;
     const first = await request(app).get("/public/service-areas").query({ search });
     const second = await request(app).get("/public/service-areas").query({ search });
@@ -139,7 +141,7 @@ describe("Cache trang cong khai qua HTTP", () => {
     assert.deepEqual(second.body.data, first.body.data);
   });
 
-  test("admin them khu vuc -> cache trang cong khai bi xoa ngay (EventBus), khach thay du lieu moi", async () => {
+  test("[CACHE] admin them khu vuc -> cache trang cong khai bi xoa ngay (EventBus), khach thay du lieu moi", async () => {
     const district = `Quận Cache ${Date.now()}`;
     const before = await request(app).get("/public/service-areas").query({ search: PROVINCE });
     assert.equal(before.body.data.length, 0);

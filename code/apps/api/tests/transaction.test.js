@@ -7,13 +7,13 @@ const URI = "mongodb://localhost:27017/edms?directConnection=true";
 before(() => mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 }));
 after(() => mongoose.disconnect());
 
-test("MongoDB chay o che do replica set", async () => {
+test("[US-01] MongoDB chay o che do replica set", async () => {
   const info = await mongoose.connection.db.admin().command({ hello: 1 });
   assert.equal(info.setName, "rs0");
   console.log("   replica set =", info.setName, "| primary =", info.primary);
 });
 
-test("Ghi nhieu document trong mot transaction", async () => {
+test("[US-02] Ghi nhieu document trong mot transaction", async () => {
   const col = mongoose.connection.collection("tx_probe");
   await col.deleteMany({});
   const s = await mongoose.startSession();
@@ -26,7 +26,7 @@ test("Ghi nhieu document trong mot transaction", async () => {
   await col.drop();
 });
 
-test("Transaction tu huy khi co loi giua chung", async () => {
+test("[US-02] Transaction tu huy khi co loi giua chung", async () => {
   const col = mongoose.connection.collection("tx_probe");
   await col.deleteMany({});
   const s = await mongoose.startSession();
@@ -35,7 +35,9 @@ test("Transaction tu huy khi co loi giua chung", async () => {
       await col.insertOne({ buoc: 1 }, { session: s });
       throw new Error("Loi gia lap");
     });
-  } catch {}
+  } catch {
+    // Loi gia lap co chu dich: transaction phai tu huy, kiem tra ngay ben duoi
+  }
   await s.endSession();
   assert.equal(await col.countDocuments(), 0);
 });

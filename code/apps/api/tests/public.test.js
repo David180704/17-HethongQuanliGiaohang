@@ -44,7 +44,7 @@ after(async () => {
   await mongoose.disconnect();
 });
 
-test("GET /public/service-types khong can token, khong lo field noi bo", async () => {
+test("[PB-01] GET /public/service-types khong can token, khong lo field noi bo", async () => {
   const res = await request(app).get("/public/service-types");
   assert.equal(res.status, 200);
   assert.ok(res.body.data.length >= 2);
@@ -53,7 +53,7 @@ test("GET /public/service-types khong can token, khong lo field noi bo", async (
   assert.equal(item.createdAt, undefined);
 });
 
-test("GET /public/service-areas tim theo ten quan, khong lo routeId", async () => {
+test("[PB-01] GET /public/service-areas tim theo ten quan, khong lo routeId", async () => {
   const res = await request(app).get("/public/service-areas").query({ search: "Hoàn Kiếm" });
   assert.equal(res.status, 200);
   assert.equal(res.body.data.length, 1);
@@ -61,13 +61,13 @@ test("GET /public/service-areas tim theo ten quan, khong lo routeId", async () =
   assert.equal(res.body.data[0].routeId, undefined);
 });
 
-test("GET /public/service-areas: ky tu dac biet trong search khong lam vo regex", async () => {
+test("[PB-01] GET /public/service-areas: ky tu dac biet trong search khong lam vo regex", async () => {
   const res = await request(app).get("/public/service-areas").query({ search: "(((" });
   assert.equal(res.status, 200);
   assert.equal(res.body.data.length, 0);
 });
 
-test("GET /public/price-tables chi tra bang gia dang hieu luc", async () => {
+test("[PB-04] GET /public/price-tables chi tra bang gia dang hieu luc", async () => {
   const res = await request(app).get("/public/price-tables");
   assert.equal(res.status, 200);
   const ids = res.body.data.map((t) => t._id);
@@ -76,7 +76,7 @@ test("GET /public/price-tables chi tra bang gia dang hieu luc", async () => {
   assert.ok(res.body.data[0].serviceTypeId.code, "phai kem thong tin loai dich vu");
 });
 
-test("listActivePriceTables: dung tai thoi diem effectiveTo thi het hieu luc", async () => {
+test("[PB-04] listActivePriceTables: dung tai thoi diem effectiveTo thi het hieu luc", async () => {
   const tables = await listActivePriceTables(new Date("2020-12-31"));
   assert.ok(!tables.some((t) => String(t._id) === String(expiredTable._id)));
   const before = await listActivePriceTables(new Date("2020-12-30"));
