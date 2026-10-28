@@ -6,7 +6,7 @@ tags:
 - runFlow:
     file: subflows/login-ok.yaml
     env:
-      USER_EMAIL: shipper1@edms.vn
+      USER_EMAIL: taixe1@edms.vn
 - assertVisible: "Ca hôm nay"
 - assertVisible: "Tuyến: R-.*"
 - assertNotVisible: "Người dùng"

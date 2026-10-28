@@ -8,7 +8,7 @@ import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
 import { ORDER_STATUS } from "../constants/enums.js";
 
-const SEED_PASSWORD = "Password123!";
+import { TEST_PASSWORD, buildTestAccounts } from "./testAccounts.js";
 const TOTAL_ORDERS = 200;
 const BASE_COUNT_PER_STATUS = 8;
 
@@ -121,62 +121,21 @@ async function seedPriceTables(serviceTypeMap) {
 }
 
 async function seedUsers({ hubDocs, routeDocs }) {
-  const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
-  let phoneCounter = 900000;
-  const nextPhone = () => `090${String(phoneCounter++).padStart(7, "0")}`;
+  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
+  const accounts = buildTestAccounts({ hubDocs, routeDocs });
+  const withDefaults = (account) => ({ status: "ACTIVE", ...account, passwordHash });
 
-  const admin = {
-    email: "admin@edms.vn",
-    phone: nextPhone(),
-    passwordHash,
-    fullName: "Quản Trị Hệ Thống",
-    role: "ADMIN",
-    status: "ACTIVE",
-  };
-
-  const hubStaff = hubDocs.map((hub, i) => ({
-    email: `hubstaff${i + 1}@edms.vn`,
-    phone: nextPhone(),
-    passwordHash,
-    fullName: randomVnName(),
-    role: "HUB_STAFF",
-    status: "ACTIVE",
-    hubId: hub._id,
+  const admin = withDefaults(accounts.admin);
+  const hubStaff = accounts.hubStaff.map(withDefaults);
+  const shippers = accounts.shippers.map(withDefaults);
+  const customers = accounts.customers.map((account) => ({
+    ...withDefaults(account),
+    bankAccount: {
+      bankName: "Vietcombank",
+      accountNumber: faker.string.numeric(10),
+      accountName: account.fullName.toUpperCase(),
+    },
   }));
-
-  const shippers = Array.from({ length: 5 }, (_, i) => ({
-    email: `shipper${i + 1}@edms.vn`,
-    phone: nextPhone(),
-    passwordHash,
-    fullName: randomVnName(),
-    role: "SHIPPER",
-    status: "ACTIVE",
-    routeIds: [routeDocs[i % routeDocs.length]._id],
-  }));
-
-  const customers = Array.from({ length: 10 }, (_, i) => {
-    const isBusiness = i >= 6;
-    const pendingApproval = i === 9;
-    const base = {
-      email: `customer${i + 1}@edms.vn`,
-      phone: nextPhone(),
-      passwordHash,
-      fullName: randomVnName(),
-      role: "CUSTOMER",
-      status: pendingApproval ? "PENDING" : "ACTIVE",
-      customerType: isBusiness ? "BUSINESS" : "INDIVIDUAL",
-      bankAccount: {
-        bankName: "Vietcombank",
-        accountNumber: faker.string.numeric(10),
-        accountName: randomVnName().toUpperCase(),
-      },
-    };
-    if (isBusiness) {
-      base.shopName = `Shop ${base.fullName}`;
-      base.taxCode = faker.string.numeric(10);
-    }
-    return base;
-  });
 
   const userDocs = await User.insertMany([admin, ...hubStaff, ...shippers, ...customers]);
   return {
@@ -348,8 +307,8 @@ async function main() {
   await seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, priceTableMap, shippers });
 
   console.log("\nHoan tat seed du lieu.");
-  console.log(`Mat khau mac dinh cho moi tai khoan seed: ${SEED_PASSWORD}`);
-  console.log("Tai khoan admin: admin@edms.vn");
+  console.log(`Mat khau chung cho moi tai khoan test: ${TEST_PASSWORD}`);
+  console.log("Tai khoan: admin@edms.vn | kho1..3@edms.vn | taixe1..5@edms.vn | khach1..6@edms.vn | shop1..4@edms.vn");
   console.log(`So hub staff: ${hubStaff.length}, shipper: ${shippers.length}, customer: ${customers.length}`);
 
   await disconnectDB();

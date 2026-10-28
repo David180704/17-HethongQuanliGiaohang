@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const PASSWORD = "Password123!";
+const PASSWORD = "123456";
 const SHOT_DIR = "tests-e2e/screenshots";
 const PHONE = { width: 390, height: 844 };
 
@@ -49,7 +49,7 @@ test("bam Tao don khi chua dang nhap -> dang nhap -> quay lai dung trang tao don
   await expect(page.getByText("Đăng nhập để tạo đơn và thanh toán.")).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/04-login-from-create-order.png`, fullPage: true });
 
-  await loginOnPage(page, "customer1@edms.vn");
+  await loginOnPage(page, "khach1@edms.vn");
   await expect(page).toHaveURL(/\/tao-don$/);
   await expect(page.getByRole("heading", { name: "Tạo đơn hàng" })).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/05-create-order-logged-in.png`, fullPage: true });
@@ -57,14 +57,14 @@ test("bam Tao don khi chua dang nhap -> dang nhap -> quay lai dung trang tao don
 
 test("tai khoan nhan vien bi server tu choi o App Khach hang", async ({ page }) => {
   await page.goto("/dang-nhap");
-  await loginOnPage(page, "shipper1@edms.vn");
+  await loginOnPage(page, "taixe1@edms.vn");
   await expect(page.getByRole("alert")).toContainText("Tài khoản nhân viên không dùng App Khách hàng");
   await expect(page).toHaveURL(/\/dang-nhap$/);
 });
 
 test("da dang nhap ma vao trang dang nhap thi ve trang chu (guard nguoc)", async ({ page }) => {
   await page.goto("/dang-nhap");
-  await loginOnPage(page, "customer1@edms.vn");
+  await loginOnPage(page, "khach1@edms.vn");
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/dang-nhap");
   await expect(page).toHaveURL(/\/$/);
@@ -72,7 +72,7 @@ test("da dang nhap ma vao trang dang nhap thi ve trang chu (guard nguoc)", async
 
 test("?next tro ra ngoai site bi bo qua (chan open redirect)", async ({ page }) => {
   await page.goto("/dang-nhap?next=//evil.example.com");
-  await loginOnPage(page, "customer1@edms.vn");
+  await loginOnPage(page, "khach1@edms.vn");
   await expect(page).toHaveURL("http://localhost:5173/");
 });
 
@@ -85,7 +85,7 @@ test("dang ky: doanh nghiep hien them o shop/MST, email trung bi bao loi tu serv
   await page.getByRole("radio", { name: "Cá nhân" }).click();
   await expect(page.getByLabel("Mã số thuế")).toHaveCount(0);
   await page.getByLabel("Họ tên").fill("Khách Trùng Email");
-  await page.getByLabel("Email").fill("customer1@edms.vn");
+  await page.getByLabel("Email").fill("khach1@edms.vn");
   await page.getByLabel("Số điện thoại").fill("0912345678");
   await page.getByLabel("Mật khẩu").fill(PASSWORD);
   await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
@@ -95,12 +95,12 @@ test("dang ky: doanh nghiep hien them o shop/MST, email trung bi bao loi tu serv
 
 test("dang xuat xong vao trang tai khoan bi chuyen sang dang nhap", async ({ page }) => {
   await page.goto("/dang-nhap");
-  await loginOnPage(page, "customer1@edms.vn");
+  await loginOnPage(page, "khach1@edms.vn");
   // Cho dang nhap xong (da luu token) roi moi tai trang khac
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/tai-khoan");
   await expect(page.getByRole("heading", { name: "Tài khoản của tôi" })).toBeVisible();
-  await expect(page.getByText("customer1@edms.vn")).toBeVisible();
+  await expect(page.getByText("khach1@edms.vn")).toBeVisible();
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await expect(page.getByRole("link", { name: "Đăng nhập" })).toBeVisible();
   await page.goto("/tai-khoan");

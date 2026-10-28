@@ -6,7 +6,7 @@ tags:
 - runFlow:
     file: subflows/login-ok.yaml
     env:
-      USER_EMAIL: hubstaff1@edms.vn
+      USER_EMAIL: kho1@edms.vn
 - assertVisible: "Hub phụ trách: .*\\((HUB|PO)-.*\\)"
 - assertVisible: "Duyệt đơn mới"
 - assertNotVisible: "Người dùng"

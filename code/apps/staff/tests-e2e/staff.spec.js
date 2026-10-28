@@ -1,7 +1,7 @@
 import { test, expect, request } from "@playwright/test";
 
 const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
-const PASSWORD = "Password123!";
+const PASSWORD = "123456";
 const SHOT_DIR = "tests-e2e/screenshots";
 const PHONE = { width: 390, height: 844 };
 
@@ -43,7 +43,7 @@ test("chua dang nhap chi thay man hinh dang nhap", async ({ page }) => {
 });
 
 test("tai khoan CUSTOMER bi server tu choi o App Nhan vien", async ({ page }) => {
-  await login(page, "customer1@edms.vn");
+  await login(page, "khach1@edms.vn");
   await expect(page.getByRole("alert")).toContainText("Tài khoản khách hàng không đăng nhập được App Nhân viên");
   await expect(page.getByRole("button", { name: "Đăng nhập", exact: true })).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/02-customer-rejected.png`, fullPage: true });
@@ -59,7 +59,7 @@ test("sai mat khau hien thong bao loi tieng Viet", async ({ page }) => {
 
 test("ADMIN vao trang quan tri, so ban ghi that, phien con sau khi tai lai trang", async ({ page }) => {
   await login(page, "admin@edms.vn");
-  await expect(page.getByText("Quản Trị Hệ Thống")).toBeVisible();
+  await expect(page.getByText("Admin EDMS")).toBeVisible();
   for (const name of ["Người dùng", "Tuyến", "Khu vực phục vụ", "Loại dịch vụ"]) {
     await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
   }
@@ -69,7 +69,7 @@ test("ADMIN vao trang quan tri, so ban ghi that, phien con sau khi tai lai trang
   await page.screenshot({ path: `${SHOT_DIR}/03-admin-home-desktop.png`, fullPage: true });
 
   await page.reload();
-  await expect(page.getByText("Quản Trị Hệ Thống")).toBeVisible();
+  await expect(page.getByText("Admin EDMS")).toBeVisible();
 });
 
 test("ADMIN: danh sach tuyen tu seed, form them moi bat loi bo trong", async ({ page }) => {
@@ -138,7 +138,7 @@ test.describe("giao dien dien thoai", () => {
 
   test("ADMIN tren dien thoai: luoi 2 cot", async ({ page }) => {
     await login(page, "admin@edms.vn");
-    await expect(page.getByText("Quản Trị Hệ Thống")).toBeVisible();
+    await expect(page.getByText("Admin EDMS")).toBeVisible();
     await page.screenshot({ path: `${SHOT_DIR}/09-admin-home-phone.png`, fullPage: true });
   });
 
@@ -159,7 +159,7 @@ test.describe("giao dien dien thoai", () => {
   });
 
   test("HUB_STAFF thay hub phu trach va cong viec tai hub", async ({ page }) => {
-    await login(page, "hubstaff1@edms.vn");
+    await login(page, "kho1@edms.vn");
     // "Đăng xuất" chi co o trang chu - khong de chu "Nhân viên kho" o dong phu de
     // cua man hinh dang nhap lam test pass nham khi dang nhap that bai.
     await expect(page.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
@@ -171,7 +171,7 @@ test.describe("giao dien dien thoai", () => {
   });
 
   test("SHIPPER thay tuyen, the ca hom nay va khong co menu quan tri", async ({ page }) => {
-    await login(page, "shipper1@edms.vn");
+    await login(page, "taixe1@edms.vn");
     await expect(page.getByText("Ca hôm nay")).toBeVisible();
     await expect(page.getByText(/Tuyến: R-/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Người dùng" })).toHaveCount(0);
@@ -180,7 +180,7 @@ test.describe("giao dien dien thoai", () => {
 });
 
 test("dang xuat quay ve man hinh dang nhap", async ({ page }) => {
-  await login(page, "shipper1@edms.vn");
+  await login(page, "taixe1@edms.vn");
   await expect(page.getByText("Ca hôm nay")).toBeVisible();
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await expect(page.getByRole("button", { name: "Đăng nhập", exact: true })).toBeVisible();
@@ -196,8 +196,8 @@ test("song song: ADMIN va SHIPPER dang nhap cung luc, phien khong de nhau", asyn
   const shipperPage = await shipperContext.newPage();
   for (const p of [adminPage, shipperPage]) p.on("dialog", (dialog) => dialog.accept());
 
-  await Promise.all([login(adminPage, "admin@edms.vn"), login(shipperPage, "shipper1@edms.vn")]);
-  await expect(adminPage.getByText("Quản Trị Hệ Thống")).toBeVisible();
+  await Promise.all([login(adminPage, "admin@edms.vn"), login(shipperPage, "taixe1@edms.vn")]);
+  await expect(adminPage.getByText("Admin EDMS")).toBeVisible();
   await expect(shipperPage.getByText("Ca hôm nay")).toBeVisible();
   await adminPage.screenshot({ path: `${SHOT_DIR}/12-parallel-admin.png` });
   await shipperPage.screenshot({ path: `${SHOT_DIR}/12-parallel-shipper.png` });
