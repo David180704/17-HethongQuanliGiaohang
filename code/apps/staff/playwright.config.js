@@ -4,6 +4,8 @@ import { defineConfig } from "@playwright/test";
 // "npm run web" dang chay truoc. Xem tests-e2e/staff.spec.js.
 export default defineConfig({
   testDir: "./tests-e2e",
+  // Chi chay khi API dang noi CSDL local (khong ghi du lieu thu len Atlas)
+  globalSetup: "../../scripts/e2e-guard.mjs",
   timeout: 60000,
   expect: { timeout: 10000 },
   workers: 1,
