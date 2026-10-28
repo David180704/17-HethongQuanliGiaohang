@@ -1,0 +1,14 @@
+appId: host.exp.exponent
+name: Tai khoan CUSTOMER bi server tu choi o App Nhan vien
+tags:
+  - smoke
+---
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: customer1@edms.vn
+- extendedWaitUntil:
+    visible: ".*không đăng nhập được App Nhân viên.*"
+    timeout: 30000
+- assertNotVisible: "Đăng xuất"
+- takeScreenshot: 02-tu-choi-khach-hang

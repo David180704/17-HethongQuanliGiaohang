@@ -1,0 +1,31 @@
+appId: host.exp.exponent
+name: Dang xuat xong, mo lai app van o man hinh dang nhap
+tags:
+  - smoke
+---
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: shipper1@edms.vn
+- tapOn: "Đăng xuất"
+- tapOn:
+    id: "android:id/button1"
+- extendedWaitUntil:
+    visible:
+      id: "login-identity"
+    timeout: 15000
+# Tat han roi mo lai: phien da xoa khoi bo nho may (AsyncStorage) thi khong
+# duoc tu dang nhap lai.
+- stopApp
+- waitForAnimationToEnd:
+    timeout: 3000
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: exp://127.0.0.1:8082
+      - extendedWaitUntil:
+          visible: "EDMS Nhân viên"
+          timeout: 30000
+- assertVisible:
+    id: "login-identity"
+- assertNotVisible: "Đăng xuất"

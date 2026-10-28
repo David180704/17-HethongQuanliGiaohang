@@ -1,0 +1,13 @@
+appId: host.exp.exponent
+name: SHIPPER thay tuyen va the ca hom nay, khong co menu quan tri
+tags:
+  - smoke
+---
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: shipper1@edms.vn
+- assertVisible: "Ca hôm nay"
+- assertVisible: "Tuyến: R-.*"
+- assertNotVisible: "Người dùng"
+- takeScreenshot: 05-tai-xe-trang-chu
