@@ -102,6 +102,12 @@ test("dang xuat xong vao trang tai khoan bi chuyen sang dang nhap", async ({ pag
   await expect(page.getByRole("heading", { name: "Tài khoản của tôi" })).toBeVisible();
   await expect(page.getByText("khach1@edms.vn")).toBeVisible();
   await page.getByRole("button", { name: "Đăng xuất" }).click();
+  // Phai ve TRANG CHU va o lai do. Loi cu: header hien link "Dang nhap" trong mot
+  // khung hinh roi ProtectedRoute day sang /dang-nhap?next=... -> chi kiem link do
+  // thi test pass/fail tuy may nhanh hay cham. Noi dung trang chu khong bao gio hien
+  // khi con loi, nen kiem no.
+  await expect(page.getByRole("heading", { name: "Gửi hàng toàn quốc, theo dõi từng chặng" })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("link", { name: "Đăng nhập" })).toBeVisible();
   await page.goto("/tai-khoan");
   await expect(page).toHaveURL(/\/dang-nhap\?next=%2Ftai-khoan$/);
