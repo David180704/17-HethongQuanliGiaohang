@@ -90,7 +90,9 @@ Demo một giao dịch cần khách và nhân viên thao tác **cùng lúc** tr�
 - Điện thoại thật (Expo Go) gọi API qua **IP LAN của máy** (vd `192.168.1.10:4044`),
   không phải `localhost`; mở cổng API trên Windows Firewall.
 - Màn hình cần thấy thay đổi từ phía bên kia (danh sách đơn của hub, trạng thái
-  đơn của khách) **tự làm mới định kỳ 5 giây** (polling).
+  đơn của khách) **tự làm mới định kỳ 30 giây** và đọc qua cache 30 giây (yêu cầu
+  ngày 28/10/2026: không gọi API liên tục). Phía bên kia thấy thay đổi **trong vòng
+  30 giây**, không phải ngay — test liên app chờ tối đa 40 giây.
 - Seed phải có ca trực **của ngày chạy demo** để phân công tự động tìm được shipper.
 - Kiểm thử tự động: một bài Playwright mở **nhiều browser context** (mỗi context
   một vai trò) chạy trọn vòng đời đơn: khách tạo → hub duyệt → shipper lấy/giao → khách thấy DELIVERED.
@@ -180,6 +182,41 @@ máy host không phân giải được tên đó.
 ```
 
 Mã lỗi viết HOA, gạch dưới, gom trong `src/core/errors.js`. Thông báo tiếng Việt.
+
+### Kiến trúc lớp API (SOLID + design pattern — chi tiết `docs/KienTrucAPI.md`)
+
+```
+Router (createCrudRouter, Factory) → Controller → Service (BaseCrudService, Template Method)
+  → CachedRepository (Decorator, cache 30s) → Repository (BaseRepository) → MongoDB
+Service phát "catalog.changed" → EventBus (Observer) → xóa cache trang công khai
+```
+
+- Code mới **phải** theo khuôn này: validator là hàm thuần `{ create, update }`; ràng
+  buộc cần đọc DB đặt ở hook `beforeCreate/beforeUpdate/beforeDelete` của service.
+- Mọi phụ thuộc tiêm qua constructor; **chỉ `src/container.js`** được tạo lớp cụ thể và
+  nối chúng lại. Không `import` Redis/bcrypt/JWT trực tiếp trong service.
+- Đăng nhập và kiểm tra ràng buộc **không đọc qua cache** (dữ liệu phải mới nhất).
+- Phía app: GET đi qua `QueryCache` (30 giây); ghi xong `invalidate(endpoint)`;
+  đăng nhập/đăng xuất `clear()`.
+
+### Dữ liệu và tài khoản test
+
+- Tài khoản test sửa ở `src/seed/testAccounts.js`, mật khẩu chung `123456`:
+  `admin`, `kho1..3`, `taixe1..5`, `khach1..6`, `shop1..4` `@edms.vn` (shop4 PENDING).
+- CSDL thật có thể ở MongoDB Atlas (`MONGO_URI` trong `.env`, xem `docs/HuongDanMongoAtlas.md`).
+  **Test chỉ chạy trên CSDL local** (`npm run seed:local` rồi `npm test`).
+- Seed vào CSDL không phải local phải thêm `--yes` (chốt chống xóa nhầm dữ liệu cloud).
+
+### Kiểm thử theo story
+
+- Tên mọi test API bắt đầu bằng nhãn story: `test("[US-06] ...")`. Story chưa làm ghi
+  tiêu chí dạng `test.todo` trong `tests/stories-pending.test.js`; làm xong thì đổi
+  thành test thật.
+- `npm run test:story -- 6` chạy riêng một story; `npm run report:stories` cập nhật
+  `docs/KiemThuTheoStory.md`.
+- File script không được đặt tên `test-*.js` (node --test tự chạy nhầm như file test).
+- Đầu `before()` của file test gọi `removeLeftovers()` (`tests/helpers/fixtures.js`):
+  lần chạy bị ngắt để lại dữ liệu test sẽ làm cả file fail vì trùng email.
 
 ### Commit
 
@@ -656,7 +693,9 @@ Khi viết các phần này, **viết unit test trước khi dựng giao diện*
 
 ```bash
 cd code && docker compose ps          # mongo + redis phải healthy
-cd apps/api && npm test               # toàn bộ pass
+cd apps/api && npm run lint           # kiểm tra MÃ THOÁT, không nối qua pipe (| tail nuốt mất lỗi)
+npm test                              # toàn bộ pass (todo là story chưa làm, không phải lỗi)
+npm run report:stories                # cập nhật docs/KiemThuTheoStory.md
 git add -A && git status              # không được có node_modules
 git commit -m "feat(US-xx): ..."
 ```
