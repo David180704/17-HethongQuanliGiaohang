@@ -25,8 +25,9 @@
 ## Chi tiết từng story
 
 Cột *Test API* = số test pass / tổng số test của story (nhãn `[US-xx]` trong tên test).
-Cột *Kiểm thử giao diện* là các kịch bản Playwright (web, App Nhân viên) và Maestro (máy ảo
-Android) đã chạy — cần bật server nên không nằm trong lệnh này.
+Cột *Kiểm thử giao diện* là các kịch bản Playwright (Web Khách hàng, App Nhân viên, App Khách
+hàng) và Maestro trên máy ảo Android (NV = App Nhân viên, KH = App Khách hàng) đã chạy — cần bật
+server nên không nằm trong lệnh này.
 
 | Sprint | Story | Tên | Điểm | Kết quả | Test API | Kiểm thử giao diện |
 |---|---|---|---|---|---|---|
@@ -35,12 +36,12 @@ Android) đã chạy — cần bật server nên không nằm trong lệnh này.
 | 1 | US-03 | Xây dựng khung xác thực JWT và phân quyền theo vai trò | 5 | 🟢 Đạt | 5/5 |  |
 | 1 | US-04 | Chuẩn hóa response, mã lỗi và tài liệu Swagger | 3 | 🟢 Đạt | 6/6 |  |
 | 2 | US-05 | Thiết lập CI pipeline tự động kiểm thử và build | 2 | 🟢 Đạt | 1/1 |  |
-| 2 | US-06 | Đăng nhập hệ thống | 2 | 🟢 Đạt | 12/12 | Web: từ chối tài khoản nhân viên · App NV: sai mật khẩu · Maestro 02 |
-| 2 | US-07 | Đăng ký tài khoản khách hàng | 3 | 🟢 Đạt | 4/4 | Web: đăng ký doanh nghiệp, email trùng |
-| 2 | US-08 | Đăng xuất khỏi hệ thống | 1 | 🟢 Đạt | 4/4 | Web + App NV: đăng xuất · Maestro 07 |
-| 2 | US-09 | Phân quyền truy cập theo vai trò | 3 | 🟢 Đạt | 9/9 | Web: guard ngược · App NV: kho/tài xế không thấy menu quản trị · Maestro 04, 05 |
-| 2 | US-10 | Quản lý tài khoản người dùng trong hệ thống | 3 | 🟢 Đạt | 4/4 | App NV: form người dùng · Liên thiết bị: khóa/mở tài khoản trên máy ảo |
-| 2 | US-11 | Quản lý danh mục tuyến và khu vực phục vụ | 3 | 🟢 Đạt | 3/3 | App NV: CRUD khu vực · Maestro 06 · Liên app + liên thiết bị |
+| 2 | US-06 | Đăng nhập hệ thống | 2 | 🟢 Đạt | 12/12 | Web + App KH: từ chối tài khoản nhân viên, sai mật khẩu · App NV: sai mật khẩu · Maestro NV 02, KH 04, 05 |
+| 2 | US-07 | Đăng ký tài khoản khách hàng | 3 | 🟢 Đạt | 4/4 | Web + App KH: đăng ký doanh nghiệp, email trùng · Maestro KH 06 (cá nhân), 07 (doanh nghiệp) |
+| 2 | US-08 | Đăng xuất khỏi hệ thống | 1 | 🟢 Đạt | 4/4 | Web + App NV + App KH: đăng xuất · Maestro NV 07, KH 08 |
+| 2 | US-09 | Phân quyền truy cập theo vai trò | 3 | 🟢 Đạt | 9/9 | Web: guard ngược · App NV: kho/tài xế không thấy menu quản trị · Maestro NV 04, 05 |
+| 2 | US-10 | Quản lý tài khoản người dùng trong hệ thống | 3 | 🟢 Đạt | 4/4 | App NV: form người dùng · Liên thiết bị: khóa/mở tài khoản (máy ảo ↔ web, cả hai chiều) |
+| 2 | US-11 | Quản lý danh mục tuyến và khu vực phục vụ | 3 | 🟢 Đạt | 3/3 | App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều) |
 | 2 | US-12 | Quản lý danh mục loại dịch vụ vận chuyển | 2 | 🟢 Đạt | 3/3 | App NV: chặn trùng mã dịch vụ |
 | 3 | US-13 | Quản lý bảng giá vận chuyển theo khu vực và khối lượng | 5 | ⚪ Chưa làm | 0/0 · còn 4 tiêu chí |  |
 | 3 | US-14 | Quản lý danh mục điểm tập kết và bưu cục | 2 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
@@ -55,7 +56,7 @@ Android) đã chạy — cần bật server nên không nằm trong lệnh này.
 | 4 | US-23 | Quản lý ca làm việc và phân công nhân viên vào tuyến | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 4 | US-24 | Cấu hình năng lực xử lý tối đa của người giao hàng | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 4 | US-25 | Phân công đơn lấy hàng cho người giao hàng | 5 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro 01–07 trên máy ảo Android · App NV: 13 kịch bản |
+| 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro NV 01–07 trên máy ảo Android · App NV: 13 kịch bản |
 | 4 | US-27 | Xem danh sách đơn cần lấy trong ca làm việc | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 5 | US-28 | Xác nhận đã lấy hàng từ người gửi | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
@@ -69,15 +70,15 @@ Android) đã chạy — cần bật server nên không nằm trong lệnh này.
 
 | Mã | Nội dung | Kết quả | Test API | Kiểm thử giao diện |
 |---|---|---|---|---|
-| PB-01 | Khách vãng lai xem dịch vụ và vùng phục vụ (Product Backlog #1) | 🟢 Đạt | 3/3 | Web: trang chủ, vùng phục vụ |
-| PB-04 | Khách vãng lai xem bảng giá theo khu vực (Product Backlog #4) | 🟢 Đạt | 2/2 | Web: bảng giá đổi theo dịch vụ |
+| PB-01 | Khách vãng lai xem dịch vụ và vùng phục vụ (Product Backlog #1) | 🟢 Đạt | 7/7 | Web + App KH: trang chủ, vùng phục vụ, tìm không dấu · Maestro KH 01, 03 |
+| PB-04 | Khách vãng lai xem bảng giá theo khu vực (Product Backlog #4) | 🟢 Đạt | 2/2 | Web + App KH: bảng giá đổi theo dịch vụ · Maestro KH 02 |
 | CACHE | Cache 30 giây: dữ liệu cloud cache xuống Redis, app không gọi API liên tục | 🟢 Đạt | 8/8 | Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây, đổi tài khoản không lộ hồ sơ người trước |
 
 ## Lưu ý cho Sprint Review
 
-- **Tài liệu Sprint Planning 3 ghi US-13 (bảng giá) và US-14 (hub) là "Done", nhưng chưa có
-  code nào cho hai story này.** Cần sửa lại trạng thái trong tài liệu hoặc làm xong code trước
-  buổi review.
+- US-13 (bảng giá) và US-14 (hub) chưa có code. Sprint Planning 2–3 và Product Backlog đã sửa
+  trạng thái về "Chuyển Sprint 3" / "To Do" ngày 29/10/2026 — chỉ ghi "Done" khi story ở bảng
+  trên chuyển sang 🟢 Đạt.
 - Hôm nay đang ở Sprint 5 (26/10 – 06/11/2026) nhưng phần code mới hoàn thành Sprint 1–2,
   cộng US-26 của Sprint 4. Sprint 3 là nút thắt: US-13, US-17 (tính phí) chặn phần lớn các
   story sau, nên làm trước.

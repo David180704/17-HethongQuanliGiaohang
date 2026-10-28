@@ -55,16 +55,16 @@ const EXTRA = [
 
 // Bang chung kiem thu giao dien (khong chay trong lenh nay vi can bat server)
 const UI_TESTS = {
-  "US-06": "Web: từ chối tài khoản nhân viên · App NV: sai mật khẩu · Maestro 02",
-  "US-07": "Web: đăng ký doanh nghiệp, email trùng",
-  "US-08": "Web + App NV: đăng xuất · Maestro 07",
-  "US-09": "Web: guard ngược · App NV: kho/tài xế không thấy menu quản trị · Maestro 04, 05",
-  "US-10": "App NV: form người dùng · Liên thiết bị: khóa/mở tài khoản trên máy ảo",
-  "US-11": "App NV: CRUD khu vực · Maestro 06 · Liên app + liên thiết bị",
+  "US-06": "Web + App KH: từ chối tài khoản nhân viên, sai mật khẩu · App NV: sai mật khẩu · Maestro NV 02, KH 04, 05",
+  "US-07": "Web + App KH: đăng ký doanh nghiệp, email trùng · Maestro KH 06 (cá nhân), 07 (doanh nghiệp)",
+  "US-08": "Web + App NV + App KH: đăng xuất · Maestro NV 07, KH 08",
+  "US-09": "Web: guard ngược · App NV: kho/tài xế không thấy menu quản trị · Maestro NV 04, 05",
+  "US-10": "App NV: form người dùng · Liên thiết bị: khóa/mở tài khoản (máy ảo ↔ web, cả hai chiều)",
+  "US-11": "App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều)",
   "US-12": "App NV: chặn trùng mã dịch vụ",
-  "US-26": "Maestro 01–07 trên máy ảo Android · App NV: 13 kịch bản",
-  "PB-01": "Web: trang chủ, vùng phục vụ",
-  "PB-04": "Web: bảng giá đổi theo dịch vụ",
+  "US-26": "Maestro NV 01–07 trên máy ảo Android · App NV: 13 kịch bản",
+  "PB-01": "Web + App KH: trang chủ, vùng phục vụ, tìm không dấu · Maestro KH 01, 03",
+  "PB-04": "Web + App KH: bảng giá đổi theo dịch vụ · Maestro KH 02",
   CACHE: "Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây, đổi tài khoản không lộ hồ sơ người trước",
 };
 
@@ -144,8 +144,9 @@ ${bySprint.join("\n")}
 ## Chi tiết từng story
 
 Cột *Test API* = số test pass / tổng số test của story (nhãn \`[US-xx]\` trong tên test).
-Cột *Kiểm thử giao diện* là các kịch bản Playwright (web, App Nhân viên) và Maestro (máy ảo
-Android) đã chạy — cần bật server nên không nằm trong lệnh này.
+Cột *Kiểm thử giao diện* là các kịch bản Playwright (Web Khách hàng, App Nhân viên, App Khách
+hàng) và Maestro trên máy ảo Android (NV = App Nhân viên, KH = App Khách hàng) đã chạy — cần bật
+server nên không nằm trong lệnh này.
 
 | Sprint | Story | Tên | Điểm | Kết quả | Test API | Kiểm thử giao diện |
 |---|---|---|---|---|---|---|
@@ -159,9 +160,9 @@ ${EXTRA.map((e) => `| ${e.tag} | ${e.name} | ${verdict(results[e.tag])} | ${cell
 ${failures.length ? `\n## Test đang fail\n\n${failures.join("\n")}\n` : ""}
 ## Lưu ý cho Sprint Review
 
-- **Tài liệu Sprint Planning 3 ghi US-13 (bảng giá) và US-14 (hub) là "Done", nhưng chưa có
-  code nào cho hai story này.** Cần sửa lại trạng thái trong tài liệu hoặc làm xong code trước
-  buổi review.
+- US-13 (bảng giá) và US-14 (hub) chưa có code. Sprint Planning 2–3 và Product Backlog đã sửa
+  trạng thái về "Chuyển Sprint 3" / "To Do" ngày 29/10/2026 — chỉ ghi "Done" khi story ở bảng
+  trên chuyển sang 🟢 Đạt.
 - Hôm nay đang ở Sprint 5 (26/10 – 06/11/2026) nhưng phần code mới hoàn thành Sprint 1–2,
   cộng US-26 của Sprint 4. Sprint 3 là nút thắt: US-13, US-17 (tính phí) chặn phần lớn các
   story sau, nên làm trước.
