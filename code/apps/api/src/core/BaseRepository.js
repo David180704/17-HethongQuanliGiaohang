@@ -4,7 +4,7 @@
 // Ket qua tra ve la object thuong (.lean()) de cache duoc va khong lo method cua
 // Mongoose ra ngoai tang du lieu.
 
-const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+import { toSearchRegex } from "./textSearch.js";
 
 export class BaseRepository {
   /**
@@ -36,11 +36,11 @@ export class BaseRepository {
   }
 
   // Tu khoa tim kiem do nguoi dung go -> escape truoc khi dua vao $regex (chan
-  // regex injection / ReDoS kieu "(a+)+$").
+  // regex injection / ReDoS kieu "(a+)+$"), va khop ca khi go khong dau ("ha noi" -> "Hà Nội").
   buildQuery({ search, filters }) {
     const query = { ...filters };
     if (search && this.searchFields.length) {
-      const pattern = { $regex: escapeRegex(search), $options: "i" };
+      const pattern = { $regex: toSearchRegex(search), $options: "i" };
       query.$or = this.searchFields.map((field) => ({ [field]: pattern }));
     }
     return query;
