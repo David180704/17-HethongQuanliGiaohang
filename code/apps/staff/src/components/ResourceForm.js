@@ -125,6 +125,7 @@ export default function ResourceForm({ fields, initialValues, onSubmit, onCancel
       return (
         <CheckboxRow
           key={field.name}
+          testID={`field-${field.name}`}
           label={field.label}
           value={values[field.name]}
           onChange={(v) => setField(field.name, v)}
@@ -135,6 +136,7 @@ export default function ResourceForm({ fields, initialValues, onSubmit, onCancel
       return (
         <ChipSelect
           key={field.name}
+          testID={`field-${field.name}`}
           label={field.label}
           required={field.required}
           help={field.help}
@@ -149,6 +151,7 @@ export default function ResourceForm({ fields, initialValues, onSubmit, onCancel
     return (
       <TextField
         key={field.name}
+        testID={`field-${field.name}`}
         label={field.label}
         required={field.required}
         help={field.help}
