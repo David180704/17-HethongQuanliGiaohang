@@ -76,10 +76,18 @@ test("[US-16] POST /orders/estimate-fee cong khai: khong can dang nhap, bao gia 
   assert.deepEqual(data.flags, { fragile: true, highValue: true, isVehicle: false });
   assert.deepEqual(data.options.map((o) => o.code), ["STANDARD", "EXPRESS"]);
 
-  // Cung ket qua voi ham thuan pricing.calculate tren bang gia dang hieu luc
+  // Cung ket qua voi ham thuan pricing.calculate tren bang gia dang hieu luc LUC NAY (test
+  // US-13 chay song song co the dang tao bang gia thu nghiem nam 2099 cung dich vu, cung vung)
+  const now = new Date();
   for (const option of data.options) {
     const serviceType = await ServiceType.findById(option.serviceTypeId).lean();
-    const priceTable = await PriceTable.findOne({ serviceTypeId: serviceType._id, zone: "INTER_REGION", effectiveTo: null }).lean();
+    const priceTable = await PriceTable.findOne({
+      serviceTypeId: serviceType._id,
+      zone: "INTER_REGION",
+      isActive: true,
+      effectiveFrom: { $lte: now },
+      $or: [{ effectiveTo: null }, { effectiveTo: { $gt: now } }],
+    }).lean();
     const expected = calculate({ item: ESTIMATE.item, flags: ESTIMATE.flags, serviceType, priceTable });
     assert.deepEqual(option.fee, expected.fee);
   }
