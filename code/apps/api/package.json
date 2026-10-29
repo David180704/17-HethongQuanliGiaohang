@@ -10,7 +10,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/seed/index.js",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=1",
     "lint": "eslint src scripts tests",
     "seed:local": "node src/seed/index.js --local",
     "atlas:setup": "node scripts/setup-atlas.js",
