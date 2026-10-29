@@ -6,12 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 3 ----------
-  "US-13": [
-    "CRUD bang gia theo loai dich vu x 4 zone, bac khoi luong nhung trong bang gia",
-    "Cac bac khoi luong khong chong lan va khong ho khoang trong (8 unit test ranh gioi bac)",
-    "Hai bang gia cung dich vu + zone khong trung khoang hieu luc",
-    "Bang gia da dung cho don hang khong xoa duoc, chi lui effectiveTo",
-  ],
   "US-14": ["CRUD diem tap ket va buu cuc, moi diem gan voi mot khu vuc phuc vu"],
   "US-15": [
     "Khach quan ly dia diem lay hang, toi da 10 dia diem",
