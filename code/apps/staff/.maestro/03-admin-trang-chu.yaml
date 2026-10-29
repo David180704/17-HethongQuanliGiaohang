@@ -1,5 +1,5 @@
 appId: host.exp.exponent
-name: ADMIN thay trang quan tri voi 5 danh muc va so ban ghi that
+name: ADMIN thay trang quan tri voi 6 danh muc va so ban ghi that
 tags:
   - smoke
 ---
@@ -9,6 +9,7 @@ tags:
       USER_EMAIL: admin@edms.vn
 - assertVisible: "Admin EDMS"
 - assertVisible: "Người dùng"
+- assertVisible: "Hub & bưu cục"
 - assertVisible: "Tuyến"
 - assertVisible: "Khu vực phục vụ"
 - assertVisible: "Loại dịch vụ"

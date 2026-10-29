@@ -1,7 +1,7 @@
 import { REGION_LABELS, ROLE_LABELS, USER_STATUS_LABELS } from "../../lib/format";
 
-// Cau hinh 4 danh muc cho ResourceScreen - chuyen tu 4 trang web admin cu
-// (apps/web/src/pages/*Page.jsx), giu nguyen endpoint va rang buoc field.
+// Cau hinh danh muc cho ResourceScreen - 4 danh muc dau chuyen tu trang web admin
+// cu (apps/web/src/pages/*Page.jsx), giu nguyen endpoint va rang buoc field.
 
 const toOptions = (labels) => Object.entries(labels).map(([value, label]) => ({ value, label }));
 
@@ -32,9 +32,15 @@ const isHubStaff = (v) => v.role === "HUB_STAFF";
 const isShipper = (v) => v.role === "SHIPPER";
 
 const routeLabel = (route) => `${route.code} — ${route.name}`;
+const hubLabel = (hub) => `${hub.code} — ${hub.name}`;
 
-// Chua co API danh muc Hub (#14 · Sprint 3) nen tam nhap ObjectId.
-const HUB_ID_HELP = "Nhập ObjectId của Hub (xem trong MongoDB Compass). Danh mục Hub có ở #14 · Sprint 3.";
+// Chon hub tu danh muc Hub & buu cuc (US-14) thay cho go tay ObjectId
+const hubSelect = (overrides) => ({
+  name: "hubId",
+  type: "select",
+  optionsFrom: { endpoint: "/hubs", label: hubLabel },
+  ...overrides,
+});
 
 const shipperRoutesField = {
   name: "routeIds",
@@ -78,7 +84,7 @@ const users = {
     },
     { name: "shopName", label: "Tên cửa hàng", required: true, showIf: isBusiness, autoCapitalize: "words" },
     { name: "taxCode", label: "Mã số thuế", required: true, showIf: isBusiness },
-    { name: "hubId", label: "Hub phụ trách (ObjectId)", required: true, showIf: isHubStaff, help: HUB_ID_HELP },
+    hubSelect({ label: "Hub phụ trách", required: true, showIf: isHubStaff }),
     shipperRoutesField,
   ],
   updateFields: [
@@ -88,14 +94,14 @@ const users = {
     { name: "customerType", label: "Loại khách hàng", type: "select", options: CUSTOMER_TYPE_OPTIONS, showIf: isCustomer },
     { name: "shopName", label: "Tên cửa hàng", showIf: isBusiness, autoCapitalize: "words" },
     { name: "taxCode", label: "Mã số thuế", showIf: isBusiness },
-    { name: "hubId", label: "Hub phụ trách (ObjectId)", showIf: isHubStaff, help: HUB_ID_HELP },
+    hubSelect({ label: "Hub phụ trách", showIf: isHubStaff }),
     shipperRoutesField,
     { name: "password", label: "Mật khẩu mới", type: "password", help: "Để trống nếu không đổi" },
   ],
 };
 
 const routeCapacityFields = [
-  { name: "hubId", label: "Hub quản lý (ObjectId)", required: true, help: HUB_ID_HELP },
+  hubSelect({ label: "Hub / bưu cục quản lý", required: true, help: "Điểm tập kết hoặc bưu cục phụ trách tuyến." }),
   { name: "maxPickupPerShift", label: "Năng lực lấy hàng / ca", type: "number", required: true },
   { name: "maxDeliveryPerShift", label: "Năng lực giao hàng / ca", type: "number", required: true },
   { name: "isActive", label: "Đang hoạt động", type: "checkbox", defaultValue: true },
@@ -184,6 +190,69 @@ const serviceTypes = {
   updateFields: serviceTypeFields,
 };
 
+// Diem tap ket va buu cuc (US-14): buu cuc truc thuoc mot hub; quan/huyen phai
+// thuoc vung phuc vu (server tu gan khu vuc phuc vu, bao loi neu ngoai vung).
+const HUB_TYPE_LABELS = { HUB: "Hub — điểm tập kết", POST_OFFICE: "Bưu cục" };
+const isPostOffice = (v) => v.type === "POST_OFFICE";
+
+const hubTypeField = {
+  name: "type",
+  label: "Loại điểm",
+  type: "select",
+  required: true,
+  options: toOptions(HUB_TYPE_LABELS),
+};
+const parentHubField = {
+  name: "parentHubId",
+  label: "Trực thuộc hub",
+  type: "select",
+  required: true,
+  optionsFrom: { endpoint: "/hubs", params: { type: "HUB" }, label: hubLabel },
+  showIf: isPostOffice,
+  help: "Bưu cục gom hàng về hub này trước khi trung chuyển đi nơi khác.",
+};
+const hubPlaceFields = [
+  { name: "address", label: "Địa chỉ", autoCapitalize: "sentences" },
+  { name: "province", label: "Tỉnh/Thành phố", required: true, autoCapitalize: "words" },
+  {
+    name: "district",
+    label: "Quận/Huyện",
+    required: true,
+    autoCapitalize: "words",
+    help: "Phải thuộc vùng phục vụ — hệ thống tự gắn khu vực phục vụ.",
+  },
+  { name: "isActive", label: "Đang hoạt động", type: "checkbox", defaultValue: true },
+];
+const hubNameField = { name: "name", label: "Tên điểm", required: true, autoCapitalize: "sentences" };
+
+const hubs = {
+  title: "Hub & bưu cục",
+  endpoint: "/hubs",
+  searchPlaceholder: "Tìm theo mã, tên, tỉnh, quận/huyện...",
+  columns: [
+    { key: "name", label: "Tên" },
+    { key: "code", label: "Mã" },
+    {
+      key: "type",
+      label: "Loại",
+      format: (item) => HUB_TYPE_LABELS[item.type] || item.type,
+      badge: (item) => (item.type === "HUB" ? "info" : "neutral"),
+    },
+    { key: "parentHubId", label: "Trực thuộc", format: (item) => (item.parentHubId ? hubLabel(item.parentHubId) : "—") },
+    { key: "district", label: "Khu vực", format: (item) => `${item.district}, ${item.province}` },
+    { key: "isActive", label: "Hoạt động" },
+  ],
+  createFields: [
+    { name: "code", label: "Mã điểm", required: true, placeholder: "PO-HN-CG", autoCapitalize: "characters" },
+    hubNameField,
+    hubTypeField,
+    parentHubField,
+    ...hubPlaceFields,
+  ],
+  // Ma diem khong sua sau khi tao (dung voi hubs.validator.js)
+  updateFields: [hubNameField, hubTypeField, parentHubField, ...hubPlaceFields],
+};
+
 const TIERS_HELP =
   "Bậc áp dụng khi Từ ≤ khối lượng < Đến; bậc đầu từ 0 g, các bậc nối tiếp nhau, bậc cuối đặt Đến rất lớn (vd 999999999).";
 
@@ -235,4 +304,4 @@ const priceTables = {
   ],
 };
 
-export const CATALOGS = { users, routes, serviceAreas, serviceTypes, priceTables };
+export const CATALOGS = { users, hubs, routes, serviceAreas, serviceTypes, priceTables };
