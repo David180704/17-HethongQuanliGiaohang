@@ -10,6 +10,7 @@ import { buildAuthRouter } from "./modules/auth/auth.router.js";
 import { buildUsersRouter } from "./modules/users/users.router.js";
 import { buildRoutesRouter } from "./modules/routes/routes.router.js";
 import { buildHubsRouter } from "./modules/hubs/hubs.router.js";
+import { buildPickupLocationsRouter } from "./modules/pickupLocations/pickupLocations.router.js";
 import { buildServiceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { buildServiceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
 import { buildPriceTablesRouter } from "./modules/priceTables/priceTables.router.js";
@@ -44,6 +45,7 @@ export function createApp(container = getContainer()) {
   app.use("/serviceAreas", buildServiceAreasRouter(container));
   app.use("/serviceTypes", buildServiceTypesRouter(container));
   app.use("/priceTables", buildPriceTablesRouter(container));
+  app.use("/pickupLocations", buildPickupLocationsRouter(container));
   app.use("/public", buildPublicRouter(container));
 
   app.use((req, res, next) => {

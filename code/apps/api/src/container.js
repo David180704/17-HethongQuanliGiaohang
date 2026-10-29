@@ -28,6 +28,8 @@ import { UserService } from "./modules/users/UserService.js";
 import { RouteService } from "./modules/routes/RouteService.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
+import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
+import { PickupLocationService } from "./modules/pickupLocations/PickupLocationService.js";
 import { ServiceAreaRepository } from "./modules/serviceAreas/ServiceAreaRepository.js";
 import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js";
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
@@ -76,6 +78,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   const priceTableRepository = new PriceTableRepository();
   const roleRepository = new BaseRepository(Role);
   const orderRepository = new BaseRepository(Order);
+  const pickupLocationRepository = new PickupLocationRepository();
 
   // ---- Service ----
   const permissionService = new PermissionService({ roleRepository, cache });
@@ -95,6 +98,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     serviceAreas: new ServiceAreaService({
       repository: withCache(serviceAreaRepository, "serviceAreas"),
       hubRepository,
+      pickupLocationRepository,
       events,
     }),
     serviceTypes: new ServiceTypeService({
@@ -110,6 +114,12 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
       events,
     }),
   };
+  // Dia diem lay hang cua tung khach: khong cache (du lieu rieng, rang buoc can so moi nhat)
+  services.pickupLocations = new PickupLocationService({
+    repository: pickupLocationRepository,
+    serviceAreaRepository,
+    orderRepository,
+  });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,

@@ -48,6 +48,9 @@ export const ORDER_STATUS = [
   "INCIDENT",
 ];
 
+// Don da ket thuc vong doi - con lai deu la "chua hoan tat" (vd chan xoa dia diem lay hang, US-15)
+export const FINISHED_ORDER_STATUS = ["DELIVERED", "RETURNED", "CANCELLED"];
+
 export const PACKING_TYPE = ["BOX", "BAG", "PALLET", "ENVELOPE", "OTHER"];
 
 export const ASSIGNMENT_TYPE = ["PICKUP", "DELIVERY", "RETURN"];

@@ -29,6 +29,8 @@ export const ErrorCodes = {
   // Quan/huyen chua co trong serviceAreas: diem tap ket, dia diem lay hang (US-14, US-15)
   OUT_OF_SERVICE_AREA: (message = "Địa chỉ nằm ngoài vùng phục vụ") =>
     new AppError("OUT_OF_SERVICE_AREA", message, 422),
+  PICKUP_LOCATION_LIMIT: (message = "Mỗi khách hàng lưu tối đa 10 địa điểm lấy hàng — xóa bớt địa điểm cũ trước") =>
+    new AppError("PICKUP_LOCATION_LIMIT", message, 409),
 };
 
 export function errorHandler(err, req, res, _next) {
