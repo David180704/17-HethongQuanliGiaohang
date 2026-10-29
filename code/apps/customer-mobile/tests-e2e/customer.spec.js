@@ -50,7 +50,7 @@ test("[US-06] bam Tao don khi chua dang nhap -> dang nhap -> quay lai dung man h
   await expect(page.getByText("Đăng nhập để tạo đơn và thanh toán.")).toBeVisible();
   await login(page, "khach1@edms.vn");
   await expect(page.getByText("Tạo đơn hàng")).toBeVisible();
-  await expect(page.getByText("Đang đăng nhập: Khách Hàng 1")).toBeVisible();
+  await expect(page.getByText("Bước 1/4 · Lấy hàng")).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/m03-tao-don.png` });
 });
 

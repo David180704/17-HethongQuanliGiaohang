@@ -11,13 +11,15 @@ import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import CreateOrderScreen from "../screens/CreateOrderScreen";
 import PickupLocationsScreen from "../screens/PickupLocationsScreen";
+import EstimateScreen from "../screens/EstimateScreen";
 import { colors } from "../theme";
 
 // Dieu huong tu viet (khong them thu vien, giong App Nhan vien):
 //   - 4 tab: Trang chu, Bang gia, Vung phuc vu, Tai khoan - khach vang lai xem duoc het
-//   - ngan xep man hinh con: dang nhap, dang ky, tao don, dia diem lay hang
+//   - ngan xep man hinh con: dang nhap, dang ky, uoc tinh phi, tao don, dia diem lay hang
 // Quy tac giong Web Khach hang: bam "Tao don" khi chua dang nhap -> dang nhap ->
-// quay lai DUNG man hinh tao don.
+// quay lai DUNG man hinh tao don. Tu "Uoc tinh phi" bam "Gui hang" -> nhap don (draftToken)
+// di cung qua dang nhap / dang ky -> man hinh tao don dien san du lieu (US-16).
 export default function AppNavigator() {
   const { user, logout } = useAuth();
   const [tab, setTab] = useState("home");
@@ -31,10 +33,22 @@ export default function AppNavigator() {
     else push({ name: "login", next: "createOrder" });
   }, [user, push]);
 
-  // Dang nhap/dang ky xong: mo man hinh dang cho (tao don), neu khong thi ve tab Tai khoan.
+  // Uoc tinh phi -> "Gui hang": da dang nhap thi mo tao don ngay, chua thi dang nhap truoc
+  const shipFromEstimate = useCallback(
+    (draftToken) => {
+      const route = { name: "createOrder", draftToken };
+      if (user) push(route);
+      else push({ name: "login", next: route });
+    },
+    [user, push],
+  );
+
+  // Dang nhap/dang ky xong: mo man hinh dang cho (tao don, co the kem nhap don), neu khong
+  // thi ve tab Tai khoan. next la ten man hinh ("createOrder") hoac route day du.
   const handleLoggedIn = useCallback((next) => {
-    if (next === "createOrder") {
-      setStack([{ name: "createOrder" }]);
+    const route = typeof next === "string" ? { name: next } : next;
+    if (route?.name === "createOrder") {
+      setStack([route]);
     } else {
       setStack([]);
       setTab("account");
@@ -92,8 +106,11 @@ export default function AppNavigator() {
       />
     );
   }
+  if (top?.name === "estimate") {
+    return <EstimateScreen onBack={pop} onShip={shipFromEstimate} />;
+  }
   if (top?.name === "createOrder" && user) {
-    return <CreateOrderScreen onBack={pop} onGoTab={goTab} />;
+    return <CreateOrderScreen key={top.draftToken || "new"} draftToken={top.draftToken} onBack={pop} onGoTab={goTab} />;
   }
   if (top?.name === "pickupLocations" && user) {
     return <PickupLocationsScreen onBack={pop} />;
@@ -106,6 +123,7 @@ export default function AppNavigator() {
     onRegister: () => push({ name: "register" }),
     onLogout: requestLogout,
     onOpenPickupLocations: () => push({ name: "pickupLocations" }),
+    onEstimate: () => push({ name: "estimate" }),
   };
 
   return (

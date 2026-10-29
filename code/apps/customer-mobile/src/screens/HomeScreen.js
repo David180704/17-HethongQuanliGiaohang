@@ -17,7 +17,7 @@ const STEPS = [
 ];
 
 // Trang chu cong khai: khach vang lai xem duoc het, khong can dang nhap (giong Web Khach hang).
-export default function HomeScreen({ onCreateOrder, onGoTab, onLogin }) {
+export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate }) {
   const { user } = useAuth();
   const typesQuery = useCachedQuery("/public/service-types");
   const areasQuery = useCachedQuery("/public/service-areas");
@@ -59,6 +59,7 @@ export default function HomeScreen({ onCreateOrder, onGoTab, onLogin }) {
         </Text>
         <View style={styles.heroActions}>
           <Button testID="home-create-order" title="Tạo đơn ngay" variant="light" onPress={onCreateOrder} />
+          <Button testID="home-estimate" title="Ước tính phí" variant="outlineLight" onPress={onEstimate} />
           <Button title="Xem bảng giá" variant="outlineLight" onPress={() => onGoTab("pricing")} />
         </View>
       </View>
