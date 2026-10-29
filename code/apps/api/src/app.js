@@ -9,6 +9,7 @@ import { getContainer } from "./container.js";
 import { buildAuthRouter } from "./modules/auth/auth.router.js";
 import { buildUsersRouter } from "./modules/users/users.router.js";
 import { buildRoutesRouter } from "./modules/routes/routes.router.js";
+import { buildHubsRouter } from "./modules/hubs/hubs.router.js";
 import { buildServiceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { buildServiceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
 import { buildPriceTablesRouter } from "./modules/priceTables/priceTables.router.js";
@@ -38,6 +39,7 @@ export function createApp(container = getContainer()) {
 
   app.use("/auth", buildAuthRouter(container));
   app.use("/users", buildUsersRouter(container));
+  app.use("/hubs", buildHubsRouter(container));
   app.use("/routes", buildRoutesRouter(container));
   app.use("/serviceAreas", buildServiceAreasRouter(container));
   app.use("/serviceTypes", buildServiceTypesRouter(container));

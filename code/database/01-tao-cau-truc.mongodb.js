@@ -136,6 +136,12 @@ const COLLECTIONS = [
               "POST_OFFICE"
             ]
           },
+          "parentHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "address": {
             "bsonType": [
               "string",
@@ -147,6 +153,12 @@ const COLLECTIONS = [
           },
           "district": {
             "bsonType": "string"
+          },
+          "serviceAreaId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
           },
           "location": {
             "bsonType": [
