@@ -8,11 +8,11 @@ const CATALOG_TILES = [
   { key: "routes", description: "Tuyến giao nhận, năng lực mỗi ca" },
   { key: "serviceAreas", description: "Quận/huyện thuộc từng tuyến" },
   { key: "serviceTypes", description: "Gửi thường, gửi nhanh, phụ phí" },
+  { key: "priceTables", description: "Giá theo vùng và bậc khối lượng" },
 ];
 
 // Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
 const UPCOMING_TILES = [
-  { key: "priceTables", title: "Bảng giá", description: "Giá theo vùng và bậc khối lượng", upcoming: "#13 · Sprint 3" },
   { key: "hubs", title: "Hub & bưu cục", description: "Điểm tập kết, bưu cục", upcoming: "#14 · Sprint 3" },
   { key: "settlements", title: "Đối soát", description: "Tổng hợp COD trả cho shop", upcoming: "#34 · Sprint 5" },
   { key: "dashboard", title: "Thống kê", description: "Dashboard tổng hợp", upcoming: "#39 · Sprint 6" },

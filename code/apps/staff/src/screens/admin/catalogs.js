@@ -15,6 +15,14 @@ const STATUS_OPTIONS = toOptions(USER_STATUS_LABELS);
 const CUSTOMER_TYPE_OPTIONS = toOptions({ INDIVIDUAL: "Cá nhân", BUSINESS: "Doanh nghiệp" });
 const REGION_OPTIONS = toOptions(REGION_LABELS);
 const SERVICE_CODE_OPTIONS = toOptions({ STANDARD: "Gửi thường", EXPRESS: "Gửi nhanh" });
+const ZONE_LABELS = {
+  INNER_DISTRICT: "Nội quận",
+  INNER_PROVINCE: "Nội tỉnh",
+  INTER_PROVINCE: "Liên tỉnh",
+  INTER_REGION: "Liên miền",
+};
+const ZONE_OPTIONS = toOptions(ZONE_LABELS);
+const formatDate = (value) => (value ? new Date(value).toLocaleDateString("vi-VN") : "Không thời hạn");
 
 const STATUS_TONE = { ACTIVE: "success", LOCKED: "danger", PENDING: "warning" };
 
@@ -176,4 +184,55 @@ const serviceTypes = {
   updateFields: serviceTypeFields,
 };
 
-export const CATALOGS = { users, routes, serviceAreas, serviceTypes };
+const TIERS_HELP =
+  "Bậc áp dụng khi Từ ≤ khối lượng < Đến; bậc đầu từ 0 g, các bậc nối tiếp nhau, bậc cuối đặt Đến rất lớn (vd 999999999).";
+
+// Bang gia (US-13): bang gia da dung cho don hang chi lui duoc ngay het hieu luc (server kiem).
+const priceTables = {
+  title: "Bảng giá",
+  endpoint: "/priceTables",
+  searchPlaceholder: "Bảng giá theo dịch vụ và vùng",
+  columns: [
+    {
+      key: "zone",
+      label: "Vùng",
+      format: (item) => `${ZONE_LABELS[item.zone] || item.zone} · ${item.serviceTypeId?.name || "—"}`,
+    },
+    { key: "effectiveFrom", label: "Hiệu lực từ", format: (item) => formatDate(item.effectiveFrom) },
+    { key: "effectiveTo", label: "Đến", format: (item) => formatDate(item.effectiveTo) },
+    {
+      key: "weightTiers",
+      label: "Bậc khối lượng",
+      format: (item) => `${item.weightTiers?.length || 0} bậc, từ ${item.weightTiers?.[0]?.basePrice?.toLocaleString("vi-VN") ?? "—"} ₫`,
+    },
+    { key: "isActive", label: "Hoạt động" },
+  ],
+  createFields: [
+    {
+      name: "serviceTypeId",
+      label: "Loại dịch vụ",
+      type: "select",
+      required: true,
+      optionsFrom: { endpoint: "/serviceTypes", label: (s) => s.name },
+    },
+    { name: "zone", label: "Vùng", type: "select", required: true, options: ZONE_OPTIONS },
+    { name: "effectiveFrom", label: "Hiệu lực từ ngày", type: "date", required: true },
+    { name: "effectiveTo", label: "Hết hiệu lực ngày", type: "date", help: "Để trống nếu không thời hạn" },
+    { name: "weightTiers", label: "Bậc khối lượng", type: "tiers", required: true, help: TIERS_HELP },
+    { name: "isActive", label: "Đang hoạt động", type: "checkbox", defaultValue: true },
+  ],
+  // Dich vu va vung khong doi sau khi tao (doi = tao bang gia moi)
+  updateFields: [
+    { name: "effectiveFrom", label: "Hiệu lực từ ngày", type: "date", required: true },
+    {
+      name: "effectiveTo",
+      label: "Hết hiệu lực ngày",
+      type: "date",
+      help: "Bảng giá đã dùng cho đơn hàng chỉ được lùi ngày này, không sửa bậc.",
+    },
+    { name: "weightTiers", label: "Bậc khối lượng", type: "tiers", required: true, help: TIERS_HELP },
+    { name: "isActive", label: "Đang hoạt động", type: "checkbox", defaultValue: true },
+  ],
+};
+
+export const CATALOGS = { users, routes, serviceAreas, serviceTypes, priceTables };

@@ -1,5 +1,5 @@
 appId: host.exp.exponent
-name: ADMIN thay trang quan tri voi 4 danh muc va so ban ghi that
+name: ADMIN thay trang quan tri voi 5 danh muc va so ban ghi that
 tags:
   - smoke
 ---
@@ -12,6 +12,7 @@ tags:
 - assertVisible: "Tuyến"
 - assertVisible: "Khu vực phục vụ"
 - assertVisible: "Loại dịch vụ"
+- assertVisible: "Bảng giá"
 - extendedWaitUntil:
     visible: "\\d+ bản ghi"
     timeout: 15000
