@@ -3,6 +3,8 @@
 # Dung trong code\test-song-song.ps1; chay rieng cung duoc:
 #   powershell -ExecutionPolicy Bypass -File code\scripts\run-playwright-all.ps1
 # Chi dung ky tu ASCII (PowerShell 5.1 doc .ps1 khong BOM theo bang ma ANSI).
+param([switch]$HeadedWeb)
+
 $root = Split-Path $PSScriptRoot -Parent
 $suites = [ordered]@{
   "Web Khach hang"       = Join-Path $root "apps\web"
@@ -16,7 +18,11 @@ foreach ($name in $suites.Keys) {
   Write-Host "===== Playwright: $name =====" -ForegroundColor Cyan
   Push-Location $suites[$name]
   try {
-    & npx playwright test --reporter=list
+    if ($HeadedWeb -and $name -eq "Web Khach hang") {
+      & npx playwright test --reporter=list --headed --channel=msedge
+    } else {
+      & npx playwright test --reporter=list
+    }
     $code = $LASTEXITCODE
   } finally {
     Pop-Location
