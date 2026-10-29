@@ -6,7 +6,7 @@ import { getContainer } from "../src/container.js";
 import { createRequirePermission } from "../src/middleware/rbac.js";
 import { getRedis } from "../src/config/redis.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 
 const { permissionService, cache } = getContainer();
 const requirePermission = createRequirePermission(permissionService);

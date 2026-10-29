@@ -17,7 +17,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
-$localUri = "mongodb://localhost:27017/edms?directConnection=true"
+$localUri = "mongodb://localhost:27018/edms?directConnection=true"
 
 Write-Host "[1/5] Mongo + Redis (Docker)..." -ForegroundColor Cyan
 docker compose -f "$root\docker-compose.yml" up -d

@@ -8,7 +8,7 @@ import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { getRedis } from "../src/config/redis.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 let app;
 let user;

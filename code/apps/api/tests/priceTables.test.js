@@ -12,7 +12,7 @@ import { ServiceType } from "../src/models/ServiceType.js";
 import { PriceTable } from "../src/models/PriceTable.js";
 import { getRedis } from "../src/config/redis.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 const TEST_YEAR_FROM = new Date("2099-01-01");
 const TIERS = [
