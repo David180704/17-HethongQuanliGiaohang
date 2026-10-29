@@ -6,7 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 3 ----------
-  "US-14": ["CRUD diem tap ket va buu cuc, moi diem gan voi mot khu vuc phuc vu"],
   "US-15": [
     "Khach quan ly dia diem lay hang, toi da 10 dia diem",
     "Tu xac dinh khu vuc phuc vu tu quan/huyen, chan dia diem ngoai vung phuc vu",
