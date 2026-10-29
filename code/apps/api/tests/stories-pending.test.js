@@ -6,11 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 3 ----------
-  "US-19": [
-    "3 hinh thuc tra phi: SHOP_PREPAID (QR/tien mat), RECIPIENT_PAID, DEDUCT_FROM_COD",
-    "COD > 0 khi bat, toi da 20.000.000 dong",
-    "Chan luu khi DEDUCT_FROM_COD ma tien thu ho nho hon phi",
-  ],
   // ---------- Sprint 4 ----------
   "US-20": ["Xem chi tiet don kem toan bo hanh trinh (statusHistory nhung trong don)"],
   "US-21": ["BullMQ topic order.status.changed, consumer ghi hanh trinh, co retry va dead-letter queue"],
