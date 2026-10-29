@@ -13,7 +13,7 @@ import { buildStructure, renderStructureScript } from "./lib/mongoshStructure.js
 
 const apiRoot = fileURLToPath(new URL("..", import.meta.url));
 const outDir = fileURLToPath(new URL("../../../database/", import.meta.url));
-const EXPORT_URI = "mongodb://localhost:27017/edms_export?directConnection=true";
+const EXPORT_URI = "mongodb://localhost:27018/edms_export?directConnection=true";
 
 mkdirSync(outDir, { recursive: true });
 const structure = buildStructure();

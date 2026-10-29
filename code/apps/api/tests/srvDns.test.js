@@ -29,7 +29,7 @@ test("[US-02] SRV tra loi binh thuong, cluster khong ton tai, hoac CSDL local: g
   for (const [uri, code] of [
     ["mongodb+srv://u:p@edms.abc.mongodb.net/edms", null],
     ["mongodb+srv://u:p@sai-ten.mongodb.net/edms", "ENOTFOUND"],
-    ["mongodb://localhost:27017/edms?directConnection=true", "ECONNREFUSED"],
+    ["mongodb://localhost:27018/edms?directConnection=true", "ECONNREFUSED"],
   ]) {
     const dns = fakeDns(code);
     assert.equal(await ensureSrvDns(uri, dns), false, uri);

@@ -13,7 +13,7 @@ import { CacheService } from "../src/infrastructure/cache/CacheService.js";
 import { MemoryCacheStore } from "../src/infrastructure/cache/MemoryCacheStore.js";
 import { CachedRepository } from "../src/core/CachedRepository.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 const PROVINCE = "Tỉnh Kiểm Thử Cache";
 

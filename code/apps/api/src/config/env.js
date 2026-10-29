@@ -13,7 +13,7 @@ export const env = {
   // 4044 thay vi 4000: tren may dev cong 4000 da bi container khac (litellm_proxy) chiem.
   port: Number(process.env.PORT || 4044),
 
-  mongoUri: required("MONGO_URI", "mongodb://localhost:27017/edms?directConnection=true"),
+  mongoUri: required("MONGO_URI", "mongodb://localhost:27018/edms?directConnection=true"),
 
   redisUrl: required("REDIS_URL", "redis://localhost:6379"),
 

@@ -16,7 +16,8 @@
     "atlas:setup": "node scripts/setup-atlas.js",
     "db:export": "node scripts/export-mongosh.js",
     "test:story": "node scripts/run-story.js",
-    "report:stories": "node scripts/story-report.js"
+    "report:stories": "node scripts/story-report.js",
+    "unlock": "node scripts/unlock-accounts.js"
   },
   "keywords": [],
   "author": "",
