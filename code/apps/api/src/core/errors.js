@@ -31,6 +31,10 @@ export const ErrorCodes = {
     new AppError("OUT_OF_SERVICE_AREA", message, 422),
   PICKUP_LOCATION_LIMIT: (message = "Mỗi khách hàng lưu tối đa 10 địa điểm lấy hàng — xóa bớt địa điểm cũ trước") =>
     new AppError("PICKUP_LOCATION_LIMIT", message, 409),
+
+  // Tinh phi / tao don (US-16 -> US-19)
+  PRICE_NOT_AVAILABLE: (message = "Chưa có bảng giá áp dụng cho tuyến gửi này") =>
+    new AppError("PRICE_NOT_AVAILABLE", message, 422),
 };
 
 export function errorHandler(err, req, res, _next) {
