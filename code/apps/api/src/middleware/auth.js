@@ -1,35 +1,42 @@
 import { ErrorCodes } from "../core/errors.js";
-import { verifyAccessToken } from "../core/jwt.js";
 
-export function requireAuth(req, res, next) {
-  const header = req.headers.authorization || "";
-  const [scheme, token] = header.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return next(ErrorCodes.UNAUTHORIZED());
-  }
-
-  try {
-    const payload = verifyAccessToken(token);
-    req.user = { id: payload.sub, role: payload.role, hubId: payload.hubId ?? null };
-    return next();
-  } catch {
-    return next(ErrorCodes.UNAUTHORIZED("Token khong hop le hoac da het han"));
-  }
+function readBearerToken(req) {
+  const [scheme, token] = (req.headers.authorization || "").split(" ");
+  return scheme === "Bearer" && token ? token : null;
 }
 
-// Dung cho 3 endpoint cong khai (dang ky, dang nhap, dat lai mat khau): nguoi
-// da xac thuc thi khong duoc truy cap, phai chuyen huong ve trang chinh.
-export function guardAuthenticated(req, res, next) {
-  const header = req.headers.authorization || "";
-  const [scheme, token] = header.split(" ");
-  if (scheme === "Bearer" && token) {
+/**
+ * Tao middleware xac thuc tu mot TokenService duoc tiem vao (Dependency Inversion:
+ * middleware khong tu import JWT/secret).
+ * @param {{ verifyAccess(token: string): { sub: string, role: string, hubId?: string } }} tokenService
+ */
+export function createAuthMiddleware(tokenService) {
+  function requireAuth(req, res, next) {
+    const token = readBearerToken(req);
+    if (!token) return next(ErrorCodes.UNAUTHORIZED());
     try {
-      verifyAccessToken(token);
-      return next(ErrorCodes.ALREADY_AUTHENTICATED());
+      const payload = tokenService.verifyAccess(token);
+      req.user = { id: payload.sub, role: payload.role, hubId: payload.hubId ?? null };
+      return next();
     } catch {
-      // Token khong hop le thi coi nhu chua dang nhap, cho qua binh thuong.
+      return next(ErrorCodes.UNAUTHORIZED("Token không hợp lệ hoặc đã hết hạn"));
     }
   }
-  return next();
+
+  // Guard nguoc cho dang ky / dang nhap / dat lai mat khau: nguoi da xac thuc thi
+  // khong duoc goi lai. Token khong hop le thi coi nhu chua dang nhap, cho qua.
+  function guardAuthenticated(req, res, next) {
+    const token = readBearerToken(req);
+    if (token) {
+      try {
+        tokenService.verifyAccess(token);
+        return next(ErrorCodes.ALREADY_AUTHENTICATED());
+      } catch {
+        // khong hop le -> nhu khach
+      }
+    }
+    return next();
+  }
+
+  return { requireAuth, guardAuthenticated };
 }

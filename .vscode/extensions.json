@@ -1,0 +1,5 @@
+{
+  // Playwright Test for VS Code: chay/debug tung test web ngay trong tab Testing.
+  // Expo Tools: goi y cu phap app.json, debug app Expo.
+  "recommendations": ["ms-playwright.playwright", "expo.vscode-expo-tools"]
+}

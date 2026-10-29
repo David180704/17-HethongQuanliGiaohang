@@ -1,0 +1,36 @@
+appId: host.exp.exponent
+name: "[US-06] Dang nhap loi - tai khoan nhan vien bi tu choi, sai mat khau bao loi, nhap dung thi vao duoc"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-login"
+# Tai khoan nhan vien dung mat khau van bi App Khach hang tu choi (server WRONG_APP)
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: taixe1@edms.vn
+- extendedWaitUntil:
+    visible: "Tài khoản nhân viên không dùng App Khách hàng.*"
+    timeout: 15000
+- takeScreenshot: c09-tu-choi-tai-khoan-nhan-vien
+# Sai mat khau -> thong bao tieng Viet, khong lo tai khoan co ton tai hay khong
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: khach2@edms.vn
+      USER_PASSWORD: sai-mat-khau
+- extendedWaitUntil:
+    visible: "Email/số điện thoại hoặc mật khẩu không đúng"
+    timeout: 15000
+- takeScreenshot: c10-sai-mat-khau
+# Nhap dung -> vao duoc. Dang nhap dung cung xoa bo dem sai tren Redis, de chay test nhieu
+# lan khong dan toi khoa tai khoan (5 lan sai lien tiep -> khoa 15 phut).
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: khach2@edms.vn
+- extendedWaitUntil:
+    visible: "Tài khoản của tôi"
+    timeout: 20000

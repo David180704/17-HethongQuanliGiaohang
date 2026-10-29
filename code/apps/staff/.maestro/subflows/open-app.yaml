@@ -1,0 +1,58 @@
+appId: host.exp.exponent
+name: Mo App Nhan vien trong Expo Go (ve man hinh dang nhap)
+---
+# Can truoc: Metro dang chay (apps/staff: npm start, cong 8082) va
+#   adb reverse tcp:8082 tcp:8082
+#   adb reverse tcp:4044 tcp:4044
+# de "127.0.0.1" tren may ao tro ve may dev (xem code/test-mobile.ps1).
+#
+# Tat han Expo Go truoc: openLink vao app dang mo chi dua app len truoc, giu
+# nguyen o nhap / hop thoai cua flow truoc (da gap: email go noi vao email cu).
+- stopApp
+# openLink ngay sau stopApp doi khi bi Android bo qua (Expo Go dang bi don
+# tien trinh, logcat khong co dong START): cho hieu ung dong app xong, va van
+# thu lai toi da 3 lan neu link khong mo.
+- waitForAnimationToEnd:
+    timeout: 3000
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: exp://127.0.0.1:8082
+      - extendedWaitUntil:
+          visible: "EDMS Nhân viên"
+          timeout: 30000
+# Lan dau mo, Expo Go hien bang "developer menu" che mat man hinh.
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+# Nut banh rang noi "Tools" cua Expo Go nam de len nut "Đăng xuất" o goc phai
+# tren -> bam "Đăng xuất" lai mo menu dev. Tat no trong menu dev (cai dat nay
+# luu tren may ao, chi can lam lai khi may ao bi xoa du lieu).
+- runFlow:
+    when:
+      visible: "Tools"
+    commands:
+      - tapOn: "Tools"
+      # Cong tac nam duoi mep menu, phai cuon moi thay
+      - scrollUntilVisible:
+          element:
+            text: "Tools button"
+          direction: DOWN
+      - tapOn: "Tools button"
+      - tapOn: "Close"
+# Con phien dang nhap tu lan chay truoc -> dang xuat, de moi flow bat dau
+# tu cung mot trang thai (man hinh dang nhap).
+- runFlow:
+    when:
+      visible: "Đăng xuất"
+    commands:
+      - tapOn: "Đăng xuất"
+      # Nut "Đăng xuất" trong hop thoai xac nhan (nut positive cua Android)
+      - tapOn:
+          id: "android:id/button1"
+- extendedWaitUntil:
+    visible:
+      id: "login-identity"
+    timeout: 30000

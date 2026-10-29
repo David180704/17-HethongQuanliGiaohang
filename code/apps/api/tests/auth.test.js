@@ -4,9 +4,11 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
+import { removeLeftovers } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
+import { getRedis } from "../src/config/redis.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 
 let app;
@@ -15,6 +17,7 @@ let pendingUser;
 
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
+  await removeLeftovers({ emails: ["auth-test-active@edms.vn", "auth-test-pending@edms.vn"] });
   app = createApp();
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
@@ -40,10 +43,11 @@ before(async () => {
 
 after(async () => {
   await User.deleteMany({ _id: { $in: [activeUser._id, pendingUser._id] } });
+  await getRedis().quit();
   await mongoose.disconnect();
 });
 
-test("dang nhap dung thong tin tra ve cap Access/Refresh Token", async () => {
+test("[US-06] dang nhap dung thong tin tra ve cap Access/Refresh Token", async () => {
   const res = await request(app)
     .post("/auth/login")
     .send({ emailOrPhone: activeUser.email, password: PASSWORD });
@@ -55,7 +59,7 @@ test("dang nhap dung thong tin tra ve cap Access/Refresh Token", async () => {
   assert.equal(res.body.data.user.role, "CUSTOMER");
 });
 
-test("sai mat khau tra ve 401 INVALID_CREDENTIALS", async () => {
+test("[US-06] sai mat khau tra ve 401 INVALID_CREDENTIALS", async () => {
   const res = await request(app)
     .post("/auth/login")
     .send({ emailOrPhone: activeUser.email, password: "sai-mat-khau" });
@@ -64,7 +68,7 @@ test("sai mat khau tra ve 401 INVALID_CREDENTIALS", async () => {
   assert.equal(res.body.error.code, "INVALID_CREDENTIALS");
 });
 
-test("tai khoan PENDING khong dang nhap duoc", async () => {
+test("[US-06] tai khoan PENDING khong dang nhap duoc", async () => {
   const res = await request(app)
     .post("/auth/login")
     .send({ emailOrPhone: pendingUser.email, password: PASSWORD });
@@ -73,13 +77,13 @@ test("tai khoan PENDING khong dang nhap duoc", async () => {
   assert.equal(res.body.error.code, "ACCOUNT_NOT_ACTIVE");
 });
 
-test("thieu truong bat buoc tra ve 400 VALIDATION_ERROR", async () => {
+test("[US-06] thieu truong bat buoc tra ve 400 VALIDATION_ERROR", async () => {
   const res = await request(app).post("/auth/login").send({ emailOrPhone: activeUser.email });
   assert.equal(res.status, 400);
   assert.equal(res.body.error.code, "VALIDATION_ERROR");
 });
 
-test("da dang nhap roi goi lai /auth/login bi chan (guard nguoc)", async () => {
+test("[US-09] da dang nhap roi goi lai /auth/login bi chan (guard nguoc)", async () => {
   const login = await request(app)
     .post("/auth/login")
     .send({ emailOrPhone: activeUser.email, password: PASSWORD });
@@ -94,13 +98,13 @@ test("da dang nhap roi goi lai /auth/login bi chan (guard nguoc)", async () => {
   assert.equal(res.body.error.code, "ALREADY_AUTHENTICATED");
 });
 
-test("duong dan khong ton tai tra ve 404 NOT_FOUND", async () => {
+test("[US-04] duong dan khong ton tai tra ve 404 NOT_FOUND", async () => {
   const res = await request(app).get("/khong-ton-tai");
   assert.equal(res.status, 404);
   assert.equal(res.body.error.code, "NOT_FOUND");
 });
 
-test("GET /auth/me tra ve ho so khi co token hop le", async () => {
+test("[US-03] GET /auth/me tra ve ho so khi co token hop le", async () => {
   const login = await request(app)
     .post("/auth/login")
     .send({ emailOrPhone: activeUser.email, password: PASSWORD });
@@ -113,7 +117,7 @@ test("GET /auth/me tra ve ho so khi co token hop le", async () => {
   assert.equal(res.body.data.passwordHash, undefined);
 });
 
-test("GET /auth/me khong co token tra ve 401", async () => {
+test("[US-03] GET /auth/me khong co token tra ve 401", async () => {
   const res = await request(app).get("/auth/me");
   assert.equal(res.status, 401);
   assert.equal(res.body.error.code, "UNAUTHORIZED");

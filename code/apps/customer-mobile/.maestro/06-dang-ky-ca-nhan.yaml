@@ -1,0 +1,36 @@
+appId: host.exp.exponent
+name: "[US-07] Dang ky tai khoan ca nhan - dung duoc ngay, thay ho so"
+tags:
+  - smoke
+---
+# Email/so dien thoai moi moi lan chay (maestro<so>@edms.vn). Sau khi chay,
+# code/test-mobile.ps1 xoa cac tai khoan nay trong CSDL local.
+- evalScript: ${output.suffix = String(Date.now()).slice(-8)}
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "tab-account"
+- tapOn:
+    id: "account-register"
+- assertVisible: "Dùng được ngay sau khi đăng ký."
+- tapOn:
+    id: "reg-fullName"
+- inputText: "Khach Maestro"
+- tapOn:
+    id: "reg-email"
+- inputText: maestro${output.suffix}@edms.vn
+- tapOn:
+    id: "reg-phone"
+- inputText: 09${output.suffix}
+- tapOn:
+    id: "reg-password"
+- inputText: "123456"
+- hideKeyboard
+- takeScreenshot: c11-form-dang-ky
+- tapOn:
+    id: "reg-submit"
+- extendedWaitUntil:
+    visible: "Tài khoản của tôi"
+    timeout: 20000
+- assertVisible: maestro${output.suffix}@edms.vn
+- assertVisible: "Cá nhân"
+- takeScreenshot: c12-dang-ky-xong
