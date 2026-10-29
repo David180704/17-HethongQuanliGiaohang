@@ -1,0 +1,27 @@
+appId: host.exp.exponent
+name: "[PB-01] Vung phuc vu - go khong dau 'hoan kiem' van tim ra Hoan Kiem, vung chua phuc vu bao ro"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "tab-coverage"
+- tapOn:
+    id: "coverage-search"
+- inputText: "hoan kiem"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "1 quận/huyện tại 1 tỉnh/thành"
+    timeout: 15000
+- assertVisible: "Hà Nội"
+- assertVisible: "Hoàn Kiếm"
+- takeScreenshot: c05-vung-phuc-vu-tim-khong-dau
+- tapOn:
+    id: "coverage-search"
+- eraseText: 30
+- inputText: "atlantis"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: 'Chưa phục vụ khu vực "atlantis"'
+    timeout: 15000
+- takeScreenshot: c06-vung-chua-phuc-vu

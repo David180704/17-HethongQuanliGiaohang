@@ -1,0 +1,7 @@
+appId: host.exp.exponent
+name: Dang nhap thanh cong bang USER_EMAIL
+---
+- runFlow: login.yaml
+- extendedWaitUntil:
+    visible: "Đăng xuất"
+    timeout: 30000

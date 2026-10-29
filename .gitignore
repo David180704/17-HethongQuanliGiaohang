@@ -5,3 +5,6 @@ build/
 *.log
 ~$*.docx
 ~$*.xlsx
+
+# Log cua code/test-song-song.ps1
+code/test-logs/

@@ -1,0 +1,74 @@
+{
+  // Terminal -> Run Task... (hoac Ctrl+Shift+P -> "Tasks: Run Task") -> chon "EDMS: ..."
+  // Lan dau sau khi cai Android SDK/Maestro: khoi dong lai VS Code de nhan bien moi truong.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "EDMS: CHAY DEMO - Web Khach hang + may ao App Nhan vien (tu don cu, mo khoa tai khoan)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\chay-demo.ps1\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: 1. DEMO - bat moi truong (du lieu Atlas) + may ao + App Khach hang",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\" -Emulator",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: 1b. TEST - bat moi truong voi CSDL local (truoc khi chay test tu dong)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\" -Local",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: 2. Mo App Khach hang tren may ao",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\" -OpenOnly -App customer",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: 3. Mo App Nhan vien tren may ao",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\" -OpenOnly -App staff",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test mobile - 2 app (Maestro tren may ao)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-mobile.ps1\"",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test trinh duyet - 3 bo Playwright",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\scripts\\run-playwright-all.ps1\"",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test song song web + may ao + lien thiet bi",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\test-song-song.ps1\"",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Test backend (API)",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/code/apps/api" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "EDMS: Maestro Studio (bam chon phan tu tren may ao de viet flow)",
+      "type": "shell",
+      "command": "maestro studio",
+      "options": { "cwd": "${workspaceFolder}/code/apps/customer-mobile" },
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

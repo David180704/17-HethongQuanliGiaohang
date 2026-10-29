@@ -1,0 +1,17 @@
+appId: host.exp.exponent
+name: "Dang nhap App Khach hang bang USER_EMAIL va USER_PASSWORD (chua kiem tra ket qua)"
+---
+# Dang o man hinh dang nhap (id login-identity). inputText cua Maestro khong go duoc
+# Unicode tren Android -> chi dung chuoi ASCII (email, mat khau).
+- tapOn:
+    id: "login-identity"
+- eraseText: 60
+- inputText: ${USER_EMAIL}
+- tapOn:
+    id: "login-password"
+- eraseText: 60
+# Khong truyen USER_PASSWORD thi dung mat khau chung cua tai khoan test
+- inputText: '${typeof USER_PASSWORD === "undefined" ? "123456" : USER_PASSWORD}'
+- hideKeyboard
+- tapOn:
+    id: "login-submit"
