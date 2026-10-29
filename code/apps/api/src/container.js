@@ -32,6 +32,8 @@ import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
 import { ServiceTypeService } from "./modules/serviceTypes/ServiceTypeService.js";
 import { PriceTableRepository } from "./modules/priceTables/PriceTableRepository.js";
+import { PriceTableService } from "./modules/priceTables/PriceTableService.js";
+import { Order } from "./models/Order.js";
 import { PublicCatalogService } from "./modules/public/PublicCatalogService.js";
 import { PermissionService } from "./modules/rbac/PermissionService.js";
 import { AuthService } from "./modules/auth/AuthService.js";
@@ -71,6 +73,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   const serviceTypeRepository = new ServiceTypeRepository();
   const priceTableRepository = new PriceTableRepository();
   const roleRepository = new BaseRepository(Role);
+  const orderRepository = new BaseRepository(Order);
 
   // ---- Service ----
   const permissionService = new PermissionService({ roleRepository, cache });
@@ -89,6 +92,13 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     serviceTypes: new ServiceTypeService({
       repository: withCache(serviceTypeRepository, "serviceTypes"),
       priceTableRepository,
+      events,
+    }),
+    priceTables: new PriceTableService({
+      repository: withCache(priceTableRepository, "priceTables"),
+      priceTableRepository,
+      serviceTypeRepository,
+      orderRepository,
       events,
     }),
   };
