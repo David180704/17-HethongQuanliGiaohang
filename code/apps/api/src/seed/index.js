@@ -63,10 +63,20 @@ async function seedRoles() {
 }
 
 async function seedHubs() {
-  const docs = await Hub.insertMany(hubs.map(({ _key, ...rest }) => ({ ...rest, isActive: true })));
   const map = {};
-  hubs.forEach((h, i) => (map[h._key] = docs[i]));
+  for (const { _key, parentKey, ...rest } of hubs) {
+    map[_key] = await Hub.create({ ...rest, parentHubId: parentKey ? map[parentKey]._id : null, isActive: true });
+  }
   return map;
+}
+
+// Hub tao truoc khu vuc phuc vu (tuyen can hubId) nen gan serviceAreaId sau
+async function linkHubsToServiceAreas(hubMap, serviceAreaDocs) {
+  for (const hub of Object.values(hubMap)) {
+    const area = serviceAreaDocs.find((a) => a.province === hub.province && a.district === hub.district);
+    if (!area) throw new Error(`Diem ${hub.code} nam o ${hub.district}, ${hub.province} chua co trong serviceAreas`);
+    await Hub.updateOne({ _id: hub._id }, { serviceAreaId: area._id });
+  }
 }
 
 async function seedRoutes(hubMap) {
@@ -313,6 +323,7 @@ async function main() {
   const hubMap = await seedHubs();
   const routeMap = await seedRoutes(hubMap);
   const serviceAreaDocs = await seedServiceAreas(routeMap);
+  await linkHubsToServiceAreas(hubMap, serviceAreaDocs);
 
   console.log("Dang seed loai dich vu va bang gia...");
   const serviceTypeMap = await seedServiceTypes();

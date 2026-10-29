@@ -13,7 +13,6 @@ import { Route } from "./models/Route.js";
 import { EventBus } from "./core/EventBus.js";
 import { BaseRepository } from "./core/BaseRepository.js";
 import { CachedRepository } from "./core/CachedRepository.js";
-import { BaseCrudService } from "./core/BaseCrudService.js";
 import { CacheService } from "./infrastructure/cache/CacheService.js";
 import { RedisCacheStore } from "./infrastructure/cache/RedisCacheStore.js";
 import { MemoryCacheStore } from "./infrastructure/cache/MemoryCacheStore.js";
@@ -26,7 +25,9 @@ import { createAuthMiddleware } from "./middleware/auth.js";
 import { createRequirePermission } from "./middleware/rbac.js";
 import { UserRepository } from "./modules/users/UserRepository.js";
 import { UserService } from "./modules/users/UserService.js";
-import { routeValidator } from "./modules/routes/routes.validator.js";
+import { RouteService } from "./modules/routes/RouteService.js";
+import { HubRepository } from "./modules/hubs/HubRepository.js";
+import { HubService } from "./modules/hubs/HubService.js";
 import { ServiceAreaRepository } from "./modules/serviceAreas/ServiceAreaRepository.js";
 import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js";
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
@@ -69,6 +70,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   const withCache = (repository, scope) => new CachedRepository(repository, { cache, scope });
   const userRepository = new UserRepository();
   const routeRepository = new BaseRepository(Route, { searchFields: ["code", "name"] });
+  const hubRepository = new HubRepository();
   const serviceAreaRepository = new ServiceAreaRepository();
   const serviceTypeRepository = new ServiceTypeRepository();
   const priceTableRepository = new PriceTableRepository();
@@ -80,15 +82,21 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   // Dang nhap dung repository KHONG cache: vua bi khoa la phai chan ngay.
   const authService = new AuthService({ userRepository, passwordHasher, tokenService, loginThrottle, mailService });
   const services = {
-    users: new UserService({ repository: withCache(userRepository, "users"), passwordHasher, events }),
-    routes: new BaseCrudService({
-      resource: "routes",
-      repository: withCache(routeRepository, "routes"),
-      validator: routeValidator,
+    users: new UserService({ repository: withCache(userRepository, "users"), passwordHasher, events, hubRepository }),
+    hubs: new HubService({
+      repository: withCache(hubRepository, "hubs"),
+      hubRepository,
+      serviceAreaRepository,
+      routeRepository,
+      userRepository,
       events,
-      filterFields: ["hubId", "isActive"],
     }),
-    serviceAreas: new ServiceAreaService({ repository: withCache(serviceAreaRepository, "serviceAreas"), events }),
+    routes: new RouteService({ repository: withCache(routeRepository, "routes"), hubRepository, events }),
+    serviceAreas: new ServiceAreaService({
+      repository: withCache(serviceAreaRepository, "serviceAreas"),
+      hubRepository,
+      events,
+    }),
     serviceTypes: new ServiceTypeService({
       repository: withCache(serviceTypeRepository, "serviceTypes"),
       priceTableRepository,

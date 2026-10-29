@@ -40,6 +40,9 @@ export const roles = [
   },
 ];
 
+// HUB = diem tap ket cap tinh/vung; POST_OFFICE = buu cuc, truc thuoc mot HUB (parentKey).
+// Hub cap tren phai dung TRUOC buu cuc trong mang (seed tao lan luot). Quan/huyen cua
+// moi diem phai co trong serviceAreas ben duoi (US-14: moi diem gan mot khu vuc phuc vu).
 export const hubs = [
   { _key: "HUB_HN", code: "HUB-HN", name: "Hub Hà Nội", type: "HUB", province: "Hà Nội", district: "Hoàn Kiếm" },
   {
@@ -55,6 +58,8 @@ export const hubs = [
     code: "PO-DN",
     name: "Bưu cục Đà Nẵng",
     type: "POST_OFFICE",
+    // Mien Trung chua co hub rieng: buu cuc Da Nang gom hang ve Hub Ha Noi
+    parentKey: "HUB_HN",
     province: "Đà Nẵng",
     district: "Hải Châu",
   },

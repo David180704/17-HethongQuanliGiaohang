@@ -25,6 +25,10 @@ export const ErrorCodes = {
   EMAIL_ALREADY_EXISTS: (message = "Email đã được sử dụng") => new AppError("EMAIL_ALREADY_EXISTS", message, 409),
   PHONE_ALREADY_EXISTS: (message = "Số điện thoại đã được sử dụng") =>
     new AppError("PHONE_ALREADY_EXISTS", message, 409),
+
+  // Quan/huyen chua co trong serviceAreas: diem tap ket, dia diem lay hang (US-14, US-15)
+  OUT_OF_SERVICE_AREA: (message = "Địa chỉ nằm ngoài vùng phục vụ") =>
+    new AppError("OUT_OF_SERVICE_AREA", message, 422),
 };
 
 export function errorHandler(err, req, res, _next) {
