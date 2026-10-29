@@ -11,6 +11,8 @@ import { buildUsersRouter } from "./modules/users/users.router.js";
 import { buildRoutesRouter } from "./modules/routes/routes.router.js";
 import { buildHubsRouter } from "./modules/hubs/hubs.router.js";
 import { buildPickupLocationsRouter } from "./modules/pickupLocations/pickupLocations.router.js";
+import { buildOrdersRouter } from "./modules/orders/orders.router.js";
+import { buildOrderDraftsRouter } from "./modules/orderDrafts/orderDrafts.router.js";
 import { buildServiceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { buildServiceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
 import { buildPriceTablesRouter } from "./modules/priceTables/priceTables.router.js";
@@ -46,6 +48,8 @@ export function createApp(container = getContainer()) {
   app.use("/serviceTypes", buildServiceTypesRouter(container));
   app.use("/priceTables", buildPriceTablesRouter(container));
   app.use("/pickupLocations", buildPickupLocationsRouter(container));
+  app.use("/orders", buildOrdersRouter(container));
+  app.use("/orderDrafts", buildOrderDraftsRouter(container));
   app.use("/public", buildPublicRouter(container));
 
   app.use((req, res, next) => {
