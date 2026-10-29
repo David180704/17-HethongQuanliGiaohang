@@ -29,10 +29,10 @@ Hệ thống quản lý giao hàng tập trung, kiến trúc client-server đa n
 | Admin          | Danh mục, bảng giá, phân quyền, đối soát                             |
 
 **Đã hoàn thành (Sprint 1–2)**: nền tảng kỹ thuật, xác thực/phân quyền đầy
-đủ, quản trị danh mục (người dùng, tuyến, khu vực, loại dịch vụ).
-**Chưa làm (Sprint 3–5)**: tạo đơn, tính phí, bảng giá, giao nhận, check-in
-GPS, đối soát — đây đều là nghiệp vụ lõi, đã có kế hoạch rõ trong Sprint
-Backlog, chủ động chưa làm chứ không phải thiếu sót.
+đủ, quản trị danh mục (người dùng, tuyến, khu vực, loại dịch vụ, bảng giá).
+**Chưa làm (Sprint 3–6)**: tạo đơn, tính phí, giao nhận, check-in GPS, đối
+soát, hoàn hàng, sự cố, thống kê — đây đều là nghiệp vụ lõi, đã có lịch theo
+PERT toàn dự án (PERT_ToanDuAn.docx) trong Sprint Backlog.
 
 ## 3. Quy trình làm việc
 

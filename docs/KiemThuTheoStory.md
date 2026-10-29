@@ -8,17 +8,17 @@
 
 | | Số story |
 |---|---|
-| 🟢 Đạt (mọi tiêu chí có test và pass) | 13 |
+| 🟢 Đạt (mọi tiêu chí có test và pass) | 14 |
 | 🔴 Lỗi (có test fail) | 0 |
-| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 21 |
+| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 20 |
 
-Điểm story đạt: **37/112** điểm của Sprint 1–5.
+Điểm story đạt: **42/112** điểm của Sprint 1–5.
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
 | Sprint 1 | 4/4 | 16/16 |
-| Sprint 2 | 8/8 | 19/19 |
-| Sprint 3 | 0/7 | 0/26 |
+| Sprint 2 | 9/9 | 24/24 |
+| Sprint 3 | 0/6 | 0/21 |
 | Sprint 4 | 1/8 | 2/26 |
 | Sprint 5 | 0/7 | 0/25 |
 
@@ -43,7 +43,7 @@ server nên không nằm trong lệnh này.
 | 2 | US-10 | Quản lý tài khoản người dùng trong hệ thống | 3 | 🟢 Đạt | 4/4 | App NV: form người dùng · Liên thiết bị: khóa/mở tài khoản (máy ảo ↔ web, cả hai chiều) |
 | 2 | US-11 | Quản lý danh mục tuyến và khu vực phục vụ | 3 | 🟢 Đạt | 3/3 | App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều) |
 | 2 | US-12 | Quản lý danh mục loại dịch vụ vận chuyển | 2 | 🟢 Đạt | 3/3 | App NV: chặn trùng mã dịch vụ |
-| 3 | US-13 | Quản lý bảng giá vận chuyển theo khu vực và khối lượng | 5 | ⚪ Chưa làm | 0/0 · còn 4 tiêu chí |  |
+| 2 | US-13 | Quản lý bảng giá vận chuyển theo khu vực và khối lượng | 5 | 🟢 Đạt | 12/12 | App NV: lưới bậc khối lượng, báo chồng lấn và trùng khoảng hiệu lực ngay trên form |
 | 3 | US-14 | Quản lý danh mục điểm tập kết và bưu cục | 2 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 3 | US-15 | Quản lý danh sách địa điểm lấy hàng | 3 | ⚪ Chưa làm | 0/0 · còn 3 tiêu chí |  |
 | 3 | US-16 | Ước tính phí vận chuyển trước khi gửi hàng | 3 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
@@ -56,7 +56,7 @@ server nên không nằm trong lệnh này.
 | 4 | US-23 | Quản lý ca làm việc và phân công nhân viên vào tuyến | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 4 | US-24 | Cấu hình năng lực xử lý tối đa của người giao hàng | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 4 | US-25 | Phân công đơn lấy hàng cho người giao hàng | 5 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro NV 01–07 trên máy ảo Android · App NV: 13 kịch bản |
+| 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro NV 01–07 trên máy ảo Android · App NV: 14 kịch bản |
 | 4 | US-27 | Xem danh sách đơn cần lấy trong ca làm việc | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 5 | US-28 | Xác nhận đã lấy hàng từ người gửi | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
@@ -76,11 +76,9 @@ server nên không nằm trong lệnh này.
 
 ## Lưu ý cho Sprint Review
 
-- US-13 (bảng giá) và US-14 (hub) chưa có code. Sprint Planning 2–3 và Product Backlog đã sửa
-  trạng thái về "Chuyển Sprint 3" / "To Do" ngày 29/10/2026 — chỉ ghi "Done" khi story ở bảng
-  trên chuyển sang 🟢 Đạt.
-- Hôm nay đang ở Sprint 5 (26/10 – 06/11/2026) nhưng phần code mới hoàn thành Sprint 1–2,
-  cộng US-26 của Sprint 4. Sprint 3 là nút thắt: US-13, US-17 (tính phí) chặn phần lớn các
-  story sau, nên làm trước.
+- Lịch lấy từ docs/PERT_ToanDuAn.docx: Sprint 2 kéo dài đến 30/10/2026 để xong đủ 9 story (gồm US-13),
+  Sprint 3 bắt đầu 02/11/2026. Story chỉ ghi "Done" khi chuyển sang 🟢 Đạt ở bảng trên.
+- US-26 (Sprint 4) đã xong sớm cùng App Nhân viên. Sprint 3 là nút thắt: US-17 (tính phí)
+  chặn phần lớn các story sau, nên làm trước.
 - US-05 (CI) chỉ kiểm tra được file workflow có đủ bước lint → test → build; kết quả chạy
   thật xem trên tab Actions của GitHub.
