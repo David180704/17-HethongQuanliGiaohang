@@ -9,7 +9,7 @@ import { errorMessage } from "../lib/apiClient";
 import { CUSTOMER_TYPE_LABELS, avatarLetter } from "../lib/format";
 import { colors } from "../theme";
 
-export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder }) {
+export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder, onOpenPickupLocations }) {
   const { user } = useAuth();
 
   if (!user) {
@@ -25,13 +25,22 @@ export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateO
       </Screen>
     );
   }
-  return <Profile user={user} onLogout={onLogout} onCreateOrder={onCreateOrder} />;
+  return (
+    <Profile
+      user={user}
+      onLogout={onLogout}
+      onCreateOrder={onCreateOrder}
+      onOpenPickupLocations={onOpenPickupLocations}
+    />
+  );
 }
 
-function Profile({ user, onLogout, onCreateOrder }) {
+function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations }) {
   // /auth/me qua cache 30 giay; dang nhap/dang xuat da clear() cache.
   const { data, error } = useCachedQuery("/auth/me");
   const profile = data || user;
+  const { data: locations, meta: locationMeta } = useCachedQuery("/pickupLocations");
+  const defaultLocation = locations?.find((location) => location.isDefault);
 
   return (
     <Screen title="Tài khoản của tôi" bottomInset={false}>
@@ -55,6 +64,15 @@ function Profile({ user, onLogout, onCreateOrder }) {
         <Row label="Số điện thoại" value={profile.phone} />
         <Row label="Loại khách hàng" value={CUSTOMER_TYPE_LABELS[profile.customerType] || "—"} />
         {profile.shopName ? <Row label="Tên shop" value={profile.shopName} /> : null}
+      </Card>
+
+      <Card title="Địa điểm lấy hàng">
+        <Text style={styles.muted} testID="account-pickup-summary">
+          {locations
+            ? `${locations.length}/${locationMeta?.max ?? 10} địa điểm${defaultLocation ? ` · mặc định: ${defaultLocation.label}` : ""}`
+            : "Đang tải..."}
+        </Text>
+        <Button testID="account-pickup-locations" title="Quản lý địa điểm" variant="secondary" onPress={onOpenPickupLocations} />
       </Card>
 
       <Card title="Đơn hàng của tôi">
