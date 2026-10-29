@@ -11,6 +11,7 @@ import { buildUsersRouter } from "./modules/users/users.router.js";
 import { buildRoutesRouter } from "./modules/routes/routes.router.js";
 import { buildServiceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { buildServiceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
+import { buildPriceTablesRouter } from "./modules/priceTables/priceTables.router.js";
 import { buildPublicRouter } from "./modules/public/public.router.js";
 
 // Ten may chu MongoDB de /health cho biet dang dung CSDL nao (local hay cloud Atlas)
@@ -40,6 +41,7 @@ export function createApp(container = getContainer()) {
   app.use("/routes", buildRoutesRouter(container));
   app.use("/serviceAreas", buildServiceAreasRouter(container));
   app.use("/serviceTypes", buildServiceTypesRouter(container));
+  app.use("/priceTables", buildPriceTablesRouter(container));
   app.use("/public", buildPublicRouter(container));
 
   app.use((req, res, next) => {
