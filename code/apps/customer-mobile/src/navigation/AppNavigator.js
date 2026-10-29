@@ -10,11 +10,12 @@ import AccountScreen from "../screens/AccountScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import CreateOrderScreen from "../screens/CreateOrderScreen";
+import PickupLocationsScreen from "../screens/PickupLocationsScreen";
 import { colors } from "../theme";
 
 // Dieu huong tu viet (khong them thu vien, giong App Nhan vien):
 //   - 4 tab: Trang chu, Bang gia, Vung phuc vu, Tai khoan - khach vang lai xem duoc het
-//   - ngan xep man hinh con: dang nhap, dang ky, tao don
+//   - ngan xep man hinh con: dang nhap, dang ky, tao don, dia diem lay hang
 // Quy tac giong Web Khach hang: bam "Tao don" khi chua dang nhap -> dang nhap ->
 // quay lai DUNG man hinh tao don.
 export default function AppNavigator() {
@@ -94,6 +95,9 @@ export default function AppNavigator() {
   if (top?.name === "createOrder" && user) {
     return <CreateOrderScreen onBack={pop} onGoTab={goTab} />;
   }
+  if (top?.name === "pickupLocations" && user) {
+    return <PickupLocationsScreen onBack={pop} />;
+  }
 
   const tabProps = {
     onGoTab: goTab,
@@ -101,6 +105,7 @@ export default function AppNavigator() {
     onLogin: () => push({ name: "login" }),
     onRegister: () => push({ name: "register" }),
     onLogout: requestLogout,
+    onOpenPickupLocations: () => push({ name: "pickupLocations" }),
   };
 
   return (
