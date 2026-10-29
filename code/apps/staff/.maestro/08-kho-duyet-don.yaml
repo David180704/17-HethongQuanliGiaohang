@@ -1,0 +1,21 @@
+appId: host.exp.exponent
+name: "[US-18] HUB_STAFF mo Duyet don moi, thay don cho xac nhan cua hub minh"
+tags:
+  - sprint3
+---
+# Chi xem hang cho (khong bam Xac nhan): don CREATED cua seed dung chung cho moi lan chay,
+# xac nhan tren may ao se lam het don cho. Bam Xac nhan da co test Playwright tao don rieng.
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+- extendedWaitUntil:
+    visible: "\\d+ đơn chờ"
+    timeout: 15000
+- tapOn: "Duyệt đơn mới"
+- extendedWaitUntil:
+    visible: "\\d+ đơn chờ xác nhận"
+    timeout: 15000
+- assertVisible: "Xác nhận đơn"
+- assertVisible: "EXP\\d{10}"
+- takeScreenshot: 08-kho-duyet-don
