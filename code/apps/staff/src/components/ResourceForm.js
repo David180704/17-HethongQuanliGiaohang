@@ -5,6 +5,7 @@ import ChipSelect from "./ChipSelect";
 import CheckboxRow from "./CheckboxRow";
 import Button from "./Button";
 import Banner from "./Banner";
+import TierEditor, { emptyTier } from "./TierEditor";
 import { apiClient, errorMessage } from "../lib/apiClient";
 import { colors } from "../theme";
 
@@ -12,6 +13,7 @@ const KEYBOARD = { email: "email-address", phone: "phone-pad", number: "decimal-
 
 function emptyValue(field) {
   if (field.type === "multiselect") return [];
+  if (field.type === "tiers") return [emptyTier()];
   if (field.type === "checkbox") return false;
   return "";
 }
@@ -22,12 +24,25 @@ function initialState(fields, initialValues) {
   const state = {};
   for (const field of fields) {
     const raw = initialValues?.[field.name];
-    if (raw !== undefined && raw !== null) state[field.name] = field.type === "number" ? String(raw) : raw;
+    if (raw !== undefined && raw !== null) state[field.name] = toFormValue(field, raw);
     else if (field.defaultValue !== undefined) state[field.name] = field.defaultValue;
     else state[field.name] = emptyValue(field);
   }
   return state;
 }
+
+function toFormValue(field, raw) {
+  if (field.type === "number") return String(raw);
+  if (field.type === "date") return String(raw).slice(0, 10); // ISO -> YYYY-MM-DD
+  if (field.type === "tiers") return raw.map((tier) => Object.fromEntries(Object.entries(tier).map(([k, v]) => [k, String(v)])));
+  return raw;
+}
+
+// "0,5" (ban phim tieng Viet) -> 0.5; chuoi rong -> NaN
+const toNumber = (value) => {
+  const text = String(value ?? "").trim().replace(",", ".");
+  return text === "" ? NaN : Number(text);
+};
 
 const isVisible = (field, values) => !field.showIf || field.showIf(values);
 
@@ -46,6 +61,27 @@ export function buildPayload(fields, values) {
     }
     if (field.type === "multiselect") {
       payload[field.name] = Array.isArray(value) ? value : [];
+      continue;
+    }
+    if (field.type === "tiers") {
+      payload[field.name] = (value || []).map((tier, index) => {
+        const row = {};
+        for (const key of ["fromGram", "toGram", "basePrice", "pricePer500g"]) {
+          row[key] = toNumber(tier[key]);
+          if (!Number.isFinite(row[key])) throw new Error(`Bậc ${index + 1}: nhập đủ khối lượng và giá bằng số`);
+        }
+        return row;
+      });
+      continue;
+    }
+    if (field.type === "date") {
+      const text = String(value ?? "").trim();
+      if (text === "") {
+        if (field.required) throw new Error(`Vui lòng nhập ${label}`);
+        continue;
+      }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) throw new Error(`${field.label} phải có dạng YYYY-MM-DD`);
+      payload[field.name] = text;
       continue;
     }
     if (field.type === "number") {
@@ -71,7 +107,7 @@ export function buildPayload(fields, values) {
   return payload;
 }
 
-// fields: [{ name, label, type: text|email|phone|password|number|checkbox|select|multiselect,
+// fields: [{ name, label, type: text|email|phone|password|number|date|tiers|checkbox|select|multiselect,
 //   required, options: [{ value, label }], optionsFrom: { endpoint, label(item) },
 //   showIf(values), help, placeholder, defaultValue, autoCapitalize }]
 export default function ResourceForm({ fields, initialValues, onSubmit, onCancel, submitLabel = "Lưu" }) {
@@ -132,6 +168,18 @@ export default function ResourceForm({ fields, initialValues, onSubmit, onCancel
         />
       );
     }
+    if (field.type === "tiers") {
+      return (
+        <TierEditor
+          key={field.name}
+          testID={`field-${field.name}`}
+          label={field.label}
+          help={field.help}
+          value={values[field.name]}
+          onChange={(v) => setField(field.name, v)}
+        />
+      );
+    }
     if (field.type === "select" || field.type === "multiselect") {
       return (
         <ChipSelect
@@ -155,10 +203,10 @@ export default function ResourceForm({ fields, initialValues, onSubmit, onCancel
         label={field.label}
         required={field.required}
         help={field.help}
-        placeholder={field.placeholder}
         value={values[field.name] ?? ""}
         onChangeText={(v) => setField(field.name, v)}
         secureTextEntry={field.type === "password"}
+        placeholder={field.placeholder || (field.type === "date" ? "YYYY-MM-DD" : undefined)}
         keyboardType={KEYBOARD[field.type] || "default"}
         autoCapitalize={field.autoCapitalize || "none"}
         autoCorrect={false}
