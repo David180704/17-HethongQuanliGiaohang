@@ -1,6 +1,7 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { normalizeVnPhone } from "../../core/phone.js";
 import { parseFlags, parseItem } from "../pricing/pricing.validator.js";
+import { parseCod } from "./cod.js";
 
 const RECEIVER_LABELS = {
   name: "tên người nhận",
@@ -35,6 +36,7 @@ export const orderValidator = {
       receiver: parseReceiver(body.receiver),
       item: parseItem(body.item, { requireName: true }),
       flags: parseFlags(body.flags),
+      cod: parseCod(body.cod),
       draftToken: isFilled(body.draftToken) ? body.draftToken : null,
     };
   },
