@@ -30,6 +30,30 @@ Tài khoản nhân viên vào Web/App Khách hàng bị từ chối, khách vào
 
 ---
 
+## Chạy nhanh nhất: một lệnh từ lúc mở folder
+
+Mở folder `QuanLiGiaoHang` trong VS Code → **Terminal → New Terminal**, chạy:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\code\chay-demo.ps1              # CSDL local (Docker)
+powershell -ExecutionPolicy Bypass -File .\code\chay-demo.ps1 -Atlas       # thử Atlas, lỗi thì tự về local
+powershell -ExecutionPolicy Bypass -File .\code\chay-demo.ps1 -NoEmulator  # chỉ chạy web
+```
+
+Hoặc **Terminal → Run Task → `EDMS: CHAY DEMO ...`**. Lệnh tự làm theo thứ tự:
+
+1. Bật Docker Desktop nếu chưa chạy; MongoDB (cổng **27018**) + Redis.
+2. Đóng các cửa sổ `EDMS ...` cũ và server còn sót, giải phóng cổng 4044, 5173, 8082, 8083
+   (chạy `start-dev.ps1` nhiều lần sẽ sinh cửa sổ trùng giữ cổng — lỗi hay gặp).
+3. Cài thư viện nếu thiếu; nạp dữ liệu mẫu nếu CSDL rỗng.
+4. **Mở khóa tài khoản test** (khóa 15 phút sau 5 lần sai mật khẩu).
+5. Mở 3 cửa sổ API → Web Khách hàng → App Nhân viên, chờ từng cái sẵn sàng.
+6. Bật máy ảo, mở **App Nhân viên** trong Expo Go; mở trình duyệt vào **Web Khách hàng**.
+
+> **API không chạy với `start-dev.ps1` (không có `-Local`)?** File `.env` đang trỏ MongoDB Atlas; Atlas
+> từ chối khi IP máy chưa có trong **Atlas → Network Access** → API dừng ngay. Dùng `chay-demo.ps1`
+> (mặc định CSDL local) hoặc thêm IP vào Network Access.
+
 ## 0. Chuẩn bị (một lần)
 
 Cần có: **Docker Desktop**, **Node.js 20+**, **Git**. Java 17, Android SDK và Maestro đã cài
