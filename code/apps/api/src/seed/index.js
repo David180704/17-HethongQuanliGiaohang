@@ -8,6 +8,8 @@ import { buildStatusChain, countDeliveryAttempts, isAssignedStage } from "./orde
 import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
 import { ORDER_STATUS } from "../constants/enums.js";
+import { Counter } from "../models/Counter.js";
+import { TRACKING_COUNTER, formatTrackingCode } from "../modules/orders/CounterRepository.js";
 import { TEST_PASSWORD, buildTestAccounts } from "./testAccounts.js";
 
 // Cach chay:
@@ -20,6 +22,7 @@ const TARGET_URI = args.includes("--local") ? LOCAL_MONGO_URI : env.mongoUri;
 const CONFIRMED = args.includes("--yes");
 
 const TOTAL_ORDERS = 200;
+const FIRST_TRACKING_NUMBER = 1_000_000_000; // ma van don seed: EXP1000000000 -> EXP1000000199
 const BASE_COUNT_PER_STATUS = 8;
 
 faker.seed(42);
@@ -52,7 +55,7 @@ function buildStatusPool() {
 
 async function clearAll() {
   await Promise.all(
-    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment].map(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, Counter].map(
       (m) => m.deleteMany({}),
     ),
   );
@@ -207,7 +210,7 @@ function buildStatusHistory(chain, createdAt) {
   });
 }
 
-async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, priceTableMap, shippers }) {
+async function seedOrders({ customerLocations, serviceAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers }) {
   const statusPool = buildStatusPool();
   const serviceTypeKeys = Object.keys(serviceTypeMap);
 
@@ -244,6 +247,10 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
     const chain = buildStatusChain(status);
     const createdAt = faker.date.recent({ days: 45 });
     const statusHistory = buildStatusHistory(chain, createdAt);
+    // Don da qua CONFIRMED thi phi da khoa tu luc xac nhan (US-17)
+    const confirmedAt = statusHistory.find((entry) => entry.status === "CONFIRMED")?.at ?? null;
+    // Hub/buu cuc quan ly tuyen cua khu vuc lay hang - nhan vien diem nay duyet don (US-18)
+    const pickupRoute = routeDocs.find((route) => String(route._id) === String(pickupArea.routeId));
 
     let codEnabled = faker.number.int({ min: 1, max: 100 }) <= 75;
     let feePayer = faker.helpers.arrayElement(["SHOP_PREPAID", "RECIPIENT_PAID", "DEDUCT_FROM_COD"]);
@@ -261,11 +268,12 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
       feePayer === "SHOP_PREPAID" ? (feePaymentMethod === "QR" ? true : pickedUp) : delivered || null;
 
     return {
-      trackingCode: `EXP${String(1000000000 + i).slice(0, 10)}`,
+      trackingCode: formatTrackingCode(FIRST_TRACKING_NUMBER + i),
       customerId: customer._id,
       customerName: customer.fullName,
       pickupLocationId: loc._id,
       pickupWard: loc.ward,
+      pickupHubId: pickupRoute.hubId,
       receiver: randomReceiverAddress(receiverArea),
       item,
       flags,
@@ -273,7 +281,8 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
       serviceName: serviceTypeKey === "EXPRESS" ? "Gửi nhanh" : "Gửi thường",
       zone,
       chargeableWeight,
-      fee,
+      priceTableId: priceTable._id,
+      fee: { ...fee, lockedAt: confirmedAt },
       cod: {
         enabled: codEnabled,
         amount: codEnabled ? codAmount : 0,
@@ -296,6 +305,8 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
   });
 
   await Order.insertMany(docs);
+  // Don tao moi qua API (US-18) lay ma tiep theo tu bo dem nay, trong transaction
+  await Counter.create({ _id: TRACKING_COUNTER, seq: FIRST_TRACKING_NUMBER + docs.length - 1 });
 }
 
 async function main() {
@@ -338,7 +349,7 @@ async function main() {
   const customerLocations = await seedPickupLocations({ customers, serviceAreaDocs });
 
   console.log("Dang seed 200 don hang trai 18 trang thai...");
-  await seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, priceTableMap, shippers });
+  await seedOrders({ customerLocations, serviceAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers });
 
   console.log("\nHoan tat seed du lieu.");
   console.log(`Mat khau chung cho moi tai khoan test: ${TEST_PASSWORD}`);

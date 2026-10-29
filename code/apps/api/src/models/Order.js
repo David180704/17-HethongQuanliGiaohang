@@ -43,6 +43,9 @@ const feeSchema = new mongoose.Schema(
     serviceSurcharge: { type: Number, default: 0 },
     specialSurcharge: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
+    // Thoi diem don chuyen CONFIRMED: tu day phi co dinh, bang gia doi ve sau khong
+    // lam doi phi don nay (US-17). null = don con cho xac nhan.
+    lockedAt: { type: Date, default: null },
   },
   { _id: false },
 );
@@ -90,6 +93,9 @@ const orderSchema = new mongoose.Schema(
 
     pickupLocationId: { type: mongoose.Schema.Types.ObjectId, ref: "PickupLocation", required: true },
     pickupWard: { type: String, required: true },
+    // Hub/buu cuc quan ly tuyen cua khu vuc lay hang: nhan vien diem nay (va hub cap
+    // tren) duyet don, phan cong lay hang (US-18). Xac dinh luc tao don.
+    pickupHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
 
     receiver: { type: receiverSchema, required: true },
     item: { type: itemSchema, required: true },
@@ -100,6 +106,8 @@ const orderSchema = new mongoose.Schema(
 
     zone: { type: String, enum: ZONE, required: true },
     chargeableWeight: { type: Number, required: true },
+    // Bang gia da dung de tinh phi (doi chieu "phi khop bang gia dang hieu luc")
+    priceTableId: { type: mongoose.Schema.Types.ObjectId, ref: "PriceTable", default: null },
 
     fee: { type: feeSchema, default: () => ({}) },
     cod: { type: codSchema, default: () => ({}) },
@@ -116,5 +124,7 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.index({ trackingCode: 1 }, { unique: true });
 orderSchema.index({ customerId: 1, status: 1, createdAt: -1 });
+// Nhan vien hub xem don cho duyet cua diem minh (US-18)
+orderSchema.index({ pickupHubId: 1, status: 1, createdAt: -1 });
 
 export const Order = mongoose.model("Order", orderSchema);

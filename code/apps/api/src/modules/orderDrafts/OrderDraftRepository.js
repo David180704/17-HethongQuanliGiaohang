@@ -15,6 +15,14 @@ export class OrderDraftRepository extends BaseRepository {
       .lean();
   }
 
+  /** Tao don tu nhap xong thi xoa nhap - chay trong transaction tao don (US-18). */
+  async consume(draftToken, customerId, { session }) {
+    const draft = await this.findLive(draftToken, { session });
+    if (!draft || (draft.customerId && String(draft.customerId) !== String(customerId))) return false;
+    await this.model.deleteOne({ _id: draft._id }, { session });
+    return true;
+  }
+
   expiresAt(draft) {
     return new Date(new Date(draft.createdAt).getTime() + DRAFT_TTL_SECONDS * 1000);
   }

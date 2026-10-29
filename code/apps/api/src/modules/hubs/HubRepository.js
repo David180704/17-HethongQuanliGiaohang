@@ -21,4 +21,10 @@ export class HubRepository extends BaseRepository {
     ]);
     return { items, total };
   }
+
+  /** Hub va moi buu cuc truc thuoc - pham vi don hang cua nhan vien hub (US-18). */
+  async findFamilyIds(hubId) {
+    const children = await this.model.find({ parentHubId: hubId }).select("_id").lean();
+    return [hubId, ...children.map((child) => child._id)];
+  }
 }

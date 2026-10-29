@@ -79,11 +79,14 @@ export class PriceTableService extends BaseCrudService {
     }
   }
 
-  // Don hang khong luu id bang gia: coi bang gia da dung khi co don cung loai dich vu tao
-  // trong khoang hieu luc cua no (cach hieu than trong, khong xoa nham bang dang dung).
-  isUsed({ serviceTypeId, effectiveFrom, effectiveTo }) {
+  // Tu US-18 moi don luu priceTableId cua bang gia da tinh phi. Don cu chua co truong nay
+  // (CSDL nap truoc Sprint 3) thi coi la da dung khi cung dich vu + zone va tao trong
+  // khoang hieu luc - cach hieu than trong, khong xoa nham bang dang dung.
+  isUsed({ _id, serviceTypeId, zone, effectiveFrom, effectiveTo }) {
     const createdAt = { $gte: effectiveFrom };
     if (effectiveTo) createdAt.$lt = effectiveTo;
-    return this.orderRepository.exists({ serviceTypeId, createdAt });
+    return this.orderRepository.exists({
+      $or: [{ priceTableId: _id }, { priceTableId: null, serviceTypeId, zone, createdAt }],
+    });
   }
 }
