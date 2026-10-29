@@ -1,4 +1,5 @@
 import { test, expect, request } from "@playwright/test";
+import { execFileSync } from "node:child_process";
 
 const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
 const PASSWORD = "123456";
@@ -246,6 +247,104 @@ test("[US-14] ADMIN: mo hub va buu cuc truc thuoc, ngoai vung phuc vu bi chan, t
   await expect(page.getByText(`Đã xóa "${hubName}"`)).toBeVisible();
 });
 
+// Khach (shop3) tao don qua API tu mot dia diem o Cau Giay - tuyen R-HN-NOI do Hub Ha Noi
+// quan ly -> nhan vien kho1 (Hub Ha Noi) phai thay don trong hang cho duyet.
+async function createOrderForHubHn() {
+  const api = await request.newContext({ baseURL: API_URL });
+  const login = await api.post("/auth/login", { data: { emailOrPhone: "shop3@edms.vn", password: PASSWORD } });
+  const headers = { Authorization: `Bearer ${(await login.json()).data.accessToken}` };
+  const location = await api.post("/pickupLocations", {
+    headers,
+    data: {
+      label: "E2E Kho Duyệt",
+      contactName: "Chủ Shop 3",
+      contactPhone: "0900000043",
+      address: "1 Trần Thái Tông",
+      province: "Hà Nội",
+      district: "Cầu Giấy",
+      ward: "Dịch Vọng",
+    },
+  });
+  const serviceTypes = (await (await api.get("/public/service-types")).json()).data;
+  const order = await api.post("/orders", {
+    headers,
+    data: {
+      pickupLocationId: (await location.json()).data._id,
+      serviceTypeId: serviceTypes[0]._id,
+      receiver: { name: "E2E Người Nhận Duyệt", phone: "0911222333", address: "8 Lê Lợi", province: "Hà Nội", district: "Đống Đa", ward: "Láng Hạ" },
+      item: { name: "Sách giáo khoa", weightGram: 700, length: 20, width: 15, height: 5 },
+      cod: { enabled: true, amount: 250000, feePayer: "RECIPIENT_PAID" },
+    },
+  });
+  const body = await order.json();
+  await api.dispose();
+  return body.data;
+}
+
+// API khong co chuc nang xoa don: xoa don thu nghiem trong CSDL local qua mongosh roi moi
+// xoa duoc dia diem lay hang (con don chua hoan tat thi API chan xoa).
+async function cleanupApprovalData() {
+  try {
+    execFileSync(
+      "docker",
+      ["exec", "edms-mongo", "mongosh", "edms", "--quiet", "--eval", 'db.orders.deleteMany({ "receiver.name": /^E2E / }).deletedCount'],
+      { stdio: "ignore" },
+    );
+  } catch {
+    // may khong co Docker -> bo qua
+  }
+  const api = await request.newContext({ baseURL: API_URL });
+  const login = await api.post("/auth/login", { data: { emailOrPhone: "shop3@edms.vn", password: PASSWORD } });
+  const headers = { Authorization: `Bearer ${(await login.json()).data.accessToken}` };
+  const locations = (await (await api.get("/pickupLocations", { headers })).json()).data;
+  for (const location of locations.filter((l) => l.label.startsWith("E2E"))) {
+    await api.delete(`/pickupLocations/${location._id}`, { headers });
+  }
+  await api.dispose();
+}
+
+test("[US-18] HUB_STAFF duyet don moi: thay don cua hub minh, xac nhan -> phi khoa, don roi khoi hang cho", async ({ page }) => {
+  await cleanupApprovalData();
+  const order = await createOrderForHubHn();
+  expect(order.trackingCode).toMatch(/^EXP\d{10}$/);
+
+  await login(page, "kho1@edms.vn");
+  await page.getByRole("button", { name: /Duyệt đơn mới/ }).click();
+  await expect(page.getByRole("heading", { name: "Duyệt đơn mới" })).toBeVisible();
+  await page.getByTestId("approve-search").fill(order.trackingCode);
+  await expect(page.getByTestId("approve-count")).toHaveText("1 đơn chờ xác nhận");
+  const card = page.getByTestId(`approve-${order.trackingCode}`);
+  await expect(card).toContainText("Shop 3 · Dịch Vọng"); // khach doanh nghiep: hien ten shop
+  await expect(card).toContainText("Đống Đa, Hà Nội");
+  await expect(card).toContainText("250.000 ₫");
+  await page.screenshot({ path: `${SHOT_DIR}/16-hub-approve-orders.png`, fullPage: true });
+
+  await page.getByRole("button", { name: `Xác nhận ${order.trackingCode}` }).click();
+  await expect(page.getByText(`Đã xác nhận ${order.trackingCode}`)).toBeVisible();
+  await expect(page.getByTestId("approve-count")).toHaveText("0 đơn chờ xác nhận");
+
+  // Don da CONFIRMED, phi khoa
+  const api = await request.newContext({ baseURL: API_URL });
+  const loginRes = await api.post("/auth/login", { data: { emailOrPhone: "kho1@edms.vn", password: PASSWORD } });
+  const headers = { Authorization: `Bearer ${(await loginRes.json()).data.accessToken}` };
+  const saved = (await (await api.get(`/orders/${order._id}`, { headers })).json()).data;
+  expect(saved.status).toBe("CONFIRMED");
+  expect(saved.fee.lockedAt).toBeTruthy();
+  await api.dispose();
+  await cleanupApprovalData();
+});
+
+test("[US-18] HUB_STAFF hub khac (Ho Chi Minh) khong thay don cua Hub Ha Noi", async ({ page }) => {
+  await cleanupApprovalData();
+  const order = await createOrderForHubHn();
+  await login(page, "kho2@edms.vn");
+  await page.getByRole("button", { name: /Duyệt đơn mới/ }).click();
+  await page.getByTestId("approve-search").fill(order.trackingCode);
+  await expect(page.getByTestId("approve-count")).toHaveText("0 đơn chờ xác nhận");
+  await expect(page.getByText(`Không có đơn chờ duyệt khớp "${order.trackingCode}"`)).toBeVisible();
+  await cleanupApprovalData();
+});
+
 test.describe("giao dien dien thoai", () => {
   test.use({ viewport: PHONE });
 
@@ -278,7 +377,8 @@ test.describe("giao dien dien thoai", () => {
     await expect(page.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "EDMS Nhân viên" })).toBeVisible();
     await expect(page.getByText(/Hub phụ trách: .+\((HUB|PO)-/)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Duyệt đơn mới" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: /Duyệt đơn mới/ })).toBeEnabled();
+    await expect(page.getByText(/\d+ đơn chờ/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Người dùng" })).toHaveCount(0);
     await page.screenshot({ path: `${SHOT_DIR}/10-hub-home-phone.png`, fullPage: true });
   });
