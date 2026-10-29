@@ -63,7 +63,7 @@ const UI_TESTS = {
   "US-11": "App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều)",
   "US-12": "App NV: chặn trùng mã dịch vụ",
   "US-13": "App NV: lưới bậc khối lượng, báo chồng lấn và trùng khoảng hiệu lực ngay trên form",
-  "US-26": "Maestro NV 01–07 trên máy ảo Android · App NV: 13 kịch bản",
+  "US-26": "Maestro NV 01–07 trên máy ảo Android · App NV: 14 kịch bản",
   "PB-01": "Web + App KH: trang chủ, vùng phục vụ, tìm không dấu · Maestro KH 01, 03",
   "PB-04": "Web + App KH: bảng giá đổi theo dịch vụ · Maestro KH 02",
   CACHE: "Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây, đổi tài khoản không lộ hồ sơ người trước",
@@ -161,12 +161,10 @@ ${EXTRA.map((e) => `| ${e.tag} | ${e.name} | ${verdict(results[e.tag])} | ${cell
 ${failures.length ? `\n## Test đang fail\n\n${failures.join("\n")}\n` : ""}
 ## Lưu ý cho Sprint Review
 
-- US-13 (bảng giá) và US-14 (hub) chưa có code. Sprint Planning 2–3 và Product Backlog đã sửa
-  trạng thái về "Chuyển Sprint 3" / "To Do" ngày 29/10/2026 — chỉ ghi "Done" khi story ở bảng
-  trên chuyển sang 🟢 Đạt.
-- Hôm nay đang ở Sprint 5 (26/10 – 06/11/2026) nhưng phần code mới hoàn thành Sprint 1–2,
-  cộng US-26 của Sprint 4. Sprint 3 là nút thắt: US-13, US-17 (tính phí) chặn phần lớn các
-  story sau, nên làm trước.
+- Lịch lấy từ docs/PERT_ToanDuAn.docx: Sprint 2 kéo dài đến 30/10/2026 để xong đủ 9 story (gồm US-13),
+  Sprint 3 bắt đầu 02/11/2026. Story chỉ ghi "Done" khi chuyển sang 🟢 Đạt ở bảng trên.
+- US-26 (Sprint 4) đã xong sớm cùng App Nhân viên. Sprint 3 là nút thắt: US-17 (tính phí)
+  chặn phần lớn các story sau, nên làm trước.
 - US-05 (CI) chỉ kiểm tra được file workflow có đủ bước lint → test → build; kết quả chạy
   thật xem trên tab Actions của GitHub.
 `;
