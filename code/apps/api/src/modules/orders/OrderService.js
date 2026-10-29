@@ -2,6 +2,7 @@ import { ErrorCodes } from "../../core/errors.js";
 import { ORDER_STATUS } from "../../constants/enums.js";
 import { orderValidator } from "./orders.validator.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "./CounterRepository.js";
+import { assertCodCoversFee } from "./cod.js";
 
 const MAX_LIMIT = 100;
 
@@ -64,6 +65,8 @@ export class OrderService {
       flags: data.flags,
       serviceType,
     });
+    // Khau tru phi vao thu ho ma thu ho < phi -> chan luu (US-19)
+    assertCodCoversFee(data.cod, quote.fee);
     const route = await this.routeRepository.findById(pickupArea.routeId);
 
     const now = new Date();
@@ -82,6 +85,7 @@ export class OrderService {
       chargeableWeight: quote.chargeableWeight,
       priceTableId: quote.priceTableId,
       fee: quote.fee,
+      cod: data.cod,
       status: "CREATED",
       statusHistory: [{ status: "CREATED", at: now, by: customer._id, note: "Khách tạo đơn" }],
     };

@@ -76,12 +76,20 @@ import { OrderController } from "./OrderController.js";
  *                   packingType: { type: string, enum: [BOX, BAG, PALLET, ENVELOPE, OTHER] }
  *               flags: { type: object, properties: { fragile: { type: boolean }, highValue: { type: boolean }, isVehicle: { type: boolean } } }
  *               serviceTypeId: { type: string }
+ *               cod:
+ *                 type: object
+ *                 description: "Thu ho (US-19). Mac dinh khong thu ho, nguoi nhan tra phi"
+ *                 properties:
+ *                   enabled: { type: boolean }
+ *                   amount: { type: number, description: "> 0 khi bat, toi da 20.000.000" }
+ *                   feePayer: { type: string, enum: [SHOP_PREPAID, RECIPIENT_PAID, DEDUCT_FROM_COD] }
+ *                   feePaymentMethod: { type: string, enum: [QR, CASH], description: "Bat buoc khi SHOP_PREPAID" }
  *               draftToken: { type: string, description: "Tao tu ban nhap -> xoa nhap trong cung transaction" }
  *     responses:
  *       201: { description: "Don CREATED, ma van don EXP + 10 chu so, phi tach tung khoan" }
  *       400: { description: Thieu / sai du lieu }
  *       404: { description: Dia diem lay hang khong phai cua khach }
- *       422: { description: OUT_OF_SERVICE_AREA - noi gui hoac noi nhan ngoai vung phuc vu }
+ *       422: { description: "OUT_OF_SERVICE_AREA (noi gui / noi nhan ngoai vung phuc vu); COD_LESS_THAN_FEE (khau tru phi ma thu ho < phi)" }
  * /orders/{id}:
  *   get:
  *     tags: [Orders]

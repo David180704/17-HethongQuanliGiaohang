@@ -35,6 +35,8 @@ export const ErrorCodes = {
   // Tinh phi / tao don (US-16 -> US-19)
   PRICE_NOT_AVAILABLE: (message = "Chưa có bảng giá áp dụng cho tuyến gửi này") =>
     new AppError("PRICE_NOT_AVAILABLE", message, 422),
+  COD_LESS_THAN_FEE: (message = "Tiền thu hộ nhỏ hơn phí vận chuyển, không khấu trừ được") =>
+    new AppError("COD_LESS_THAN_FEE", message, 422),
 };
 
 export function errorHandler(err, req, res, _next) {
