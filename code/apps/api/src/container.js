@@ -33,13 +33,16 @@ import { PickupLocationService } from "./modules/pickupLocations/PickupLocationS
 import { PricingService } from "./modules/pricing/PricingService.js";
 import { OrderDraftRepository } from "./modules/orderDrafts/OrderDraftRepository.js";
 import { OrderDraftService } from "./modules/orderDrafts/OrderDraftService.js";
+import { OrderRepository } from "./modules/orders/OrderRepository.js";
+import { CounterRepository } from "./modules/orders/CounterRepository.js";
+import { OrderService } from "./modules/orders/OrderService.js";
+import { MongooseTransactionRunner } from "./infrastructure/db/MongooseTransactionRunner.js";
 import { ServiceAreaRepository } from "./modules/serviceAreas/ServiceAreaRepository.js";
 import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js";
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
 import { ServiceTypeService } from "./modules/serviceTypes/ServiceTypeService.js";
 import { PriceTableRepository } from "./modules/priceTables/PriceTableRepository.js";
 import { PriceTableService } from "./modules/priceTables/PriceTableService.js";
-import { Order } from "./models/Order.js";
 import { PublicCatalogService } from "./modules/public/PublicCatalogService.js";
 import { PermissionService } from "./modules/rbac/PermissionService.js";
 import { AuthService } from "./modules/auth/AuthService.js";
@@ -80,7 +83,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   const serviceTypeRepository = new ServiceTypeRepository();
   const priceTableRepository = new PriceTableRepository();
   const roleRepository = new BaseRepository(Role);
-  const orderRepository = new BaseRepository(Order);
+  const orderRepository = new OrderRepository();
   const pickupLocationRepository = new PickupLocationRepository();
 
   // ---- Service ----
@@ -125,7 +128,20 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   });
   // Tinh phi va nhap don: doc thang DB (phi theo bang gia moi nhat, nhap la du lieu rieng)
   const pricingService = new PricingService({ serviceTypeRepository, priceTableRepository, serviceAreaRepository });
-  const orderDraftService = new OrderDraftService({ repository: new OrderDraftRepository() });
+  const orderDraftRepository = new OrderDraftRepository();
+  const orderDraftService = new OrderDraftService({ repository: orderDraftRepository });
+  const orderService = new OrderService({
+    orderRepository,
+    counterRepository: new CounterRepository(),
+    orderDraftRepository,
+    pickupLocationRepository,
+    serviceAreaRepository,
+    routeRepository,
+    hubRepository,
+    userRepository,
+    pricingService,
+    transactions: new MongooseTransactionRunner(),
+  });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,
@@ -149,6 +165,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     publicCatalogService,
     pricingService,
     orderDraftService,
+    orderService,
     services,
     middleware: { requireAuth, guardAuthenticated, optionalAuth, requirePermission },
   };

@@ -244,7 +244,7 @@ const COLLECTIONS = [
   {
     // ---------------- orders (model Order) ----------------
     name: "orders",
-    indexes: [[{"trackingCode":1},{"unique":true}],[{"customerId":1,"status":1,"createdAt":-1},{}]],
+    indexes: [[{"trackingCode":1},{"unique":true}],[{"customerId":1,"status":1,"createdAt":-1},{}],[{"pickupHubId":1,"status":1,"createdAt":-1},{}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
@@ -277,6 +277,12 @@ const COLLECTIONS = [
           },
           "pickupWard": {
             "bsonType": "string"
+          },
+          "pickupHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
           },
           "receiver": {
             "bsonType": "object",
@@ -411,6 +417,12 @@ const COLLECTIONS = [
           "chargeableWeight": {
             "bsonType": "number"
           },
+          "priceTableId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "fee": {
             "bsonType": [
               "object",
@@ -444,6 +456,12 @@ const COLLECTIONS = [
               "total": {
                 "bsonType": [
                   "number",
+                  "null"
+                ]
+              },
+              "lockedAt": {
+                "bsonType": [
+                  "date",
                   "null"
                 ]
               }
