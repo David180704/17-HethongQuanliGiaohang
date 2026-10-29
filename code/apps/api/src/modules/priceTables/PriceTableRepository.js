@@ -24,6 +24,20 @@ export class PriceTableRepository extends BaseRepository {
     return { items, total };
   }
 
+  /** Bang gia ap dung cho MOT loai dich vu + zone tai thoi diem `at` (tinh phi, tao don). */
+  findEffective(serviceTypeId, zone, at, { session } = {}) {
+    return this.model
+      .findOne({
+        serviceTypeId,
+        zone,
+        isActive: true,
+        effectiveFrom: { $lte: at },
+        $or: [{ effectiveTo: null }, { effectiveTo: { $gt: at } }],
+      })
+      .session(session ?? null)
+      .lean();
+  }
+
   /**
    * Bang gia dang hieu luc tai thoi diem `at`:
    * isActive, effectiveFrom <= at, effectiveTo trong hoac > at.

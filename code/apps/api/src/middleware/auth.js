@@ -38,5 +38,20 @@ export function createAuthMiddleware(tokenService) {
     return next();
   }
 
-  return { requireAuth, guardAuthenticated };
+  // Trang cong khai co the biet ai dang dung (vd ban nhap don gan vao khach da dang
+  // nhap): co token hop le -> req.user; khong co / het han -> coi nhu khach vang lai.
+  function optionalAuth(req, res, next) {
+    const token = readBearerToken(req);
+    if (token) {
+      try {
+        const payload = tokenService.verifyAccess(token);
+        req.user = { id: payload.sub, role: payload.role, hubId: payload.hubId ?? null };
+      } catch {
+        // khong hop le -> nhu khach
+      }
+    }
+    return next();
+  }
+
+  return { requireAuth, guardAuthenticated, optionalAuth };
 }

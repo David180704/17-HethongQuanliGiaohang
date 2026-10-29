@@ -30,6 +30,9 @@ import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
 import { PickupLocationService } from "./modules/pickupLocations/PickupLocationService.js";
+import { PricingService } from "./modules/pricing/PricingService.js";
+import { OrderDraftRepository } from "./modules/orderDrafts/OrderDraftRepository.js";
+import { OrderDraftService } from "./modules/orderDrafts/OrderDraftService.js";
 import { ServiceAreaRepository } from "./modules/serviceAreas/ServiceAreaRepository.js";
 import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js";
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
@@ -120,6 +123,9 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     serviceAreaRepository,
     orderRepository,
   });
+  // Tinh phi va nhap don: doc thang DB (phi theo bang gia moi nhat, nhap la du lieu rieng)
+  const pricingService = new PricingService({ serviceTypeRepository, priceTableRepository, serviceAreaRepository });
+  const orderDraftService = new OrderDraftService({ repository: new OrderDraftRepository() });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,
@@ -130,7 +136,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   // ---- Observer: danh muc doi -> xoa cache trang cong khai phu thuoc ----
   events.on("catalog.changed", ({ resource }) => cache.invalidate(...(DEPENDENT_CACHE_SCOPES[resource] || [])));
 
-  const { requireAuth, guardAuthenticated } = createAuthMiddleware(tokenService);
+  const { requireAuth, guardAuthenticated, optionalAuth } = createAuthMiddleware(tokenService);
   const requirePermission = createRequirePermission(permissionService);
 
   return {
@@ -141,8 +147,10 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     permissionService,
     authService,
     publicCatalogService,
+    pricingService,
+    orderDraftService,
     services,
-    middleware: { requireAuth, guardAuthenticated, requirePermission },
+    middleware: { requireAuth, guardAuthenticated, optionalAuth, requirePermission },
   };
 }
 
