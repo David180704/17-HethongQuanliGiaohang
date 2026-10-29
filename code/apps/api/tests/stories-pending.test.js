@@ -6,15 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 3 ----------
-  "US-17": [
-    "pricingService.calculate(): khoi luong quy doi, tra 4 zone, phu phi dich vu va hang dac biet (10 unit test)",
-    "Khoa phi vao don khi CONFIRMED - bang gia doi ve sau khong lam doi phi don cu",
-  ],
-  "US-18": [
-    "Tao don trong transaction (orders + orderDrafts + counter)",
-    "Ma van don EXP + 10 chu so sinh bang counter tang dan trong cung transaction",
-    "Chi nhan don khi ca noi gui va noi nhan thuoc vung phuc vu",
-  ],
   "US-19": [
     "3 hinh thuc tra phi: SHOP_PREPAID (QR/tien mat), RECIPIENT_PAID, DEDUCT_FROM_COD",
     "COD > 0 khi bat, toi da 20.000.000 dong",
