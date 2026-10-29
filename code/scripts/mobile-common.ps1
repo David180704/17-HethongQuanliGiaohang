@@ -7,6 +7,8 @@
 #   JAVA_HOME        C:\Program Files\Java\jdk-17
 #   MAESTRO_BIN      D:\DevTools\maestro\bin\maestro.bat
 #   EDMS_AVD         edms_pixel
+#   EDMS_EMU_GPU     host   (GPU that cua may; dat "swiftshader_indirect" neu may ao bao loi do hoa)
+#   EDMS_EMU_RAM     2048   (MB RAM cho may ao; 3072 mac dinh cua AVD gay thieu bo nho ao khi chay song song)
 
 function Get-EnvOrDefault($name, $default) {
   $value = [Environment]::GetEnvironmentVariable($name, "Process")
@@ -20,6 +22,8 @@ $script:AvdHome = Get-EnvOrDefault "ANDROID_AVD_HOME" "D:\DevTools\android-avd"
 $script:JavaHome = Get-EnvOrDefault "JAVA_HOME" "C:\Program Files\Java\jdk-17"
 $script:MaestroBin = Get-EnvOrDefault "MAESTRO_BIN" "D:\DevTools\maestro\bin\maestro.bat"
 $script:AvdName = Get-EnvOrDefault "EDMS_AVD" "edms_pixel"
+$script:EmuGpu = Get-EnvOrDefault "EDMS_EMU_GPU" "host"
+$script:EmuRam = Get-EnvOrDefault "EDMS_EMU_RAM" "2048"
 $script:Adb = Join-Path $script:AndroidHome "platform-tools\adb.exe"
 $script:Emulator = Join-Path $script:AndroidHome "emulator\emulator.exe"
 
@@ -132,7 +136,12 @@ function Start-EmulatorIfNeeded {
     Start-Sleep -Seconds 3
   }
   Write-Step "Bat may ao $script:AvdName, khoi dong nguoi khoang 40 giay (cua so may ao se hien len)..."
-  Start-Process -FilePath $script:Emulator -ArgumentList @("-avd", $script:AvdName, "-no-snapshot", "-no-boot-anim", "-netdelay", "none", "-netspeed", "full")
+  # Chay song song trinh duyet + may ao cho muot: ve bang GPU that (-gpu host) thay vi CPU,
+  # bo am thanh, RAM 2 GB, 4 nhan; sau khi boot nang uu tien CPU cua may ao (Set-EmulatorPriority).
+  Start-Process -FilePath $script:Emulator -ArgumentList @(
+    "-avd", $script:AvdName, "-no-snapshot", "-no-boot-anim", "-no-audio",
+    "-gpu", $script:EmuGpu, "-memory", $script:EmuRam, "-cores", "4",
+    "-netdelay", "none", "-netspeed", "full")
   $serial = Wait-EmulatorBooted 240
   if ($serial) { return $serial }
   Write-Fail "May ao khong boot xong sau 4 phut. Thuong do may thieu bo nho ao: xem docs/HuongDanChayThu.md, muc Loi thuong gap"
@@ -141,7 +150,19 @@ function Start-EmulatorIfNeeded {
 
 # Cau hinh may ao cho test: noi cong ve may dev, tat bang "viet tay bang but"
 # (Gboard hien hop thoai "Try out your stylus" che form khi Maestro bam o nhap).
+# Uu tien CPU cao hon cho may ao: Playwright/Vite/Metro chay cung luc khong lam may ao giat
+function Set-EmulatorPriority {
+  Get-ProjectEmulatorProcess | ForEach-Object {
+    try { (Get-Process -Id $_.ProcessId -ErrorAction Stop).PriorityClass = "AboveNormal" } catch {}
+  }
+}
+
 function Initialize-Emulator($serial) {
+  Set-EmulatorPriority
+  # Tat hieu ung chuyen canh: giao dien phan hoi ngay, Maestro khong phai cho animation
+  foreach ($key in "window_animation_scale", "transition_animation_scale", "animator_duration_scale") {
+    & $script:Adb -s $serial shell settings put global $key 0 | Out-Null
+  }
   # 8082: App Nhan vien, 8083: App Khach hang mobile, 4044: API, 5173: Web Khach hang (Chrome tren may ao)
   foreach ($port in 8082, 8083, 4044, 5173) {
     & $script:Adb -s $serial reverse "tcp:$port" "tcp:$port" | Out-Null
