@@ -6,11 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 3 ----------
-  "US-15": [
-    "Khach quan ly dia diem lay hang, toi da 10 dia diem",
-    "Tu xac dinh khu vuc phuc vu tu quan/huyen, chan dia diem ngoai vung phuc vu",
-    "Chan xoa dia diem con don chua hoan tat",
-  ],
   "US-16": [
     "POST /orders/estimate-fee cong khai (khong can dang nhap)",
     "orderDrafts TTL 24 gio + draftToken giu du lieu da nhap qua buoc dang ky",
