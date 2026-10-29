@@ -60,12 +60,12 @@ test("sai mat khau hien thong bao loi tieng Viet", async ({ page }) => {
 test("ADMIN vao trang quan tri, so ban ghi that, phien con sau khi tai lai trang", async ({ page }) => {
   await login(page, "admin@edms.vn");
   await expect(page.getByText("Admin EDMS")).toBeVisible();
-  for (const name of ["Người dùng", "Tuyến", "Khu vực phục vụ", "Loại dịch vụ"]) {
+  for (const name of ["Người dùng", "Tuyến", "Khu vực phục vụ", "Loại dịch vụ", "Bảng giá"]) {
     await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
   }
   await expect(page.getByText(/\d+ bản ghi/).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Bảng giá", exact: true })).toBeDisabled();
-  await expect(page.getByText("Sắp có · #13 · Sprint 3")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hub & bưu cục", exact: true })).toBeDisabled();
+  await expect(page.getByText("Sắp có · #14 · Sprint 3")).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/03-admin-home-desktop.png`, fullPage: true });
 
   await page.reload();
@@ -131,6 +131,38 @@ test("ADMIN: o so nhan dau phay thap phan, server tu choi ma dich vu trung", asy
   await expect(page.getByRole("alert")).toContainText("Dữ liệu bị trùng với bản ghi đã tồn tại");
   await expect(page.getByRole("heading", { name: "Thêm loại dịch vụ" })).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/08-service-type-duplicate.png`, fullPage: true });
+});
+
+test("[US-13] ADMIN: bang gia - bac chong lan va trung khoang hieu luc bi bao loi ngay tren form", async ({ page }) => {
+  await login(page, "admin@edms.vn");
+  await page.getByRole("button", { name: "Bảng giá", exact: true }).click();
+  await expect(page.getByText(/Tổng 8 bản ghi/)).toBeVisible();
+  await expect(page.getByText("Liên miền · Giao hàng nhanh")).toBeVisible();
+
+  await page.getByRole("button", { name: "+ Thêm mới" }).click();
+  await page.getByRole("radio", { name: "Giao hàng nhanh" }).click();
+  await page.getByRole("radio", { name: "Liên miền" }).click();
+  await page.getByLabel("Hiệu lực từ ngày", { exact: true }).fill("2027-01-01");
+  const cell = (row, column) => page.getByLabel(`Bậc ${row} - ${column}`, { exact: true });
+  await cell(1, "Từ (g)").fill("0");
+  await cell(1, "Đến (g)").fill("600");
+  await cell(1, "Giá cơ bản").fill("40000");
+  await cell(1, "+ mỗi 500 g").fill("6000");
+  // Dong moi tu dien "Tu" = "Den" cua dong truoc; sua thanh 500 de chong lan 500-600
+  await page.getByRole("button", { name: "+ Thêm bậc" }).click();
+  await expect(cell(2, "Từ (g)")).toHaveValue("600");
+  await cell(2, "Từ (g)").fill("500");
+  await cell(2, "Đến (g)").fill("999999999");
+  await cell(2, "Giá cơ bản").fill("48000");
+  await cell(2, "+ mỗi 500 g").fill("6000");
+  await page.getByRole("button", { name: "Lưu", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("chồng lấn");
+
+  // Sua bac 2 cho noi tiep -> qua kiem tra bac, nhung bang gia seed Lien mien/Gui nhanh khong thoi han
+  await cell(2, "Từ (g)").fill("600");
+  await page.getByRole("button", { name: "Lưu", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Trùng khoảng hiệu lực");
+  await page.screenshot({ path: `${SHOT_DIR}/14-price-table-overlap.png`, fullPage: true });
 });
 
 test.describe("giao dien dien thoai", () => {
