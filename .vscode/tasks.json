@@ -4,6 +4,12 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "EDMS: CHAY DEMO - Web Khach hang + may ao App Nhan vien (tu don cu, mo khoa tai khoan)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\chay-demo.ps1\"",
+      "problemMatcher": []
+    },
+    {
       "label": "EDMS: 1. DEMO - bat moi truong (du lieu Atlas) + may ao + App Khach hang",
       "type": "shell",
       "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}\\code\\start-dev.ps1\" -Emulator",
