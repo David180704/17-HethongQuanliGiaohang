@@ -11,7 +11,7 @@ import { getRedis } from "../src/config/redis.js";
 // Hoi theo thoi diem cu the -> service doc thang DB (khong qua cache)
 const listActivePriceTables = async (at) => (await getContainer().publicCatalogService.listActivePriceTables({ at })).value;
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const TIERS = [{ fromGram: 0, toGram: 999999999, basePrice: 1000, pricePer500g: 0 }];
 
 let app;

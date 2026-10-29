@@ -86,7 +86,7 @@ async function main() {
     console.log("Buoc tiep:");
     console.log("  npm run seed -- --yes   # do du lieu mau len cloud (XOA SACH du lieu cu tren database nay)");
     console.log("  npm run dev             # roi mo http://localhost:4044/health, thay \"cloud\": true");
-    console.log("Quay lai CSDL local: sua MONGO_URI trong .env thanh mongodb://localhost:27017/edms?directConnection=true");
+    console.log("Quay lai CSDL local: sua MONGO_URI trong .env thanh mongodb://localhost:27018/edms?directConnection=true");
   } catch (err) {
     console.error(`\nLOI: ${explain(err, password)}`);
     console.error("Chua ghi gi vao .env.");

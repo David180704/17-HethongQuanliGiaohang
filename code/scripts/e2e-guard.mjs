@@ -15,7 +15,7 @@ export default async function assertLocalDatabase() {
   if (database?.cloud) {
     throw new Error(
       `API dang dung CSDL cloud (${database.host}). Test se ghi du lieu thu len Atlas.\n` +
-        "Chay API voi CSDL local: code/start-dev.ps1 -Local (hoac MONGO_URI=mongodb://localhost:27017/edms?directConnection=true).",
+        "Chay API voi CSDL local: code/start-dev.ps1 -Local (hoac MONGO_URI=mongodb://localhost:27018/edms?directConnection=true).",
     );
   }
 }

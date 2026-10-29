@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { env } from "./env.js";
 
 // CSDL local (Docker) dung cho test; CSDL that co the la MongoDB Atlas (cloud).
-export const LOCAL_MONGO_URI = "mongodb://localhost:27017/edms?directConnection=true";
+export const LOCAL_MONGO_URI = "mongodb://localhost:27018/edms?directConnection=true";
 
 export function isLocalUri(uri) {
   return /^mongodb:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(uri);

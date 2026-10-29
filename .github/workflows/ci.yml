@@ -24,7 +24,7 @@ jobs:
       - name: Dung MongoDB (replica set 1 node) va Redis
         working-directory: .
         run: |
-          docker run -d --name mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          docker run -d --name mongo -p 27018:27017 mongo:7 --replSet rs0 --bind_ip_all
           docker run -d --name redis -p 6379:6379 redis:7-alpine
 
       - name: Doi Mongo san sang roi khoi tao replica set
@@ -46,11 +46,11 @@ jobs:
 
       - run: npm run seed
         env:
-          MONGO_URI: mongodb://localhost:27017/edms?directConnection=true
+          MONGO_URI: mongodb://localhost:27018/edms?directConnection=true
 
       - run: npm test
         env:
-          MONGO_URI: mongodb://localhost:27017/edms?directConnection=true
+          MONGO_URI: mongodb://localhost:27018/edms?directConnection=true
           REDIS_URL: redis://localhost:6379
           JWT_ACCESS_SECRET: ci-access-secret
           JWT_REFRESH_SECRET: ci-refresh-secret

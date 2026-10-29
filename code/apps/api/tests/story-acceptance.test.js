@@ -20,7 +20,7 @@ import { ORDER_STATUS } from "../src/constants/enums.js";
 import { serviceAreas as seedAreas, hubs as seedHubs, routes as seedRoutes } from "../src/seed/referenceData.js";
 import { Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, Order } from "../src/models/index.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 const fromApiRoot = (relative) => fileURLToPath(new URL(`../${relative}`, import.meta.url));
 

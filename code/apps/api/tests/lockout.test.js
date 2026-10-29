@@ -11,7 +11,7 @@ import { getContainer } from "../src/container.js";
 const resetAttempts = (identifier) => getContainer().loginThrottle.reset(identifier);
 import { getRedis } from "../src/config/redis.js";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 
 let app;

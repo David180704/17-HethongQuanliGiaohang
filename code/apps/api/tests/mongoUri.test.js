@@ -45,7 +45,7 @@ test("[US-02] Bao loi tieng Viet, khong lo mat khau", () => {
 });
 
 test("[US-02] Ghi MONGO_URI vao .env: thay dong cu, giu cac dong khac", () => {
-  const before = "PORT=4044\n# MONGO_URI=cu-trong-comment\nMONGO_URI=mongodb://localhost:27017/edms\nREDIS_URL=redis://x\n";
+  const before = "PORT=4044\n# MONGO_URI=cu-trong-comment\nMONGO_URI=mongodb://localhost:27018/edms\nREDIS_URL=redis://x\n";
   const after = upsertEnvValue(before, "MONGO_URI", "mongodb+srv://u:p$&@c/edms");
   assert.equal(after, "PORT=4044\n# MONGO_URI=cu-trong-comment\nMONGO_URI=mongodb+srv://u:p$&@c/edms\nREDIS_URL=redis://x\n");
   assert.equal(upsertEnvValue("PORT=4044", "MONGO_URI", "x"), "PORT=4044\nMONGO_URI=x\n");

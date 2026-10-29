@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
 
-const URI = "mongodb://localhost:27017/edms?directConnection=true";
+const URI = "mongodb://localhost:27018/edms?directConnection=true";
 
 before(() => mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 }));
 after(() => mongoose.disconnect());
