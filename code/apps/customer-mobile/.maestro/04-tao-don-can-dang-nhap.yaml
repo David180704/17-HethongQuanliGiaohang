@@ -15,7 +15,7 @@ tags:
 - extendedWaitUntil:
     visible: "Tạo đơn hàng"
     timeout: 20000
-- assertVisible: "Đang đăng nhập: Khách Hàng 1"
+- assertVisible: "Bước 1/4 · Lấy hàng"
 - assertVisible:
-    id: "create-order-notice"
+    id: "order-next"
 - takeScreenshot: c08-tao-don-sau-dang-nhap
