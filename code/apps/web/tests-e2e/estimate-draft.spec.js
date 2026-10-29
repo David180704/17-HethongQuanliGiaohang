@@ -1,17 +1,19 @@
 import { test, expect } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 
-// US-16 tren Web Khach hang: khach vang lai uoc tinh phi -> "Gui hang" -> dang ky tai
-// khoan MOI -> man hinh tao don con nguyen du lieu da nhap (nhap giu qua draftToken).
+// Luong tron ven cua Sprint 3 tren Web Khach hang (US-16 -> US-18): khach vang lai uoc tinh
+// phi -> "Gui hang" -> dang ky tai khoan MOI -> man hinh tao don dien san du lieu da nhap
+// -> them dia diem lay hang -> tao don voi dung phi da uoc tinh.
 const SHOT_DIR = "tests-e2e/screenshots";
 const PASSWORD = "Test@12345";
 
-// API khong co chuc nang xoa tai khoan (US-10) nen xoa tai khoan do test dang ky tao
-// thang trong CSDL local qua mongosh cua container (giong flow Maestro dang ky).
-// globalSetup e2e-guard da dung test neu API dang dung Atlas.
+// API khong co chuc nang xoa tai khoan (US-10) nen xoa tai khoan do test dang ky tao (va
+// dia diem, don, nhap cua no) thang trong CSDL local qua mongosh cua container, giong flow
+// Maestro dang ky. globalSetup e2e-guard da dung test neu API dang dung Atlas.
 function removeRegisteredUsers() {
   const script =
     "const ids = db.users.find({ email: /^e2e-draft\\d+@edms\\.vn$/ }).toArray().map((u) => u._id);" +
+    "db.orders.deleteMany({ customerId: { $in: ids } }); db.pickuplocations.deleteMany({ customerId: { $in: ids } });" +
     "db.orderdrafts.deleteMany({ customerId: { $in: ids } }); db.users.deleteMany({ _id: { $in: ids } }).deletedCount";
   try {
     execFileSync("docker", ["exec", "edms-mongo", "mongosh", "edms", "--quiet", "--eval", script], { stdio: "ignore" });
@@ -22,8 +24,10 @@ function removeRegisteredUsers() {
 
 test.afterAll(removeRegisteredUsers);
 
-test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> man hinh tao don con nguyen du lieu", async ({ page }) => {
-  test.setTimeout(60_000);
+test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> tao don voi du lieu va phi da uoc tinh", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
   const stamp = Date.now().toString().slice(-8);
   await page.goto("/");
   await page.getByRole("navigation", { name: "Điều hướng chính", exact: true }).getByRole("link", { name: "Ước tính phí" }).click();
@@ -44,9 +48,8 @@ test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> man hinh
   // 40x30x20 cm quy doi 4,8 kg; lien mien bac 2-5 kg: 80.000 + 5 buoc x 7.000
   await expect(page.getByText("tuyến liên miền · tính theo 4.800 g (khối lượng quy đổi theo kích thước)")).toBeVisible();
   const standard = page.getByRole("article", { name: "Giao hàng tiêu chuẩn" });
-  const express = page.getByRole("article", { name: "Giao hàng nhanh" });
   await expect(standard.getByText("115.000 ₫").first()).toBeVisible();
-  await expect(express.getByText("155.000 ₫").first()).toBeVisible();
+  await expect(page.getByRole("article", { name: "Giao hàng nhanh" }).getByText("155.000 ₫").first()).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/11-estimate-fee.png`, fullPage: true });
 
   await standard.getByRole("button", { name: "Gửi hàng gói Giao hàng tiêu chuẩn" }).click();
@@ -61,9 +64,43 @@ test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> man hinh
   await page.getByLabel("Mật khẩu").fill(PASSWORD);
   await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
 
+  // Ve dung man hinh tao don; tai khoan moi chua co dia diem -> goi y them o Cau Giay
   await expect(page).toHaveURL(/\/tao-don\?draft=/);
-  const kept = page.getByRole("region", { name: "Thông tin đã nhập khi ước tính phí" });
-  await expect(kept).toContainText("Gửi từ Cầu Giấy, Hà Nội → Quận 1, TP Hồ Chí Minh");
-  await expect(kept).toContainText("1000 g · 40×30×20 cm · Giao hàng tiêu chuẩn");
-  await page.screenshot({ path: `${SHOT_DIR}/12-draft-after-register.png`, fullPage: true });
+  await expect(page.getByText("Bạn ước tính phí gửi từ Cầu Giấy, Hà Nội")).toBeVisible();
+  const pickupForm = page.getByRole("form", { name: "Thêm địa điểm lấy hàng" });
+  await pickupForm.getByLabel("Tên gợi nhớ").fill("Nhà riêng");
+  await pickupForm.getByLabel("Người liên hệ").fill("Khách Ước Tính");
+  await pickupForm.getByLabel("Số điện thoại liên hệ").fill(`09${stamp}`);
+  await pickupForm.getByLabel("Địa chỉ (số nhà, đường)").fill("1 Xuân Thủy");
+  await pickupForm.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
+  await pickupForm.getByLabel("Quận/Huyện").fill("Cầu Giấy");
+  await pickupForm.getByLabel("Phường/Xã").fill("Dịch Vọng Hậu");
+  await pickupForm.getByRole("button", { name: "Lưu và dùng địa điểm này" }).click();
+  await expect(page.getByRole("radio", { name: "Nhà riêng" })).toBeChecked();
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+
+  // Buoc 2: tinh/quan nguoi nhan da dien san tu luc uoc tinh
+  await expect(page.getByLabel("Tỉnh/Thành phố")).toHaveValue("TP Hồ Chí Minh");
+  await expect(page.getByLabel("Quận/Huyện")).toHaveValue("Quận 1");
+  await page.getByLabel("Tên người nhận").fill("Lê Nhận");
+  await page.getByLabel("Số điện thoại người nhận").fill("0912345678");
+  await page.getByLabel("Địa chỉ nhận (số nhà, đường)").fill("5 Lý Tự Trọng");
+  await page.getByLabel("Phường/Xã").fill("Bến Nghé");
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+
+  // Buoc 3: kich thuoc va goi dich vu da dien san
+  await expect(page.getByLabel("Khối lượng (g)")).toHaveValue("1000");
+  await expect(page.getByLabel("Dài (cm)")).toHaveValue("40");
+  await expect(page.getByRole("radio", { name: "Giao hàng tiêu chuẩn" })).toBeChecked();
+  await page.getByLabel("Tên hàng hóa").fill("Đồ gia dụng");
+  await page.getByRole("button", { name: "Tiếp tục" }).click();
+
+  // Buoc 4: phi du kien dung bang luc uoc tinh
+  const fee = page.getByRole("region", { name: "Phí dự kiến" });
+  await expect(fee.getByText("115.000 ₫").last()).toBeVisible();
+  await page.getByRole("button", { name: "Xác nhận tạo đơn" }).click();
+  const done = page.getByRole("status");
+  await expect(done).toContainText(/Đã tạo đơn hàng\s*EXP\d{10}/);
+  await expect(done).toContainText("Phí vận chuyển: 115.000 ₫");
+  await page.screenshot({ path: `${SHOT_DIR}/12-order-created-after-register.png`, fullPage: true });
 });
