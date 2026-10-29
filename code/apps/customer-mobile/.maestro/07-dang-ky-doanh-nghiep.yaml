@@ -1,0 +1,58 @@
+appId: host.exp.exponent
+name: "[US-07] Dang ky doanh nghiep hien them o ten shop va MST, email da ton tai bi tu choi"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "tab-account"
+- tapOn:
+    id: "account-register"
+- tapOn:
+    id: "reg-type-BUSINESS"
+- assertVisible: "Cần quản trị viên duyệt trước khi đăng nhập."
+- assertVisible: "Tên shop / doanh nghiệp"
+- assertVisible: "Mã số thuế"
+- tapOn:
+    id: "reg-fullName"
+- inputText: "Chu Shop Trung"
+- tapOn:
+    id: "reg-email"
+- inputText: "khach1@edms.vn"
+- tapOn:
+    id: "reg-phone"
+- inputText: "0912345678"
+- tapOn:
+    id: "reg-password"
+- inputText: "123456"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "reg-shopName"
+    direction: DOWN
+- tapOn:
+    id: "reg-shopName"
+- inputText: "Shop Trung Email"
+# Anh minh chung: o dang nhap nam ngay tren ban phim (truoc khi sua Screen.js, ban phim
+# Android 15 che mat o nay)
+- takeScreenshot: c13a-o-nhap-tren-ban-phim
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "reg-taxCode"
+    direction: DOWN
+- tapOn:
+    id: "reg-taxCode"
+- inputText: "0100000999"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "reg-submit"
+    direction: DOWN
+- tapOn:
+    id: "reg-submit"
+- scrollUntilVisible:
+    element:
+      text: "Email đã được sử dụng"
+    direction: UP
+- takeScreenshot: c13-dang-ky-trung-email

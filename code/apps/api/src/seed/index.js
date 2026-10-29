@@ -1,14 +1,24 @@
 import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
-import { connectDB, disconnectDB } from "../config/db.js";
+import { connectDB, disconnectDB, LOCAL_MONGO_URI, isLocalUri, describeUri } from "../config/db.js";
+import { env } from "../config/env.js";
 import { Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment } from "../models/index.js";
 import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables } from "./referenceData.js";
 import { buildStatusChain, countDeliveryAttempts, isAssignedStage } from "./orderHistory.js";
 import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
 import { ORDER_STATUS } from "../constants/enums.js";
+import { TEST_PASSWORD, buildTestAccounts } from "./testAccounts.js";
 
-const SEED_PASSWORD = "Password123!";
+// Cach chay:
+//   npm run seed              -> CSDL trong MONGO_URI (.env), co the la Atlas (cloud)
+//   npm run seed:local        -> CSDL Docker tren may (dung cho npm test)
+// Seed XOA SACH du lieu cu. CSDL khong phai local thi bat buoc them --yes de
+// tranh lo tay xoa du lieu that tren cloud.
+const args = process.argv.slice(2);
+const TARGET_URI = args.includes("--local") ? LOCAL_MONGO_URI : env.mongoUri;
+const CONFIRMED = args.includes("--yes");
+
 const TOTAL_ORDERS = 200;
 const BASE_COUNT_PER_STATUS = 8;
 
@@ -121,62 +131,21 @@ async function seedPriceTables(serviceTypeMap) {
 }
 
 async function seedUsers({ hubDocs, routeDocs }) {
-  const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
-  let phoneCounter = 900000;
-  const nextPhone = () => `090${String(phoneCounter++).padStart(7, "0")}`;
+  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
+  const accounts = buildTestAccounts({ hubDocs, routeDocs });
+  const withDefaults = (account) => ({ status: "ACTIVE", ...account, passwordHash });
 
-  const admin = {
-    email: "admin@edms.vn",
-    phone: nextPhone(),
-    passwordHash,
-    fullName: "Quan Tri He Thong",
-    role: "ADMIN",
-    status: "ACTIVE",
-  };
-
-  const hubStaff = hubDocs.map((hub, i) => ({
-    email: `hubstaff${i + 1}@edms.vn`,
-    phone: nextPhone(),
-    passwordHash,
-    fullName: randomVnName(),
-    role: "HUB_STAFF",
-    status: "ACTIVE",
-    hubId: hub._id,
+  const admin = withDefaults(accounts.admin);
+  const hubStaff = accounts.hubStaff.map(withDefaults);
+  const shippers = accounts.shippers.map(withDefaults);
+  const customers = accounts.customers.map((account) => ({
+    ...withDefaults(account),
+    bankAccount: {
+      bankName: "Vietcombank",
+      accountNumber: faker.string.numeric(10),
+      accountName: account.fullName.toUpperCase(),
+    },
   }));
-
-  const shippers = Array.from({ length: 5 }, (_, i) => ({
-    email: `shipper${i + 1}@edms.vn`,
-    phone: nextPhone(),
-    passwordHash,
-    fullName: randomVnName(),
-    role: "SHIPPER",
-    status: "ACTIVE",
-    routeIds: [routeDocs[i % routeDocs.length]._id],
-  }));
-
-  const customers = Array.from({ length: 10 }, (_, i) => {
-    const isBusiness = i >= 6;
-    const pendingApproval = i === 9;
-    const base = {
-      email: `customer${i + 1}@edms.vn`,
-      phone: nextPhone(),
-      passwordHash,
-      fullName: randomVnName(),
-      role: "CUSTOMER",
-      status: pendingApproval ? "PENDING" : "ACTIVE",
-      customerType: isBusiness ? "BUSINESS" : "INDIVIDUAL",
-      bankAccount: {
-        bankName: "Vietcombank",
-        accountNumber: faker.string.numeric(10),
-        accountName: randomVnName().toUpperCase(),
-      },
-    };
-    if (isBusiness) {
-      base.shopName = `Shop ${base.fullName}`;
-      base.taxCode = faker.string.numeric(10);
-    }
-    return base;
-  });
 
   const userDocs = await User.insertMany([admin, ...hubStaff, ...shippers, ...customers]);
   return {
@@ -193,13 +162,13 @@ async function seedPickupLocations({ customers, serviceAreaDocs }) {
     const area = faker.helpers.arrayElement(serviceAreaDocs);
     docs.push({
       customerId: customer._id,
-      label: "Dia chi mac dinh",
+      label: "Địa chỉ mặc định",
       contactName: customer.fullName,
       contactPhone: customer.phone,
-      address: `${faker.number.int({ min: 1, max: 300 })} Duong ${faker.helpers.arrayElement(["Le Loi", "Tran Hung Dao", "Nguyen Trai", "Hai Ba Trung", "Vo Van Kiet"])}`,
+      address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "Trần Hưng Đạo", "Nguyễn Trãi", "Hai Bà Trưng", "Võ Văn Kiệt"])}`,
       province: area.province,
       district: area.district,
-      ward: `Phuong ${faker.number.int({ min: 1, max: 15 })}`,
+      ward: `Phường ${faker.number.int({ min: 1, max: 15 })}`,
       serviceAreaId: area._id,
       isDefault: true,
       isActive: true,
@@ -213,10 +182,10 @@ function randomReceiverAddress(area) {
   return {
     name: randomVnName(),
     phone: randomVnPhone(),
-    address: `${faker.number.int({ min: 1, max: 300 })} Duong ${faker.helpers.arrayElement(["Le Loi", "CMT8", "Nguyen Hue", "Pham Van Dong", "Ly Thuong Kiet"])}`,
+    address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "CMT8", "Nguyễn Huệ", "Phạm Văn Đồng", "Lý Thường Kiệt"])}`,
     province: area.province,
     district: area.district,
-    ward: `Phuong ${faker.number.int({ min: 1, max: 15 })}`,
+    ward: `Phường ${faker.number.int({ min: 1, max: 15 })}`,
   };
 }
 
@@ -241,7 +210,7 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
     const serviceType = serviceTypeMap[serviceTypeKey];
 
     const item = {
-      name: faker.helpers.arrayElement(["Quan ao", "Giay dep", "Sach", "Do dien tu", "My pham", "Phu kien"]),
+      name: faker.helpers.arrayElement(["Quần áo", "Giày dép", "Sách", "Đồ điện tử", "Mỹ phẩm", "Phụ kiện"]),
       weightGram: faker.number.int({ min: 100, max: 8000 }),
       length: faker.number.int({ min: 5, max: 60 }),
       width: faker.number.int({ min: 5, max: 50 }),
@@ -291,7 +260,7 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
       item,
       flags,
       serviceTypeId: serviceType._id,
-      serviceName: serviceTypeKey === "EXPRESS" ? "Gui nhanh" : "Gui thuong",
+      serviceName: serviceTypeKey === "EXPRESS" ? "Gửi nhanh" : "Gửi thường",
       zone,
       chargeableWeight,
       fee,
@@ -320,9 +289,22 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
 }
 
 async function main() {
-  await connectDB();
+  const target = describeUri(TARGET_URI);
+  if (!isLocalUri(TARGET_URI) && !CONFIRMED) {
+    console.error(`\nSeed se XOA TOAN BO du lieu tren: ${target}`);
+    console.error("Day khong phai CSDL local. Neu chac chan, chay lai: npm run seed -- --yes\n");
+    process.exit(1);
+  }
+  console.log(`CSDL dich: ${target}`);
+  await connectDB(TARGET_URI);
   console.log("Dang xoa du lieu cu...");
   await clearAll();
+  // Tao lai chi muc (unique, TTL...) ngay ca khi CSDL moi tinh tren cloud
+  await Promise.all(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment].map(
+      (m) => m.syncIndexes(),
+    ),
+  );
 
   console.log("Dang seed vai tro...");
   await seedRoles();
@@ -348,8 +330,8 @@ async function main() {
   await seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, priceTableMap, shippers });
 
   console.log("\nHoan tat seed du lieu.");
-  console.log(`Mat khau mac dinh cho moi tai khoan seed: ${SEED_PASSWORD}`);
-  console.log("Tai khoan admin: admin@edms.vn");
+  console.log(`Mat khau chung cho moi tai khoan test: ${TEST_PASSWORD}`);
+  console.log("Tai khoan: admin@edms.vn | kho1..3@edms.vn | taixe1..5@edms.vn | khach1..6@edms.vn | shop1..4@edms.vn");
   console.log(`So hub staff: ${hubStaff.length}, shipper: ${shippers.length}, customer: ${customers.length}`);
 
   await disconnectDB();

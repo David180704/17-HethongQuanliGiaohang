@@ -1,0 +1,21 @@
+appId: host.exp.exponent
+name: "[US-06] Bam Tao don khi chua dang nhap, dang nhap xong quay lai dung man hinh tao don"
+tags:
+  - smoke
+---
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-create-order"
+- assertVisible: "Đăng nhập để tạo đơn và thanh toán."
+- takeScreenshot: c07-dang-nhap-de-tao-don
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: khach1@edms.vn
+- extendedWaitUntil:
+    visible: "Tạo đơn hàng"
+    timeout: 20000
+- assertVisible: "Đang đăng nhập: Khách Hàng 1"
+- assertVisible:
+    id: "create-order-notice"
+- takeScreenshot: c08-tao-don-sau-dang-nhap

@@ -1,0 +1,53 @@
+appId: host.exp.exponent
+name: ADMIN them, sua, xoa khu vuc phuc vu tren may ao (du lieu that)
+tags:
+  - crud
+---
+# Ten quan khong dau va duy nhat moi lan chay (inputText khong go duoc Unicode
+# tren Android). Neu flow dung giua chung, test-mobile.ps1 don ban ghi
+# "Tinh Maestro E2E" qua API sau khi chay.
+- evalScript: ${output.district = 'Quan Maestro ' + Date.now()}
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: admin@edms.vn
+- tapOn: "Khu vực phục vụ"
+- tapOn: "+ Thêm mới"
+- tapOn:
+    id: "field-province"
+- inputText: "Tinh Maestro E2E"
+- tapOn:
+    id: "field-district"
+- inputText: ${output.district}
+- hideKeyboard
+- tapOn:
+    id: "field-region-NAM"
+# Lua chon tuyen tai dong tu GET /routes
+- tapOn: "R-HCM-NOI.*"
+- tapOn: "Lưu"
+- assertVisible: "Đã thêm mới"
+
+# Sua: doi mien Nam -> Trung
+- tapOn:
+    id: "search-input"
+- inputText: ${output.district}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Tổng 1 bản ghi.*"
+    timeout: 15000
+- tapOn: "Sửa ${output.district}"
+- tapOn:
+    id: "field-region-TRUNG"
+- tapOn: "Lưu"
+- assertVisible: "Đã lưu thay đổi"
+- assertVisible: "Miền Trung"
+- takeScreenshot: 06-khu-vuc-sau-khi-sua
+
+# Xoa, xac nhan trong hop thoai cua Android
+- tapOn: "Xóa ${output.district}"
+- tapOn:
+    id: "android:id/button1"
+- assertVisible: "Đã xóa.*"
+- extendedWaitUntil:
+    visible: "Tổng 0 bản ghi.*"
+    timeout: 15000
