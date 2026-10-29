@@ -10,6 +10,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CreateOrderPage from "./pages/CreateOrderPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
+import PickupLocationsPage from "./pages/PickupLocationsPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 // Web Khach hang: khach vang lai xem duoc trang chu, bang gia, vung phuc vu.
@@ -43,6 +44,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dia-diem-lay-hang"
+              element={
+                <ProtectedRoute>
+                  <PickupLocationsPage />
                 </ProtectedRoute>
               }
             />
