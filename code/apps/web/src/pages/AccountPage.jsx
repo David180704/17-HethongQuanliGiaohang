@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { errorMessage } from "../lib/apiClient.js";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 
@@ -5,6 +6,8 @@ const CUSTOMER_TYPE_LABELS = { INDIVIDUAL: "Cá nhân", BUSINESS: "Doanh nghiệ
 
 export default function AccountPage() {
   const { data: profile, error: loadError } = useCachedQuery("/auth/me");
+  const { data: locations, meta: locationMeta } = useCachedQuery("/pickupLocations");
+  const defaultLocation = locations?.find((location) => location.isDefault);
   const error = loadError ? errorMessage(loadError, "Không tải được thông tin tài khoản") : "";
 
   return (
@@ -24,7 +27,24 @@ export default function AccountPage() {
         </dl>
       )}
 
-      <section className="mt-8 rounded-xl border border-dashed border-gray-300 bg-white p-5">
+      <section className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-5">
+        <div>
+          <h2 className="font-semibold">Địa điểm lấy hàng</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            {locations
+              ? `${locations.length}/${locationMeta?.max ?? 10} địa điểm${defaultLocation ? ` · mặc định: ${defaultLocation.label}` : ""}`
+              : "Đang tải..."}
+          </p>
+        </div>
+        <Link
+          to="/dia-diem-lay-hang"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+        >
+          Quản lý địa điểm
+        </Link>
+      </section>
+
+      <section className="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-5">
         <h2 className="font-semibold">Đơn hàng của tôi</h2>
         <p className="mt-1 text-sm text-gray-500">Danh sách và chi tiết đơn hàng — sắp có (#20 · Sprint 4).</p>
       </section>
