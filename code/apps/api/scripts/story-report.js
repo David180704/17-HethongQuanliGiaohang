@@ -63,14 +63,21 @@ const UI_TESTS = {
   "US-11": "App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều)",
   "US-12": "App NV: chặn trùng mã dịch vụ",
   "US-13": "App NV: lưới bậc khối lượng, báo chồng lấn và trùng khoảng hiệu lực ngay trên form",
-  "US-26": "Maestro NV 01–07 trên máy ảo Android · App NV: 14 kịch bản",
+  "US-14": "App NV: mở hub và bưu cục trực thuộc, chặn quận/huyện ngoài vùng phục vụ, tuyến chọn hub từ danh mục · Maestro NV 03",
+  "US-15": "Web + App KH: thêm địa điểm (gợi ý quận/huyện), chặn ngoài vùng phục vụ, đặt mặc định, xóa",
+  "US-16": "Web + App KH: ước tính phí → Gửi hàng → đăng ký tài khoản mới → tạo đơn điền sẵn dữ liệu · Maestro KH 09*",
+  "US-17": "Web + App KH: bước xác nhận tách từng khoản phí, phí tạo đơn bằng phí đã ước tính · Liên app: phí khóa khi kho duyệt",
+  "US-18": "Web + App KH: tạo đơn 4 bước, chặn bước sai · App NV: kho duyệt đơn, hub khác không thấy · Liên app Web → App NV · Maestro KH 09*, NV 08*",
+  "US-19": "Web + App KH: thu hộ, 3 hình thức trả phí, khấu trừ chỉ khi bật thu hộ, thu hộ nhỏ hơn phí thì không cho xác nhận",
+  "US-26": "Maestro NV 01–07 trên máy ảo Android · App NV: 17 kịch bản",
   "PB-01": "Web + App KH: trang chủ, vùng phục vụ, tìm không dấu · Maestro KH 01, 03",
   "PB-04": "Web + App KH: bảng giá đổi theo dịch vụ · Maestro KH 02",
   CACHE: "Web: đếm request (1 lần/30 giây), tự làm mới sau 30 giây, đổi tài khoản không lộ hồ sơ người trước",
 };
 
-console.log("Dang chay toan bo test API (mat khoang 10-20 giay)...");
-const run = spawnSync(process.execPath, ["--test", "--test-reporter=tap"], {
+console.log("Dang chay toan bo test API (mat khoang 40 giay)...");
+// Tuan tu tung file nhu npm test: nhieu file cung tao don, chay song song se chen nhau
+const run = spawnSync(process.execPath, ["--test", "--test-concurrency=1", "--test-reporter=tap"], {
   cwd: apiRoot,
   encoding: "utf8",
   maxBuffer: 64 * 1024 * 1024,
@@ -161,10 +168,14 @@ ${EXTRA.map((e) => `| ${e.tag} | ${e.name} | ${verdict(results[e.tag])} | ${cell
 ${failures.length ? `\n## Test đang fail\n\n${failures.join("\n")}\n` : ""}
 ## Lưu ý cho Sprint Review
 
-- Lịch lấy từ docs/PERT_ToanDuAn.docx: Sprint 2 kéo dài đến 30/10/2026 để xong đủ 9 story (gồm US-13),
-  Sprint 3 bắt đầu 02/11/2026. Story chỉ ghi "Done" khi chuyển sang 🟢 Đạt ở bảng trên.
-- US-26 (Sprint 4) đã xong sớm cùng App Nhân viên. Sprint 3 là nút thắt: US-17 (tính phí)
-  chặn phần lớn các story sau, nên làm trước.
+- Lịch lấy từ docs/PERT_ToanDuAn.docx: Sprint 2 kéo dài đến 30/10/2026 để xong đủ 9 story (gồm US-13).
+  Cả 9 story Sprint 2 xong ngày 29/10/2026 nên Sprint 3 (US-14 → US-19) bắt đầu ngay 29/10/2026,
+  sớm hơn lịch PERT (02/11/2026). Story chỉ ghi "Done" khi chuyển sang 🟢 Đạt ở bảng trên.
+- Thứ tự thực tế Sprint 3: T4 (lõi tính phí US-17) làm trước T3 vì API ước tính phí (US-16) dùng nó;
+  API thu hộ (T7, US-19) làm trước màn hình tạo đơn (T6) để màn hình có đủ luật thu hộ.
+- \\* Flow Maestro KH 09 và NV 08 đã viết nhưng chưa chạy trên máy ảo: máy dev chỉ còn khoảng 3 GB
+  bộ nhớ ảo, bật máy ảo dễ làm sập tiến trình. Cùng mã nguồn đã chạy bằng Playwright (bản web).
+- US-26 (Sprint 4) đã xong sớm cùng App Nhân viên.
 - US-05 (CI) chỉ kiểm tra được file workflow có đủ bước lint → test → build; kết quả chạy
   thật xem trên tab Actions của GitHub.
 `;
