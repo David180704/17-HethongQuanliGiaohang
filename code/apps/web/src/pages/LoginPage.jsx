@@ -36,7 +36,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Đăng nhập"
-      subtitle={next === "/tao-don" ? "Đăng nhập để tạo đơn và thanh toán." : "Chào mừng bạn quay lại."}
+      subtitle={next.startsWith("/tao-don") ? "Đăng nhập để tạo đơn và thanh toán." : "Chào mừng bạn quay lại."}
       footer={
         <>
           <p>

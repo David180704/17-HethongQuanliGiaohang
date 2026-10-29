@@ -36,6 +36,9 @@ export default function HomePage() {
               >
                 Tạo đơn ngay
               </Link>
+              <Link to="/uoc-tinh-phi" className="rounded-lg border border-white/60 px-5 py-3 font-semibold hover:bg-white/10">
+                Ước tính phí
+              </Link>
               <Link to="/bang-gia" className="rounded-lg border border-white/60 px-5 py-3 font-semibold hover:bg-white/10">
                 Xem bảng giá
               </Link>

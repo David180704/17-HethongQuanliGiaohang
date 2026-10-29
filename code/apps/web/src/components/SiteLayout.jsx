@@ -5,6 +5,7 @@ import { STAFF_APP_URL } from "../lib/links.js";
 const NAV = [
   { to: "/", label: "Trang chủ", end: true },
   { to: "/bang-gia", label: "Bảng giá" },
+  { to: "/uoc-tinh-phi", label: "Ước tính phí" },
   { to: "/vung-phuc-vu", label: "Vùng phục vụ" },
 ];
 
