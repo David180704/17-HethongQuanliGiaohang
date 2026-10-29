@@ -9,7 +9,8 @@
 #     b) Nhan vien tren WEB (App Nhan vien)    -> khach tren MAY AO (App Khach hang)
 #        (apps/customer-mobile/tests-e2e/cross-device.spec.js): khoa/mo tai khoan khach4, them/xoa khu vuc
 #
-# Can chay truoc: code\start-dev.ps1 -Local (API CSDL local, Web 5173, Metro 8082 + 8083).
+# API va Metro can chay truoc (code\start-dev.ps1 -Local). Web Khach hang se tu
+# khoi dong neu chua chay va Playwright se mo Chromium hien thi khi test Web.
 # Cach dung (trong thu muc code):
 #   powershell -ExecutionPolicy Bypass -File .\test-song-song.ps1
 #   powershell -ExecutionPolicy Bypass -File .\test-song-song.ps1 -OnlyCross   # chi giai doan 2
@@ -19,10 +20,41 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\scripts\mobile-common.ps1"
 
 Assert-Tools
+
+$webUrl = "http://localhost:5173"
+if (-not (Test-Url $webUrl)) {
+  $webDir = Join-Path $PSScriptRoot "apps\web"
+  Write-Step "Web Khach hang chua chay, dang khoi dong..."
+  Start-Process powershell -ArgumentList @(
+    "-NoExit",
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-Command",
+    "`$Host.UI.RawUI.WindowTitle = 'EDMS Web Khach hang :5173'; Set-Location -LiteralPath '$webDir'; npm run dev -- --host"
+  ) | Out-Null
+
+  $webReady = $false
+  for ($i = 0; $i -lt 60; $i++) {
+    if (Test-Url $webUrl) { $webReady = $true; break }
+    Start-Sleep -Seconds 2
+  }
+  if (-not $webReady) {
+    Write-Fail "Web Khach hang khong san sang tai $webUrl sau 120 giay."
+    exit 1
+  }
+}
+Write-Step "Web Khach hang san sang: $webUrl"
+
 Assert-Servers -NeedWeb -NeedStaff -NeedCustomer
 Assert-LocalDatabase
 $serial = Start-EmulatorIfNeeded
 Initialize-Emulator $serial
+
+Write-Step "Cac dia chi local"
+Write-Host "  Web Khach hang        : http://localhost:5173"
+Write-Host "  App Nhan vien (web)   : http://localhost:8082"
+Write-Host "  App Khach hang (web)  : http://localhost:8083"
 
 $webDir = Join-Path $PSScriptRoot "apps\web"
 $customerDir = Join-Path $PSScriptRoot "apps\customer-mobile"
@@ -46,7 +78,7 @@ if (-not $OnlyCross) {
   Write-Step "Giai doan 1: trinh duyet (Playwright x3) va may ao (Maestro 2 app) chay DONG THOI"
   $webLog = Join-Path $logDir "web.log"
   $mobileLog = Join-Path $logDir "mobile.log"
-  $web = Start-Logged "/d /c powershell -NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\scripts\run-playwright-all.ps1`" > `"$webLog`" 2>&1" $PSScriptRoot
+  $web = Start-Logged "/d /c powershell -NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\scripts\run-playwright-all.ps1`" -HeadedWeb > `"$webLog`" 2>&1" $PSScriptRoot
   $mobile = Start-Logged "/d /c powershell -NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\test-mobile.ps1`" -App all > `"$mobileLog`" 2>&1" $PSScriptRoot
   $sw = [Diagnostics.Stopwatch]::StartNew()
   while (-not ($web.HasExited -and $mobile.HasExited)) {
@@ -72,7 +104,8 @@ try {
   & npx playwright test tests-e2e/cross-device.spec.js
   $results["NV web -> khach may ao"] = $LASTEXITCODE
   Pop-Location
-} finally {
+}
+finally {
   Remove-Item Env:\E2E_MOBILE
 }
 
