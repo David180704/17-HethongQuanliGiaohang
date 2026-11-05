@@ -38,6 +38,8 @@ Ví dụ `POST /serviceAreas` (admin thêm quận):
 | **Proxy** (phía app) | `apps/web/src/lib/queryCache.js`, `apps/staff/src/lib/queryCache.js` | Đứng trước `apiClient`: giữ kết quả 30 giây, gộp request trùng |
 | **Chain of Responsibility** | Middleware Express: `requireAuth` → `requirePermission` → controller | Mỗi mắt xích kiểm một điều kiện, sai thì dừng chuỗi |
 | **Dependency Injection** | `container.js` (Composition Root) | Lớp nhận phụ thuộc qua constructor; test thay được bằng bản giả |
+| **Unit of Work** (qua Adapter) | `infrastructure/db/MongooseTransactionRunner.js` | Service gọi `transactions.run(session => …)` và truyền `{ session }` cho mọi lệnh ghi: tạo đơn ghi bộ đếm mã vận đơn, `orders`, `orderDrafts` cùng thành công hoặc cùng hủy; service không `import` mongoose |
+| **Hàm thuần dùng chung** | `modules/pricing/pricing.js` | Một nguồn sự thật cho công thức tính phí: seed, ước tính phí công khai và tạo đơn cùng gọi, có 10 unit test |
 
 ## SOLID
 
@@ -57,14 +59,28 @@ Ví dụ `POST /serviceAreas` (admin thêm quận):
 | App → bộ nhớ | `QueryCache` + `useCachedQuery` (web), `ResourceScreen` (App NV) | Ghi xong xóa ngay; màn hình mở thì tự làm mới mỗi 30 giây; đăng nhập/đăng xuất xóa sạch |
 
 Không cache: đăng nhập (tài khoản vừa bị khóa phải chặn ngay), kiểm tra ràng buộc
-(`exists`, `findOne`), và hồ sơ `/auth/me` phía server.
+(`exists`, `findOne`), hồ sơ `/auth/me` phía server, và dữ liệu riêng của từng người dùng (địa điểm lấy hàng,
+đơn hàng, bản nháp đơn) — phí và ràng buộc phải tính trên dữ liệu mới nhất.
 Header `X-Cache: HIT | MISS` trên API công khai cho biết dữ liệu đến từ đâu.
 
-## Thêm một danh mục mới (ví dụ: Hub, story US-14)
+## Thêm một danh mục mới (đã làm đúng các bước này cho Hub & bưu cục, US-14)
 
 1. `modules/hubs/hubs.validator.js`: `export const hubValidator = { create(body), update(body) }`.
-2. `modules/hubs/HubService.js`: `class HubService extends BaseCrudService`, ghi đè hook nếu có ràng buộc riêng.
+2. `modules/hubs/HubService.js`: `class HubService extends BaseCrudService`, ghi đè hook nếu có ràng buộc riêng
+   (bưu cục phải trực thuộc một hub, tự gắn khu vực phục vụ, chặn xóa điểm còn tuyến / nhân viên).
 3. `modules/hubs/hubs.router.js`: chú thích Swagger + `buildHubsRouter()` gọi `createCrudRouter`.
 4. `container.js`: tạo repository, bọc `withCache(..., "hubs")`, thêm vào `services`.
 5. `app.js`: `app.use("/hubs", buildHubsRouter(container))`.
-6. Test: đổi các dòng `[US-14]` trong `tests/stories-pending.test.js` thành test thật.
+6. Test: đổi các dòng `[US-14]` trong `tests/stories-pending.test.js` thành test thật (`tests/hubs.test.js`).
+
+## Tài nguyên theo chủ sở hữu và phạm vi theo vai trò (Sprint 3)
+
+Danh mục dùng chung đi qua `createCrudRouter`; dữ liệu **của từng người** thì không:
+
+| Thành phần | Cách làm |
+|---|---|
+| Địa điểm lấy hàng (`/pickupLocations`) | `PickupLocationController` lấy `req.user.id` từ token, mọi truy vấn kèm `customerId` — khách không chạm được địa điểm của người khác (trả 404) |
+| Đơn hàng (`/orders`) | `OrderService` tính phạm vi theo vai trò: khách — đơn của mình; nhân viên kho — đơn của hub mình và các bưu cục trực thuộc; tài xế — đơn được giao; quản trị — tất cả |
+| Quyền | `requirePermission` nhận một quyền hoặc **mảng quyền** (có một là đủ), ví dụ xem đơn: `order:read:own`, `order:read:hub`, `order:read:assigned` |
+| Trang công khai biết người dùng | `optionalAuth`: có token hợp lệ thì gắn `req.user`, không có thì coi là khách vãng lai — bản nháp đơn (`/orderDrafts`) thuộc về khách đăng nhập mở nó |
+| Ước tính phí (`POST /orders/estimate-fee`) | Công khai; `PricingService` tìm khu vực phục vụ hai đầu, bảng giá hiệu lực theo dịch vụ + vùng rồi gọi `pricing.calculate` |
