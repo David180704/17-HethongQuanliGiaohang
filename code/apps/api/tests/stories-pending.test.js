@@ -6,10 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 4 (06/11 - 01/12/2026) ----------
-  "US-20": [
-    "Xem chi tiet don kem toan bo hanh trinh (statusHistory nhung trong don)",
-    "Danh sach don cua khach loc theo trang thai va khoang thoi gian, co phan trang (PB#16)",
-  ],
   "US-21": ["BullMQ topic order.status.changed, consumer ghi hanh trinh, co retry va dead-letter queue"],
   "US-22": [
     "GET /tracking/:code cong khai, gom 18 trang thai thanh 4 nhom cho khach",
