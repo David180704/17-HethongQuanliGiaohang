@@ -9,7 +9,9 @@ import { fileURLToPath, URL } from "node:url";
 const apiRoot = fileURLToPath(new URL("..", import.meta.url));
 const reportPath = fileURLToPath(new URL("../../../../docs/KiemThuTheoStory.md", import.meta.url));
 
-// Story Sprint 1-5 theo sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
+// Story Sprint 1-7 theo sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx), ke hoach lap lai
+// 05/11/2026 sau khi doi chieu Case study 14: them US-40..44, mo rong tieu chi US-20, 25, 28, 31, 32, 35.
+// Thu tu trong moi Sprint = thu tu lam theo PERT (docs/PERT_ToanDuAn.docx).
 const STORIES = [
   [1, 1, "Khởi tạo dự án, môi trường Docker và quy ước mã nguồn", 3],
   [2, 1, "Thiết kế mô hình dữ liệu và sơ đồ lớp hệ thống", 5],
@@ -30,21 +32,31 @@ const STORIES = [
   [17, 3, "Xem phí vận chuyển dự kiến trước khi xác nhận đơn", 5],
   [18, 3, "Tạo đơn hàng giao mới", 5],
   [19, 3, "Khai báo tiền thu hộ COD và hình thức thanh toán phí", 3],
-  [20, 4, "Xem chi tiết đơn hàng và toàn bộ hành trình", 2],
+  [20, 4, "Xem danh sách và chi tiết đơn hàng, toàn bộ hành trình", 4],
   [21, 4, "Hàng đợi sự kiện và consumer ghi nhật ký hành trình đơn", 5],
   [22, 4, "Tra cứu hành trình đơn hàng bằng mã vận đơn", 3],
+  [40, 4, "Tiếp nhận hàng tại quầy: kiểm hàng, báo giá, tạo đơn hộ khách", 5],
   [23, 4, "Quản lý ca làm việc và phân công nhân viên vào tuyến", 3],
   [24, 4, "Cấu hình năng lực xử lý tối đa của người giao hàng", 3],
-  [25, 4, "Phân công đơn lấy hàng cho người giao hàng", 5],
+  [25, 4, "Phân công đơn lấy hàng cho người giao hàng", 7],
   [26, 4, "Đăng nhập ứng dụng di động", 2],
   [27, 4, "Xem danh sách đơn cần lấy trong ca làm việc", 3],
-  [28, 5, "Xác nhận đã lấy hàng từ người gửi", 3],
+  [28, 5, "Xác nhận đã lấy hàng hoặc ghi nhận không lấy được", 4],
+  [41, 5, "Quy trình tại kho: nhập kho, phân loại, xuất kho và trung chuyển", 6],
   [29, 5, "Quản lý điểm check-in trên bản đồ", 3],
   [30, 5, "Tự động check-in vị trí khi đi qua điểm đã cài đặt", 5],
-  [31, 5, "Xem danh sách đơn cần giao trong ca làm việc", 3],
-  [32, 5, "Xác nhận giao hàng thành công cho người nhận", 3],
-  [33, 5, "Ghi nhận đã thu tiền COD từ người nhận", 3],
-  [34, 5, "Tạo đối soát và tổng hợp số liệu cho khách hàng", 5],
+  [42, 5, "Khai báo tài khoản ngân hàng nhận tiền thu hộ", 2],
+  [35, 6, "Phân công tự động đơn giao hàng cho người giao hàng", 6],
+  [31, 6, "Xem danh sách đơn cần giao và phiếu giao hàng có mã QR", 6],
+  [32, 6, "Xác nhận giao hàng thành công hoặc ghi nhận giao thất bại", 5],
+  [33, 6, "Ghi nhận đã thu tiền COD từ người nhận", 3],
+  [36, 6, "Cấu hình chính sách giao lại, giới hạn số lần giao", 2],
+  [37, 6, "Quy trình hoàn hàng — phân công theo tuyến, theo dõi đến khi shop xác nhận", 5],
+  [44, 7, "Thanh toán phí vận chuyển bằng mã VietQR", 4],
+  [34, 7, "Tạo đối soát và tổng hợp số liệu cho khách hàng", 5],
+  [43, 7, "Shop xem kỳ đối soát, khoản điều chỉnh; ghi nhận đã chi trả", 5],
+  [38, 7, "Ghi nhận sự cố/khiếu nại, theo dõi xử lý và kết quả", 5],
+  [39, 7, "Thống kê tổng hợp và dashboard quản trị", 8],
 ].map(([id, sprint, name, points]) => ({ tag: `US-${String(id).padStart(2, "0")}`, id, sprint, name, points }));
 
 const EXTRA = [
@@ -118,7 +130,8 @@ const failedStories = STORIES.filter((s) => verdict(results[s.tag]).includes("L�
 const pointsDone = passedStories.reduce((sum, s) => sum + s.points, 0);
 const pointsTotal = STORIES.reduce((sum, s) => sum + s.points, 0);
 
-const bySprint = [1, 2, 3, 4, 5].map((sprint) => {
+const SPRINT_NUMBERS = [...new Set(STORIES.map((s) => s.sprint))];
+const bySprint = SPRINT_NUMBERS.map((sprint) => {
   const items = STORIES.filter((s) => s.sprint === sprint);
   const ok = items.filter((s) => verdict(results[s.tag]).includes("Đạt"));
   return `| Sprint ${sprint} | ${ok.length}/${items.length} | ${ok.reduce((a, s) => a + s.points, 0)}/${items.reduce((a, s) => a + s.points, 0)} |`;
@@ -129,7 +142,7 @@ const failures = Object.entries(results)
   .flatMap(([tag, r]) => r.failed.map((t) => `- **${tag}**: ${t}`));
 
 const today = new Date().toLocaleDateString("vi-VN");
-const markdown = `# Kiểm thử theo story — Sprint 1 đến Sprint 5
+const markdown = `# Kiểm thử theo story — Sprint 1 đến Sprint ${Math.max(...SPRINT_NUMBERS)}
 
 > Sinh tự động ngày ${today} bởi \`npm run report:stories\` (thư mục \`code/apps/api\`).
 > Chạy lại lệnh này sau mỗi lần sửa code để cập nhật. Chạy riêng một story:
@@ -143,7 +156,8 @@ const markdown = `# Kiểm thử theo story — Sprint 1 đến Sprint 5
 | 🔴 Lỗi (có test fail) | ${failedStories.length} |
 | ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | ${doneStories.length} |
 
-Điểm story đạt: **${pointsDone}/${pointsTotal}** điểm của Sprint 1–5.
+Điểm story đạt: **${pointsDone}/${pointsTotal}** điểm của Sprint 1–${Math.max(...SPRINT_NUMBERS)} \
+(${STORIES.length} story theo kế hoạch lập lại ngày 05/11/2026).
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
@@ -170,7 +184,12 @@ ${failures.length ? `\n## Test đang fail\n\n${failures.join("\n")}\n` : ""}
 
 - Lịch lấy từ docs/PERT_ToanDuAn.docx: Sprint 2 kéo dài đến 30/10/2026 để xong đủ 9 story (gồm US-13).
   Cả 9 story Sprint 2 xong ngày 29/10/2026 nên Sprint 3 (US-14 → US-19) bắt đầu ngay 29/10/2026,
-  sớm hơn lịch PERT (02/11/2026). Story chỉ ghi "Done" khi chuyển sang 🟢 Đạt ở bảng trên.
+  sớm hơn lịch PERT (02/11/2026), và đóng Sprint ngày 05/11/2026 (không dùng ngày dự phòng).
+  Story chỉ ghi "Done" khi chuyển sang 🟢 Đạt ở bảng trên.
+- Kế hoạch lập lại 05/11/2026 sau khi đối chiếu Case study 02 và 14 (docs/DoiChieuCaseStudy_MoRong.md):
+  thêm US-40 → US-44 (tiếp nhận tại quầy, quy trình tại kho, tài khoản ngân hàng, đối soát phía shop,
+  VietQR), mở rộng tiêu chí US-20, 25, 28, 31, 32, 35 và thêm Sprint 7. Sprint 4: 06/11 – 01/12/2026,
+  Sprint 5: 02/12 – 18/12/2026, Sprint 6: 21/12/2026 – 11/01/2027, Sprint 7: 12/01 – 02/02/2027.
 - Thứ tự thực tế Sprint 3: T4 (lõi tính phí US-17) làm trước T3 vì API ước tính phí (US-16) dùng nó;
   API thu hộ (T7, US-19) làm trước màn hình tạo đơn (T6) để màn hình có đủ luật thu hộ.
 - \\* Flow Maestro KH 09 và NV 08 đã viết nhưng chưa chạy trên máy ảo: máy dev chỉ còn khoảng 3 GB
