@@ -44,7 +44,7 @@ story chưa xếp Sprint).
 | 30 | Danh mục: shop, nhân viên, ca, tuyến/khu vực, kho/điểm trung chuyển, dịch vụ, bảng giá, chính sách | 02 | US-10…14, US-23, US-36 | ✅ / 📅 |
 | 31 | Thống kê: đơn theo trạng thái, shop, tuyến, năng suất nhân viên, doanh thu, thu hộ, đối soát | 02 | US-39 | 📅 |
 | 32 | Client–server, RESTful API dùng chung; Web cho mọi người dùng; Mobile cho khách hàng | 02 | API + Swagger; Web Khách hàng + App Nhân viên (chạy trên web và Android) + App Khách hàng mobile | ✅ |
-| 33 | Tài liệu: actor, use case (sơ đồ, đặc tả, activity, include/extend, package), sơ đồ lớp, ERD, sơ đồ tuần tự, sơ đồ trạng thái | 14 | ERD (`docs/ERD.md`); TL1 (Sprint 4): actor, use case, đặc tả + activity; TL2 (Sprint 5): lớp, tuần tự, trạng thái | ✅ / 📅 |
+| 33 | Tài liệu: actor, use case (sơ đồ, đặc tả, activity, include/extend, package), sơ đồ lớp, ERD, sơ đồ tuần tự, sơ đồ trạng thái | 14 | ERD (`docs/ERD.md`); TL1 xong 05/11/2026 (`docs/TaiLieuUML_Phan1.docx`: 10 actor, 40 use case, 7 gói, include/extend, đặc tả + activity); TL2 (Sprint 5): lớp, tuần tự, trạng thái | ✅ / 📅 |
 
 Kết luận:
 - Phần đã làm (Sprint 1–3) đáp ứng đủ các yêu cầu thuộc phạm vi của chúng.

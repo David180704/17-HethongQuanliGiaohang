@@ -8,3 +8,7 @@ build/
 
 # Log cua code/test-song-song.ps1
 code/test-logs/
+
+# Python
+__pycache__/
+*.pyc
