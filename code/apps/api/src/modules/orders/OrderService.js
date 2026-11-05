@@ -3,6 +3,7 @@ import { ORDER_STATUS } from "../../constants/enums.js";
 import { orderValidator } from "./orders.validator.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "./CounterRepository.js";
 import { assertCodCoversFee } from "./cod.js";
+import { groupFilter, withDisplay } from "./orderStatus.js";
 
 const MAX_LIMIT = 100;
 
@@ -91,7 +92,7 @@ export class OrderService {
     };
 
     // MOI lenh ghi deu truyen { session }: counter, orders, orderDrafts cung thanh cong hoac cung huy
-    return this.transactions.run(async (session) => {
+    const saved = await this.transactions.run(async (session) => {
       const seq = await this.counterRepository.next(TRACKING_COUNTER, {
         session,
         startAfter: () => this.orderRepository.maxTrackingNumber({ session }),
@@ -100,20 +101,25 @@ export class OrderService {
       if (data.draftToken) await this.orderDraftRepository.consume(data.draftToken, customer._id, { session });
       return created;
     });
+    return withDisplay(saved);
   }
 
   async list(user, query = {}) {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(MAX_LIMIT, Math.max(1, Number(query.limit) || 20));
+    const { group, from, to } = this.validator.listQuery(query);
     const filters = await this.#scope(user);
     if (ORDER_STATUS.includes(query.status)) filters.status = query.status;
+    // $and de khong dung khoa $or voi dieu kien tim kiem cua repository
+    if (group) filters.$and = [groupFilter(group)];
+    if (from || to) filters.createdAt = { ...(from && { $gte: from }), ...(to && { $lte: to }) };
     const search = typeof query.search === "string" ? query.search.trim() : "";
     const { items, total } = await this.orderRepository.findPage({ page, limit, search, filters });
-    return { items, meta: { page, limit, total } };
+    return { items: items.map(withDisplay), meta: { page, limit, total } };
   }
 
-  get(user, id) {
-    return this.#findInScope(user, id);
+  async get(user, id) {
+    return withDisplay(await this.#findInScope(user, id));
   }
 
   /** Nhan vien hub xac nhan don: CREATED -> CONFIRMED, khoa phi (khong tinh lai). */
@@ -130,7 +136,7 @@ export class OrderService {
       },
     });
     if (!confirmed) throw conflict(); // nguoi khac vua xac nhan truoc
-    return confirmed;
+    return withDisplay(confirmed);
   }
 
   async #findInScope(user, id) {

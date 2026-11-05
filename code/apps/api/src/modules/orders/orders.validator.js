@@ -2,6 +2,24 @@ import { ErrorCodes } from "../../core/errors.js";
 import { normalizeVnPhone } from "../../core/phone.js";
 import { parseFlags, parseItem } from "../pricing/pricing.validator.js";
 import { parseCod } from "./cod.js";
+import { CUSTOMER_GROUPS } from "./orderStatus.js";
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const VN_OFFSET_MS = 7 * 3600 * 1000;
+
+// Ngay "YYYY-MM-DD" theo gio Viet Nam: tu ngay = 00:00, den ngay = 23:59:59.999 cua ngay do.
+function parseDay(value, label, endOfDay) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || !DAY.test(value)) {
+    throw ErrorCodes.VALIDATION_ERROR(`${label} phải có dạng YYYY-MM-DD`);
+  }
+  const date = new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}+07:00`);
+  // 2026-02-30 van tao duoc Date (tran sang thang sau) -> doi chieu lai chuoi ngay
+  if (Number.isNaN(date.getTime()) || new Date(date.getTime() + VN_OFFSET_MS).toISOString().slice(0, 10) !== value) {
+    throw ErrorCodes.VALIDATION_ERROR(`${label} không tồn tại`);
+  }
+  return date;
+}
 
 const RECEIVER_LABELS = {
   name: "tên người nhận",
@@ -39,5 +57,17 @@ export const orderValidator = {
       cod: parseCod(body.cod),
       draftToken: isFilled(body.draftToken) ? body.draftToken : null,
     };
+  },
+
+  /** Bo loc danh sach don (US-20): nhom trang thai cua khach va khoang ngay tao. */
+  listQuery(query = {}) {
+    const group = isFilled(query.group) ? query.group : null;
+    if (group && !CUSTOMER_GROUPS.some((g) => g.code === group)) {
+      throw ErrorCodes.VALIDATION_ERROR("Nhóm trạng thái không hợp lệ");
+    }
+    const from = parseDay(query.from, "Từ ngày", false);
+    const to = parseDay(query.to, "Đến ngày", true);
+    if (from && to && from > to) throw ErrorCodes.VALIDATION_ERROR("Từ ngày phải trước hoặc bằng đến ngày");
+    return { group, from, to };
   },
 };
