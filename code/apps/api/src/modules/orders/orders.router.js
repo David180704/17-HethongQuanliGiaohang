@@ -38,11 +38,22 @@ import { OrderController } from "./OrderController.js";
  *     tags: [Orders]
  *     summary: "Danh sach don theo pham vi: khach - don cua minh; nhan vien hub - don cua hub va buu cuc truc thuoc; admin - tat ca"
  *     security: [{ bearerAuth: [] }]
+ *     description: >
+ *       Moi don kem display { statusLabel, group, groupLabel } va nhan cua tung moc statusHistory (US-20).
+ *       group gom 18 trang thai thanh 4 nhom ma khach thay (de 14) - NOT_RECEIVED (Chua nhan), RECEIVED
+ *       (Da nhan - Chua giao), DELIVERING (Da nhan - Dang giao), DELIVERED (Da giao); don INCIDENT lay nhom
+ *       cua trang thai lien truoc.
  *     parameters:
- *       - { in: query, name: status, schema: { type: string }, description: "Loc trang thai, vd CREATED (don cho xac nhan)" }
+ *       - { in: query, name: status, schema: { type: string }, description: "Loc trang thai chi tiet, vd CREATED (don cho xac nhan)" }
+ *       - { in: query, name: group, schema: { type: string, enum: [NOT_RECEIVED, RECEIVED, DELIVERING, DELIVERED] }, description: "Loc theo nhom trang thai cua khach" }
+ *       - { in: query, name: from, schema: { type: string, example: "2026-11-01" }, description: "Tao tu ngay (YYYY-MM-DD, gio Viet Nam)" }
+ *       - { in: query, name: to, schema: { type: string, example: "2026-11-30" }, description: "Tao den het ngay (YYYY-MM-DD)" }
  *       - { in: query, name: search, schema: { type: string }, description: "Ma van don, ten / so dien thoai nguoi nhan" }
+ *       - { in: query, name: page, schema: { type: integer, default: 1 } }
+ *       - { in: query, name: limit, schema: { type: integer, default: 20, maximum: 100 } }
  *     responses:
- *       200: { description: "Danh sach don, meta { page, limit, total }" }
+ *       200: { description: "Danh sach don moi nhat truoc, meta { page, limit, total }" }
+ *       400: { description: "Nhom trang thai sai, ngay sai dinh dang hoac tu ngay sau den ngay" }
  *   post:
  *     tags: [Orders]
  *     summary: Khach tao don - ca noi gui va noi nhan phai thuoc vung phuc vu; ghi trong transaction (counter + orders + orderDrafts)
@@ -97,7 +108,7 @@ import { OrderController } from "./OrderController.js";
  *     security: [{ bearerAuth: [] }]
  *     parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
  *     responses:
- *       200: { description: Chi tiet don kem statusHistory }
+ *       200: { description: "Chi tiet don kem toan bo hanh trinh (statusHistory co nhan tung moc) va display" }
  *       404: { description: Khong co hoac khong thuoc pham vi }
  * /orders/{id}/confirm:
  *   post:
