@@ -17,6 +17,14 @@ export const env = {
 
   redisUrl: required("REDIS_URL", "redis://localhost:6379"),
 
+  // Hang doi su kien doi trang thai don (US-21, BullMQ tren Redis): thu lai toi da ORDER_EVENTS_ATTEMPTS lan,
+  // gian cach tang dan tu ORDER_EVENTS_BACKOFF_MS; het luot -> <ten>-dlq
+  orderEvents: {
+    queueName: process.env.ORDER_EVENTS_QUEUE || "order-events",
+    attempts: Number(process.env.ORDER_EVENTS_ATTEMPTS || 5),
+    backoffMs: Number(process.env.ORDER_EVENTS_BACKOFF_MS || 2000),
+  },
+
   // Cache doc du lieu (xem infrastructure/cache/CacheService.js):
   //   CACHE_TTL_SECONDS: so giay giu du lieu trong cache (mac dinh 30, dat 0 = tat cache)
   //   CACHE_STORE: redis (mac dinh) | memory (khong can Redis, chi hop cho 1 tien trinh)

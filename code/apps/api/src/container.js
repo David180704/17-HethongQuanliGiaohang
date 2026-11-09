@@ -6,6 +6,7 @@
 //   HTTP -> Router (Factory) -> Controller -> Service (Template Method)
 //        -> CachedRepository (Decorator) -> Repository -> MongoDB
 //   Service --phat su kien--> EventBus (Observer) --> xoa cache lien quan
+//   OrderService --order.status.changed--> hang doi BullMQ --> consumer (hanh trinh cong khai, ...)
 import { env } from "./config/env.js";
 import { getRedis } from "./config/redis.js";
 import { Role } from "./models/Role.js";
@@ -37,6 +38,8 @@ import { OrderRepository } from "./modules/orders/OrderRepository.js";
 import { CounterRepository } from "./modules/orders/CounterRepository.js";
 import { OrderService } from "./modules/orders/OrderService.js";
 import { MongooseTransactionRunner } from "./infrastructure/db/MongooseTransactionRunner.js";
+import { BullEventQueue, workerConnectionFromUrl } from "./infrastructure/queue/BullEventQueue.js";
+import { JourneyService } from "./modules/orders/JourneyService.js";
 import { ServiceAreaRepository } from "./modules/serviceAreas/ServiceAreaRepository.js";
 import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js";
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
@@ -130,6 +133,19 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   const pricingService = new PricingService({ serviceTypeRepository, priceTableRepository, serviceAreaRepository });
   const orderDraftRepository = new OrderDraftRepository();
   const orderDraftService = new OrderDraftService({ repository: orderDraftRepository });
+  // US-21: hang doi su kien ben vung (BullMQ) - khac EventBus o tren (chi trong mot tien trinh)
+  const orderEvents = new BullEventQueue({
+    connection: redis,
+    workerConnection: workerConnectionFromUrl(env.redisUrl),
+    name: env.orderEvents.queueName,
+    attempts: env.orderEvents.attempts,
+    backoffMs: env.orderEvents.backoffMs,
+  });
+  const journeyService = new JourneyService({ orderRepository, redis });
+  // Consumer: moi su kien mot handler; them consumer moi (vd phan cong tu dong US-25) = them dong o day
+  const orderEventHandlers = {
+    "order.status.changed": (event) => journeyService.project(event),
+  };
   const orderService = new OrderService({
     orderRepository,
     counterRepository: new CounterRepository(),
@@ -141,6 +157,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     userRepository,
     pricingService,
     transactions: new MongooseTransactionRunner(),
+    orderEvents,
   });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
@@ -166,6 +183,11 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     pricingService,
     orderDraftService,
     orderService,
+    orderEvents,
+    journeyService,
+    orderEventHandlers,
+    /** Chay consumer hang doi su kien don (server.js goi; test US-21 tu chay worker rieng). */
+    startOrderEventWorker: () => orderEvents.startWorker(orderEventHandlers),
     services,
     middleware: { requireAuth, guardAuthenticated, optionalAuth, requirePermission },
   };
