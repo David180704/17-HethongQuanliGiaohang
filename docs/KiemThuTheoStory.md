@@ -1,6 +1,6 @@
 # Kiểm thử theo story — Sprint 1 đến Sprint 7
 
-> Sinh tự động ngày 5/11/2026 bởi `npm run report:stories` (thư mục `code/apps/api`).
+> Sinh tự động ngày 9/11/2026 bởi `npm run report:stories` (thư mục `code/apps/api`).
 > Chạy lại lệnh này sau mỗi lần sửa code để cập nhật. Chạy riêng một story:
 > `npm run test:story -- 6` (story US-06).
 
@@ -8,18 +8,18 @@
 
 | | Số story |
 |---|---|
-| 🟢 Đạt (mọi tiêu chí có test và pass) | 20 |
+| 🟢 Đạt (mọi tiêu chí có test và pass) | 21 |
 | 🔴 Lỗi (có test fail) | 0 |
-| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 24 |
+| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 23 |
 
-Điểm story đạt: **63/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
+Điểm story đạt: **67/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
 | Sprint 1 | 4/4 | 16/16 |
 | Sprint 2 | 9/9 | 24/24 |
 | Sprint 3 | 6/6 | 21/21 |
-| Sprint 4 | 1/9 | 2/35 |
+| Sprint 4 | 2/9 | 6/35 |
 | Sprint 5 | 0/5 | 0/20 |
 | Sprint 6 | 0/6 | 0/27 |
 | Sprint 7 | 0/5 | 0/27 |
@@ -52,7 +52,7 @@ server nên không nằm trong lệnh này.
 | 3 | US-17 | Xem phí vận chuyển dự kiến trước khi xác nhận đơn | 5 | 🟢 Đạt | 11/11 | Web + App KH: bước xác nhận tách từng khoản phí, phí tạo đơn bằng phí đã ước tính · Liên app: phí khóa khi kho duyệt |
 | 3 | US-18 | Tạo đơn hàng giao mới | 5 | 🟢 Đạt | 7/7 | Web + App KH: tạo đơn 4 bước, chặn bước sai · App NV: kho duyệt đơn, hub khác không thấy · Liên app Web → App NV · Maestro KH 09*, NV 08* |
 | 3 | US-19 | Khai báo tiền thu hộ COD và hình thức thanh toán phí | 3 | 🟢 Đạt | 6/6 | Web + App KH: thu hộ, 3 hình thức trả phí, khấu trừ chỉ khi bật thu hộ, thu hộ nhỏ hơn phí thì không cho xác nhận |
-| 4 | US-20 | Xem danh sách và chi tiết đơn hàng, toàn bộ hành trình | 4 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
+| 4 | US-20 | Xem danh sách và chi tiết đơn hàng, toàn bộ hành trình | 4 | 🟢 Đạt | 8/8 | Web + App KH: lọc 4 nhóm trạng thái, thời gian, mã vận đơn; chi tiết hành trình, phí đã khóa; đơn người khác báo không tìm thấy |
 | 4 | US-21 | Hàng đợi sự kiện và consumer ghi nhật ký hành trình đơn | 5 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
 | 4 | US-22 | Tra cứu hành trình đơn hàng bằng mã vận đơn | 3 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
 | 4 | US-40 | Tiếp nhận hàng tại quầy: kiểm hàng, báo giá, tạo đơn hộ khách | 5 | ⚪ Chưa làm | 0/0 · còn 3 tiêu chí |  |
