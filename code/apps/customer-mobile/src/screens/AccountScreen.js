@@ -9,7 +9,7 @@ import { errorMessage } from "../lib/apiClient";
 import { CUSTOMER_TYPE_LABELS, avatarLetter } from "../lib/format";
 import { colors } from "../theme";
 
-export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder, onOpenPickupLocations }) {
+export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders }) {
   const { user } = useAuth();
 
   if (!user) {
@@ -31,11 +31,12 @@ export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateO
       onLogout={onLogout}
       onCreateOrder={onCreateOrder}
       onOpenPickupLocations={onOpenPickupLocations}
+      onOpenOrders={onOpenOrders}
     />
   );
 }
 
-function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations }) {
+function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders }) {
   // /auth/me qua cache 30 giay; dang nhap/dang xuat da clear() cache.
   const { data, error } = useCachedQuery("/auth/me");
   const profile = data || user;
@@ -76,7 +77,8 @@ function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations }) {
       </Card>
 
       <Card title="Đơn hàng của tôi">
-        <Text style={styles.muted}>Danh sách và chi tiết đơn hàng — sắp có (#20 · Sprint 4).</Text>
+        <Text style={styles.muted}>Lọc theo trạng thái, thời gian; xem hành trình từng đơn.</Text>
+        <Button testID="account-orders" title="Xem đơn hàng" onPress={onOpenOrders} />
         <Button title="Tạo đơn mới" variant="secondary" onPress={onCreateOrder} />
       </Card>
 
