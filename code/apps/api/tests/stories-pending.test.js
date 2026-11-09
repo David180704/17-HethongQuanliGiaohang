@@ -6,7 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 4 (06/11 - 01/12/2026) ----------
-  "US-21": ["BullMQ topic order.status.changed, consumer ghi hanh trinh, co retry va dead-letter queue"],
   "US-22": [
     "GET /tracking/:code cong khai, gom 18 trang thai thanh 4 nhom cho khach",
     "Che so dien thoai dang 09xx xxx 123, gioi han 20 request/phut/IP",
