@@ -29,6 +29,7 @@ export class OrderService {
     userRepository,
     pricingService,
     transactions,
+    orderEvents = null,
     validator = orderValidator,
   }) {
     Object.assign(this, {
@@ -42,8 +43,27 @@ export class OrderService {
       userRepository,
       pricingService,
       transactions,
+      orderEvents,
       validator,
     });
+  }
+
+  // US-21: trang thai + statusHistory da ghi xong (nguon su that) moi phat su kien len hang doi. Phat loi
+  // (Redis tam mat) khong lam hong thao tac: hanh trinh cong khai van dung lai duoc tu don khi doc.
+  async #publishStatusChanged(order, from, by) {
+    if (!this.orderEvents || !order) return;
+    try {
+      await this.orderEvents.publish("order.status.changed", {
+        orderId: String(order._id),
+        trackingCode: order.trackingCode,
+        from,
+        to: order.status,
+        by: by ? String(by) : null,
+        at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error(`Khong phat duoc su kien doi trang thai don ${order.trackingCode}:`, err.message);
+    }
   }
 
   async create(user, input) {
@@ -101,6 +121,7 @@ export class OrderService {
       if (data.draftToken) await this.orderDraftRepository.consume(data.draftToken, customer._id, { session });
       return created;
     });
+    await this.#publishStatusChanged(saved, null, customer._id);
     return withDisplay(saved);
   }
 
@@ -136,6 +157,7 @@ export class OrderService {
       },
     });
     if (!confirmed) throw conflict(); // nguoi khac vua xac nhan truoc
+    await this.#publishStatusChanged(confirmed, "CREATED", user.id);
     return withDisplay(confirmed);
   }
 
