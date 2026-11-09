@@ -81,6 +81,7 @@ const UI_TESTS = {
   "US-17": "Web + App KH: bước xác nhận tách từng khoản phí, phí tạo đơn bằng phí đã ước tính · Liên app: phí khóa khi kho duyệt",
   "US-18": "Web + App KH: tạo đơn 4 bước, chặn bước sai · App NV: kho duyệt đơn, hub khác không thấy · Liên app Web → App NV · Maestro KH 09*, NV 08*",
   "US-19": "Web + App KH: thu hộ, 3 hình thức trả phí, khấu trừ chỉ khi bật thu hộ, thu hộ nhỏ hơn phí thì không cho xác nhận",
+  "US-20": "Web + App KH: lọc 4 nhóm trạng thái, thời gian, mã vận đơn; chi tiết hành trình, phí đã khóa; đơn người khác báo không tìm thấy",
   "US-26": "Maestro NV 01–07 trên máy ảo Android · App NV: 17 kịch bản",
   "PB-01": "Web + App KH: trang chủ, vùng phục vụ, tìm không dấu · Maestro KH 01, 03",
   "PB-04": "Web + App KH: bảng giá đổi theo dịch vụ · Maestro KH 02",
