@@ -44,9 +44,14 @@ export default function AccountPage() {
         </Link>
       </section>
 
-      <section className="mt-4 rounded-xl border border-dashed border-gray-300 bg-white p-5">
-        <h2 className="font-semibold">Đơn hàng của tôi</h2>
-        <p className="mt-1 text-sm text-gray-500">Danh sách và chi tiết đơn hàng — sắp có (#20 · Sprint 4).</p>
+      <section className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-5">
+        <div>
+          <h2 className="font-semibold">Đơn hàng của tôi</h2>
+          <p className="mt-1 text-sm text-gray-500">Lọc theo trạng thái, thời gian; xem hành trình từng đơn.</p>
+        </div>
+        <Link to="/don-hang" className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold hover:bg-gray-50">
+          Xem đơn hàng
+        </Link>
       </section>
     </div>
   );

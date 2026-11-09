@@ -49,6 +49,9 @@ export default function SiteLayout() {
             </Link>
             {user ? (
               <>
+                <NavLink to="/don-hang" className={navClass}>
+                  Đơn hàng
+                </NavLink>
                 <Link
                   to="/tai-khoan"
                   className="hidden max-w-40 truncate rounded-md px-2 py-1.5 text-sm font-medium hover:bg-white/10 sm:block"
