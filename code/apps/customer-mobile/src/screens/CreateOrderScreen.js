@@ -31,7 +31,7 @@ const STEP_TITLES = ["Lấy hàng", "Người nhận", "Hàng hóa & thanh toán
 
 // Tao don 4 buoc (US-18) - cung luong voi Web Khach hang: thu ho va ai tra phi (US-19), phi
 // du kien truoc khi xac nhan (US-17), luu nhap moi buoc va mo nhap tu Uoc tinh phi (US-16).
-export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onGoTab }) {
+export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onGoTab, onOpenOrder }) {
   const [draftToken, setDraftToken] = useState(openedDraft || null);
   const [draft, setDraft] = useState({ data: null, error: null, loading: Boolean(openedDraft) });
   const { data: locationData, refresh: refreshLocations } = useCachedQuery("/pickupLocations");
@@ -155,6 +155,7 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
           <Text style={styles.line}>Trạng thái: chờ bưu cục xác nhận</Text>
           <Text style={styles.line}>Phí vận chuyển: {formatVnd(created.fee.total)}</Text>
           <Button testID="order-new" title="Tạo đơn khác" onPress={startOver} />
+          <Button testID="order-view" title="Xem đơn" variant="secondary" onPress={() => onOpenOrder(created._id)} />
           <Button title="Về tài khoản" variant="secondary" onPress={() => onGoTab("account")} />
         </Card>
       </Screen>

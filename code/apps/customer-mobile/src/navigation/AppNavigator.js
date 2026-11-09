@@ -12,11 +12,14 @@ import RegisterScreen from "../screens/RegisterScreen";
 import CreateOrderScreen from "../screens/CreateOrderScreen";
 import PickupLocationsScreen from "../screens/PickupLocationsScreen";
 import EstimateScreen from "../screens/EstimateScreen";
+import OrdersScreen from "../screens/OrdersScreen";
+import OrderDetailScreen from "../screens/OrderDetailScreen";
 import { colors } from "../theme";
 
 // Dieu huong tu viet (khong them thu vien, giong App Nhan vien):
 //   - 4 tab: Trang chu, Bang gia, Vung phuc vu, Tai khoan - khach vang lai xem duoc het
-//   - ngan xep man hinh con: dang nhap, dang ky, uoc tinh phi, tao don, dia diem lay hang
+//   - ngan xep man hinh con: dang nhap, dang ky, uoc tinh phi, tao don, dia diem lay hang,
+//     don hang cua toi va chi tiet don (US-20)
 // Quy tac giong Web Khach hang: bam "Tao don" khi chua dang nhap -> dang nhap ->
 // quay lai DUNG man hinh tao don. Tu "Uoc tinh phi" bam "Gui hang" -> nhap don (draftToken)
 // di cung qua dang nhap / dang ky -> man hinh tao don dien san du lieu (US-16).
@@ -110,10 +113,30 @@ export default function AppNavigator() {
     return <EstimateScreen onBack={pop} onShip={shipFromEstimate} />;
   }
   if (top?.name === "createOrder" && user) {
-    return <CreateOrderScreen key={top.draftToken || "new"} draftToken={top.draftToken} onBack={pop} onGoTab={goTab} />;
+    return (
+      <CreateOrderScreen
+        key={top.draftToken || "new"}
+        draftToken={top.draftToken}
+        onBack={pop}
+        onGoTab={goTab}
+        onOpenOrder={(id) => setStack([{ name: "orders" }, { name: "orderDetail", id }])}
+      />
+    );
   }
   if (top?.name === "pickupLocations" && user) {
     return <PickupLocationsScreen onBack={pop} />;
+  }
+  if (top?.name === "orders" && user) {
+    return (
+      <OrdersScreen
+        onBack={pop}
+        onOpenOrder={(id) => push({ name: "orderDetail", id })}
+        onCreateOrder={() => push({ name: "createOrder" })}
+      />
+    );
+  }
+  if (top?.name === "orderDetail" && user) {
+    return <OrderDetailScreen key={top.id} orderId={top.id} onBack={pop} />;
   }
 
   const tabProps = {
@@ -123,6 +146,7 @@ export default function AppNavigator() {
     onRegister: () => push({ name: "register" }),
     onLogout: requestLogout,
     onOpenPickupLocations: () => push({ name: "pickupLocations" }),
+    onOpenOrders: () => push({ name: "orders" }),
     onEstimate: () => push({ name: "estimate" }),
   };
 
