@@ -5,13 +5,7 @@
 import { test } from "node:test";
 
 const pending = {
-  // ---------- Sprint 4 (06/11 - 01/12/2026) ----------
-  "US-25": [
-    "Tu dong phan cong don lay hang theo tuyen, chon nguoi it don nhat chua day nang luc",
-    "Transaction chong vuot nang luc khi nhieu don gan cung luc; het cho -> hang cho UNASSIGNED",
-    "Quan ly dieu chinh phan cong tay (nghi, doi ca, qua tai, don uu tien), bat buoc ghi ly do (PB#53)",
-  ],
-  "US-27": ["Danh sach don can lay loc theo nguoi giao hang va ca hien tai"],
+  // ---------- Sprint 4 (06/11 - 01/12/2026): da xong het ----------
   // ---------- Sprint 5 (02/12 - 18/12/2026) ----------
   "US-28": [
     "Xac nhan da lay hang: quet ma van don, ghi toa do GPS va thoi gian",
