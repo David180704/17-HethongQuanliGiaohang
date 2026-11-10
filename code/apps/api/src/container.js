@@ -35,6 +35,7 @@ import { CapacityService } from "./modules/capacity/CapacityService.js";
 import { SettingRepository } from "./modules/capacity/SettingRepository.js";
 import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
 import { AssignmentService } from "./modules/assignments/AssignmentService.js";
+import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
@@ -202,6 +203,15 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     transactions: new MongooseTransactionRunner(),
     orderEvents,
   });
+  // US-41: quy trinh tai kho (nhap kho, phan loai, xuat kho) - doc thang DB
+  const warehouseService = new WarehouseService({
+    orderRepository,
+    userRepository,
+    hubRepository,
+    serviceAreaRepository,
+    routeRepository,
+    orderEvents,
+  });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,
@@ -231,6 +241,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     shiftService,
     capacityService,
     assignmentService,
+    warehouseService,
     orderEvents,
     journeyService,
     orderEventHandlers,
