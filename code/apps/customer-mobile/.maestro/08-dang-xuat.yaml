@@ -16,6 +16,10 @@ tags:
 - assertVisible: "Doanh nghiệp / shop"
 - assertVisible: "Shop 1"
 - takeScreenshot: c14-tai-khoan-shop
+- scrollUntilVisible:
+    element:
+      id: "account-logout"
+    direction: DOWN
 - tapOn:
     id: "account-logout"
 - tapOn:
