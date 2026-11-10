@@ -251,6 +251,9 @@ async function seedOrders({ customerLocations, serviceAreaDocs, routeDocs, servi
     const confirmedAt = statusHistory.find((entry) => entry.status === "CONFIRMED")?.at ?? null;
     // Hub/buu cuc quan ly tuyen cua khu vuc lay hang - nhan vien diem nay duyet don (US-18)
     const pickupRoute = routeDocs.find((route) => String(route._id) === String(pickupArea.routeId));
+    // Kho dich (hub cua tuyen khu vuc nguoi nhan) va kho dang giu hang (US-41) - khong goi faker nen seed giu nguyen
+    const destHubId = routeDocs.find((route) => String(route._id) === String(receiverArea.routeId))?.hubId ?? null;
+    const currentHubId = ["AT_HUB", "SORTED"].includes(status) ? pickupRoute.hubId : status === "AT_DEST_HUB" ? destHubId : null;
 
     let codEnabled = faker.number.int({ min: 1, max: 100 }) <= 75;
     let feePayer = faker.helpers.arrayElement(["SHOP_PREPAID", "RECIPIENT_PAID", "DEDUCT_FROM_COD"]);
@@ -274,6 +277,8 @@ async function seedOrders({ customerLocations, serviceAreaDocs, routeDocs, servi
       pickupLocationId: loc._id,
       pickupWard: loc.ward,
       pickupHubId: pickupRoute.hubId,
+      destHubId,
+      currentHubId,
       receiver: randomReceiverAddress(receiverArea),
       item,
       flags,

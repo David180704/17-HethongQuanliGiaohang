@@ -53,6 +53,15 @@ export const FINISHED_ORDER_STATUS = ["DELIVERED", "RETURNED", "CANCELLED"];
 
 export const PACKING_TYPE = ["BOX", "BAG", "PALLET", "ENVELOPE", "OTHER"];
 
+// Loai hang khi phan loai tai kho (US-41) - danh sach co dinh theo de 14 (goi nho, bao, thung, tivi, laptop, CPU, xe)
+export const ITEM_CATEGORY = ["SMALL_PARCEL", "BAG", "CARTON", "TV", "LAPTOP", "CPU", "VEHICLE", "OTHER"];
+
+// Nguyen nhan khong lay duoc hang (US-28, PB#34)
+export const PICKUP_FAIL_REASON = ["SHOP_UNREACHABLE", "NOT_READY", "WRONG_ADDRESS", "NOT_AS_DESCRIBED", "SHOP_CANCELLED", "OTHER"];
+
+// Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
+export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];
+
 // Kenh tao don va phuong tien goi y (US-40)
 export const ORDER_CHANNEL = ["ONLINE", "COUNTER"];
 export const VEHICLE_TYPE = ["MOTORBIKE", "TRUCK"];

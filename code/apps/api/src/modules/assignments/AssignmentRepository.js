@@ -44,6 +44,11 @@ export class AssignmentRepository extends BaseRepository {
     );
   }
 
+  /** Ket thuc phan cong dang hieu luc cua tai xe (US-28): DONE hoac FAILED kem thoi gian, toa do, nguyen nhan. */
+  finishActive({ orderId, type, shipperId }, fields, { session }) {
+    return this.model.updateOne({ orderId, type, shipperId, status: "ASSIGNED" }, { $set: fields }, { session });
+  }
+
   /** Phan cong cua mot nguoi trong ngay (US-27), moi nhat truoc. */
   findForShipper({ shipperId, shiftDate, type }) {
     return this.model

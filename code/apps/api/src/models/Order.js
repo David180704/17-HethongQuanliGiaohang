@@ -8,6 +8,7 @@ import {
   FEE_PAYMENT_METHOD,
   COD_METHOD,
   PACKING_TYPE,
+  ITEM_CATEGORY,
 } from "../constants/enums.js";
 
 const receiverSchema = new mongoose.Schema(
@@ -120,6 +121,12 @@ const orderSchema = new mongoose.Schema(
     // Hub/buu cuc quan ly tuyen cua khu vuc lay hang: nhan vien diem nay (va hub cap
     // tren) duyet don, phan cong lay hang (US-18). Xac dinh luc tao don.
     pickupHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
+    // Hub phu trach tuyen cua khu vuc nguoi nhan - kho dich (US-41). Xac dinh luc tao don.
+    destHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
+    // Kho dang giu hang (nhap kho / nhan o kho dich) - nhan vien kho do moi phan loai, xuat kho duoc
+    currentHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
+    // Loai hang khi phan loai tai kho (US-41)
+    itemCategory: { type: String, enum: ITEM_CATEGORY, default: null },
 
     receiver: { type: receiverSchema, required: true },
     item: { type: itemSchema, required: true },

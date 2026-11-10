@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { asyncHandler, created, ok } from "../../core/response.js";
+import { PICKUP_FAIL_LABELS } from "./pickupOutcome.js";
 
 /**
  * @openapi
@@ -48,12 +49,71 @@ import { asyncHandler, created, ok } from "../../core/response.js";
  *     responses:
  *       200: { description: "{ shifts, currentShiftId, selectedShiftId, counts: { total, toPick, done, failed }, orders: [{ trackingCode, pickup: { contactName, contactPhone, address }, item }] }" }
  *       403: { description: Khong phai nguoi giao hang }
+ * /assignments/pickups/{orderId}/picked:
+ *   post:
+ *     tags: [Assignments]
+ *     summary: "Tai xe xac nhan da lay hang (US-28): quet / nhap ma van don tren kien, ghi toa do GPS va thoi gian -> PICKED_UP"
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [code, lat, lng]
+ *             properties:
+ *               code: { type: string, example: "EXP1000000123" }
+ *               lat: { type: number, example: 21.0285 }
+ *               lng: { type: number, example: 105.8542 }
+ *     responses:
+ *       200: { description: "{ trackingCode, status: PICKED_UP, at, location }" }
+ *       400: { description: "Ma khong khop kien hang, thieu / sai toa do" }
+ *       404: { description: Don khong duoc giao cho tai xe nay }
+ *       409: { description: Don khong o buoc cho lay hang }
+ * /assignments/pickups/{orderId}/failed:
+ *   post:
+ *     tags: [Assignments]
+ *     summary: "Tai xe ghi nhan khong lay duoc hang (US-28, PB#34): bat buoc nguyen nhan, ghi vao hanh trinh -> PICKUP_FAILED"
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [reason, lat, lng]
+ *             properties:
+ *               reason: { type: string, enum: [SHOP_UNREACHABLE, NOT_READY, WRONG_ADDRESS, NOT_AS_DESCRIBED, SHOP_CANCELLED, OTHER] }
+ *               note: { type: string, description: "Bat buoc khi reason = OTHER" }
+ *               lat: { type: number }
+ *               lng: { type: number }
+ *     responses:
+ *       200: { description: "{ trackingCode, status: PICKUP_FAILED }" }
+ *       400: { description: "Thieu nguyen nhan / toa do" }
+ * /assignments/pickup-fail-reasons:
+ *   get:
+ *     tags: [Assignments]
+ *     summary: "Danh sach nguyen nhan khong lay duoc hang [{ code, label }]"
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: OK }
  */
 export function buildAssignmentsRouter({ assignmentService, middleware }) {
   const { requireAuth, requirePermission } = middleware;
   const router = Router();
   router.use(requireAuth);
   router.get("/mine/pickups", asyncHandler(async (req, res) => ok(res, await assignmentService.myPickups(req.user, req.query))));
+  router.get("/pickup-fail-reasons", (req, res) =>
+    ok(res, Object.entries(PICKUP_FAIL_LABELS).map(([code, label]) => ({ code, label }))),
+  );
+  router.post(
+    "/pickups/:orderId/picked",
+    asyncHandler(async (req, res) => ok(res, await assignmentService.confirmPickup(req.user, req.params.orderId, req.body || {}))),
+  );
+  router.post(
+    "/pickups/:orderId/failed",
+    asyncHandler(async (req, res) => ok(res, await assignmentService.failPickup(req.user, req.params.orderId, req.body || {}))),
+  );
   router.use(requirePermission("assignment:manage"));
   router.get("/pickup", asyncHandler(async (req, res) => ok(res, await assignmentService.pickupBoard(req.user))));
   router.post("/pickup/auto", asyncHandler(async (req, res) => ok(res, await assignmentService.runQueue(req.user))));

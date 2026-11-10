@@ -93,6 +93,7 @@ export class OrderService {
     // Khau tru phi vao thu ho ma thu ho < phi -> chan luu (US-19)
     assertCodCoversFee(data.cod, quote.fee);
     const route = await this.routeRepository.findById(pickupArea.routeId);
+    const destRoute = await this.routeRepository.findById(receiverArea.routeId);
 
     const now = new Date();
     const order = {
@@ -101,6 +102,7 @@ export class OrderService {
       pickupLocationId: location._id,
       pickupWard: location.ward,
       pickupHubId: route?.hubId ?? null,
+      destHubId: destRoute?.hubId ?? null,
       receiver: { ...data.receiver, province: receiverArea.province, district: receiverArea.district },
       item: data.item,
       flags: quote.flags,
@@ -178,6 +180,7 @@ export class OrderService {
     const data = this.validator.counter(input);
     const { staff, hub, area: pickupArea } = await this.#counterPoint(user);
     const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
+    const destRoute = await this.routeRepository.findById(receiverArea.routeId);
     const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
     const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
     assertCodCoversFee(data.cod, quote.fee);
@@ -228,6 +231,9 @@ export class OrderService {
           pickupLocationId: null,
           pickupWard: hub.address || hub.district,
           pickupHubId: hub._id,
+          destHubId: destRoute?.hubId ?? null,
+          // Hang da o quay cua diem nay (AT_HUB) - kho nay phan loai, xuat kho (US-41)
+          currentHubId: hub._id,
           receiver: { ...data.receiver, province: receiverArea.province, district: receiverArea.district },
           item: data.item,
           flags: quote.flags,
