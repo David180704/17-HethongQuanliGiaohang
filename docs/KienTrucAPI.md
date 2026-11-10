@@ -84,3 +84,15 @@ Danh mục dùng chung đi qua `createCrudRouter`; dữ liệu **của từng ng
 | Quyền | `requirePermission` nhận một quyền hoặc **mảng quyền** (có một là đủ), ví dụ xem đơn: `order:read:own`, `order:read:hub`, `order:read:assigned` |
 | Trang công khai biết người dùng | `optionalAuth`: có token hợp lệ thì gắn `req.user`, không có thì coi là khách vãng lai — bản nháp đơn (`/orderDrafts`) thuộc về khách đăng nhập mở nó |
 | Ước tính phí (`POST /orders/estimate-fee`) | Công khai; `PricingService` tìm khu vực phục vụ hai đầu, bảng giá hiệu lực theo dịch vụ + vùng rồi gọi `pricing.calculate` |
+
+## Hàng đợi sự kiện, tra cứu công khai, phân công (Sprint 4)
+
+| Thành phần | Cách làm |
+|---|---|
+| Hàng đợi sự kiện (US-21) | `infrastructure/queue/BullEventQueue.js` bọc BullMQ (Adapter). `OrderService` ghi trạng thái + `statusHistory` xong mới phát `order.status.changed`; thử lại 5 lần giãn cách tăng dần, hết lượt chép sang `<tên>-dlq`. `server.js` chạy worker; test dùng hàng đợi riêng `order-events-test` |
+| Consumer (Observer qua hàng đợi) | `container.orderEventHandlers`: (1) `JourneyService.project` dựng lại hành trình công khai vào Redis `journey:<mã>`; (2) `AssignmentService.onOrderStatusChanged` phân công lấy hàng khi đơn sang CONFIRMED. Cả hai idempotent vì job có thể chạy lại |
+| Tra cứu công khai (US-22) | `GET /tracking/:code`, hàm thuần `orders/journey.js` (che số điện thoại, không tên/địa chỉ người nhận); `RateLimiter` đếm trên Redis (`INCR` + `EXPIRE NX`), middleware `createRateLimit` trả 429 kèm `Retry-After` |
+| Tiếp nhận tại quầy (US-40) | `/orders/counter/*` (quyền `order:approve`): tìm / tạo khách lẻ, báo giá từ điểm của nhân viên, một transaction CREATED → CONFIRMED → AT_HUB; hàm thuần `orders/vehicle.js` gợi ý xe máy / xe tải |
+| Ca làm việc (US-23) | `/shifts` (quyền `shift:manage`), phạm vi tuyến theo hub dùng chung `routes/routeScope.js`; tài xế xem ca mình ở `/shifts/mine` |
+| Năng lực 3 cấp (US-24) | Hàm thuần `capacity/capacity.js` (`effectiveCapacity`: người → tuyến → hệ thống); mặc định hệ thống ở collection kỹ thuật `settings` (như `counters`, không tính vào 12 collection nghiệp vụ); `/capacity/system` chỉ quản trị viên (quyền `capacity:system`) |
+| Phân công lấy hàng (US-25, US-27) | `AssignmentService`: ca còn mở hôm nay của tuyến lấy hàng → người ít đơn chưa lấy nhất, chưa đầy năng lực. **Khóa ca**: trong cùng transaction tăng `Shift.assignSeq` rồi mới đếm tải — hai transaction gán vào một ca xung đột ghi, `withTransaction` chạy lại bên thua. Hết chỗ: đơn giữ CONFIRMED, ghi `unassignedReason`. Điều chỉnh tay (`POST /assignments/pickup`) bắt buộc lý do, hủy phân công cũ (CANCELLED). Tài xế: `/assignments/mine/pickups` |

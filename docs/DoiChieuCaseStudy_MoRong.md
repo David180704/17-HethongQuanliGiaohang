@@ -1,6 +1,6 @@
 # Đối chiếu Case study 02 + Case study 14 và chức năng mở rộng — EDMS
 
-Cập nhật 05/11/2026, sau khi Product Owner duyệt phạm vi bổ sung và lập lại PERT
+Cập nhật 11/11/2026 (đóng Sprint 4); phạm vi bổ sung duyệt và PERT lập lại 05/11/2026
 (`PERT_ToanDuAn.docx`). Một dự án EDMS dùng cho cả hai đề cùng chủ đề hệ thống quản lý giao hàng
 (một phần thực hành, một phần lý thuyết), nên phải đáp ứng **đồng thời** hai đề và có thêm chức năng
 mở rộng. Trạng thái lấy theo Product Backlog, Sprint Backlog và `KiemThuTheoStory.md`.
@@ -19,18 +19,18 @@ story chưa xếp Sprint).
 | 5 | Phí theo khu vực, khối lượng, kích thước, dịch vụ, bảng giá tại thời điểm tạo đơn; xem phí trước khi xác nhận | 02, 14 | US-13, US-16, US-17 | ✅ |
 | 6 | Thu hộ COD; ba cách trả phí (trả trước, người nhận trả, trừ vào thu hộ) | 02 | US-19 | ✅ |
 | 7 | Gửi thường thu tiền khi giao; gửi nhanh chuyển khoản / thanh toán trực tuyến | 14 | US-19; US-44 VietQR: gửi nhanh bắt buộc trả trước chuyển khoản, xác nhận đã nhận tiền | ✅ / 📅 |
-| 8 | Nhận mã đơn từ website bán hàng | 14 | US-40: nhập mã đơn của shop khi tạo đơn. Cổng tự nhận đơn từ website (PB#47, mở rộng E3) đã bỏ | 📅 |
-| 9 | Nhân viên kiểm hàng, báo giá, nhập đơn tại điểm; chọn phương tiện giao | 14 | US-40 (PB#48): tiếp nhận tại quầy, gợi ý phương tiện | 📅 |
+| 8 | Nhận mã đơn từ website bán hàng | 14 | US-40: nhập mã đơn của shop khi tạo đơn (tìm được theo mã này). Cổng tự nhận đơn từ website (PB#47, mở rộng E3) đã bỏ | ✅ |
+| 9 | Nhân viên kiểm hàng, báo giá, nhập đơn tại điểm; chọn phương tiện giao | 14 | US-40 (PB#48): tiếp nhận tại quầy, gợi ý phương tiện | ✅ |
 | 10 | Xác nhận đơn → đưa vào quy trình lấy hàng | 02 | US-18 (kho xác nhận, khóa phí) | ✅ |
-| 11 | Tuyến/khu vực, ca làm việc, năng lực, thêm nhân viên khi quá tải | 02 | US-11, US-23, US-24, US-25 | ✅ / 📅 |
-| 12 | Quản lý điều chỉnh phân công (nghỉ, đổi ca, quá tải, đơn ưu tiên) | 02 | US-25 (thêm tiêu chí, PB#53) | 📅 |
-| 13 | Danh sách đơn cần lấy, xác nhận đã lấy | 02 | US-27, US-28 | 📅 |
+| 11 | Tuyến/khu vực, ca làm việc, năng lực, thêm nhân viên khi quá tải | 02 | US-11, US-23, US-24, US-25 | ✅ |
+| 12 | Quản lý điều chỉnh phân công (nghỉ, đổi ca, quá tải, đơn ưu tiên) | 02 | US-25 (thêm tiêu chí, PB#53): bắt buộc lý do, được vượt năng lực kèm cảnh báo | ✅ |
+| 13 | Danh sách đơn cần lấy, xác nhận đã lấy | 02 | US-27 (xong), US-28 (Sprint 5) | ✅ / 📅 |
 | 14 | Không lấy được hàng → ghi nguyên nhân | 02 | US-28 (thêm tiêu chí, PB#34) | 📅 |
 | 15 | Đi qua kho, điểm trung chuyển, bưu cục; ghi trạng thái nhập/xuất kho, trung chuyển | 02 | Hub/bưu cục (US-14); nhập kho, xuất kho, trung chuyển: US-41 (PB#35, #54, #55) | ✅ / 📅 |
 | 16 | Phân loại hàng theo kích cỡ, loại hàng, tuyến xe | 14 | US-41 (PB#50; PB#70 gộp vào) | 📅 |
 | 17 | Giao thường gom theo tuyến; giao nhanh là đơn riêng | 14 | US-12, US-25, US-35 (thêm tiêu chí “đơn nhanh giao riêng, ưu tiên”) | ✅ / 📅 |
-| 18 | Shop theo dõi tiến trình từng đơn | 02 | US-20 (gồm danh sách đơn lọc theo trạng thái, thời gian — PB#16), US-21, US-22 | 📅 |
-| 19 | Khách thấy 4 trạng thái: Chưa nhận / Đã nhận – Chưa giao / Đã nhận – Đang giao / Đã giao | 14 | US-22 | 📅 |
+| 18 | Shop theo dõi tiến trình từng đơn | 02 | US-20 (gồm danh sách đơn lọc theo trạng thái, thời gian — PB#16), US-21, US-22 | ✅ |
+| 19 | Khách thấy 4 trạng thái: Chưa nhận / Đã nhận – Chưa giao / Đã nhận – Đang giao / Đã giao | 14 | US-20, US-22 | ✅ |
 | 20 | Tự check-in khi đi qua điểm trên bản đồ, giúp khách theo dõi | 14 | US-29, US-30 | 📅 |
 | 21 | Phân công giao tại khu vực cuối, theo năng lực | 02 | US-35 | 📅 |
 | 22 | Giao theo phiếu giao hàng (địa chỉ, phường/xã, số điện thoại) | 14 | US-31: danh sách đơn cần giao + phiếu giao hàng in được có mã QR mã vận đơn (PB#18 đưa lại) | 📅 |
@@ -64,16 +64,16 @@ viên. Không cần hạ tầng mới, không có bước chỉ kiểm được 
 | Mã | Nội dung | Gộp vào / tạo mới | Story · Sprint | Điểm | Đề |
 |---|---|---|---|---|---|
 | M1 | **Quy trình tại kho** (đã duyệt): nhân viên kho nhập mã vận đơn → nhận vào kho (AT_HUB, hoặc AT_DEST_HUB nếu là kho đích) → phân loại theo loại hàng và tuyến (SORTED) → xuất kho lên chặng sau (IN_TRANSIT). Loại hàng theo đề 14 (gói nhỏ, bao, thùng, tivi, laptop, CPU, xe…) là danh sách cố định, không làm màn hình quản trị danh mục | Story mới (PB#35, #50, #54, #55) | US-41 · Sprint 5 | 6 | 02, 14 |
-| M2 | Tiếp nhận tại quầy: nhân viên kho tìm khách theo số điện thoại (hoặc tạo khách lẻ), dùng lại bộ tạo đơn 4 bước, nhập mã đơn của shop, hệ thống gợi ý phương tiện (xe máy / xe tải theo khối lượng, kích thước, hàng là xe) | Story mới (PB#48) | US-40 · Sprint 4 | 5 | 14 |
+| M2 | Tiếp nhận tại quầy: nhân viên kho tìm khách theo số điện thoại (hoặc tạo khách lẻ), dùng lại bộ tạo đơn 4 bước, nhập mã đơn của shop, hệ thống gợi ý phương tiện (xe máy / xe tải theo khối lượng, kích thước, hàng là xe) | Story mới (PB#48) | US-40 · Sprint 4 ✅ | 5 | 14 |
 | M3 | Không lấy được hàng / giao thất bại kèm nguyên nhân | Thêm tiêu chí (PB#34, #40) | US-28 (3 → 4) · Sprint 5; US-32 (3 → 5) · Sprint 6 | +3 | 02 |
-| M4 | Quản lý điều chỉnh phân công tay (nghỉ, đổi ca, quá tải, đơn ưu tiên), bắt buộc ghi lý do | Thêm tiêu chí (PB#53) | US-25 (5 → 7) · Sprint 4 | +2 | 02 |
-| M5 | Danh sách đơn của khách, lọc theo trạng thái và thời gian (API đã có) | Thêm tiêu chí (PB#16) | US-20 (2 → 4) · Sprint 4 | +2 | 02 |
+| M4 | Quản lý điều chỉnh phân công tay (nghỉ, đổi ca, quá tải, đơn ưu tiên), bắt buộc ghi lý do | Thêm tiêu chí (PB#53) | US-25 (5 → 7) · Sprint 4 ✅ | +2 | 02 |
+| M5 | Danh sách đơn của khách, lọc theo trạng thái và thời gian (API đã có) | Thêm tiêu chí (PB#16) | US-20 (2 → 4) · Sprint 4 ✅ | +2 | 02 |
 | M6 | Khách khai báo tài khoản ngân hàng nhận COD | Story mới (PB#12) | US-42 · Sprint 5 | 2 | 02 |
 | M7 | Shop xem kỳ đối soát; khoản điều chỉnh; ghi nhận đã chi trả | Story mới (PB#21, #75, #76) | US-43 · Sprint 7 | 5 | 02 |
 | M8 + E4 | **Thanh toán phí bằng VietQR** (đã duyệt): gửi nhanh bắt buộc trả trước chuyển khoản; QR động sinh ngay trong hệ thống; nhân viên xác nhận đã nhận tiền | Story mới (PB#83) | US-44 · Sprint 7 | 4 | 14 |
 | M9 | Phiếu giao hàng (in được, xem trong app tài xế) có **mã QR chứa mã vận đơn** | Thêm tiêu chí (PB#18 đưa lại) | US-31 (3 → 6) · Sprint 6 | +3 | 14 |
 | M10 | Luật “đơn nhanh giao riêng, ưu tiên” khi phân công giao | Thêm tiêu chí | US-35 (5 → 6) · Sprint 6 | +1 | 14 |
-| M11 | Bộ tài liệu UML (actor, use case, đặc tả + activity, lớp, tuần tự, trạng thái) | Việc tài liệu (không tính điểm story) | TL1 · Sprint 4; TL2 · Sprint 5 | — | 14 |
+| M11 | Bộ tài liệu UML (actor, use case, đặc tả + activity, lớp, tuần tự, trạng thái) | Việc tài liệu (không tính điểm story) | TL1 · Sprint 4 ✅; TL2 · Sprint 5 | — | 14 |
 
 Tổng **33 điểm** việc bắt buộc, gồm cả mở rộng E4 đã duyệt: Product Backlog từ 39 story / 137 điểm
 thành **44 story / 170 điểm**.
@@ -133,11 +133,13 @@ thành **44 story / 170 điểm**.
 12. **DevOps**: CI trên GitHub Actions (lint → seed → test → build Docker); Swagger cho mọi API; script
     một lệnh dựng toàn bộ demo (`chay-demo.ps1`).
 
-Mở rộng đã có trong kế hoạch Sprint 4–7:
-- Hàng đợi sự kiện BullMQ có retry và dead-letter queue (US-21).
+Mở rộng đã làm ở Sprint 4 (có test):
+- Hàng đợi sự kiện BullMQ có retry và dead-letter queue (US-21); phân công tự động là consumer thứ hai.
 - Tra cứu công khai có giới hạn 20 request/phút và che số điện thoại (US-22).
 - Năng lực xử lý 3 cấp (US-24).
-- Phân công tự động có transaction chống vượt năng lực (US-25).
+- Phân công tự động có transaction chống vượt năng lực — khóa ca, test 10 đơn đồng thời (US-25).
+
+Mở rộng còn trong kế hoạch Sprint 5–7:
 - Check-in GPS chặn trùng 30 phút, xếp hàng đợi khi mất mạng (US-30).
 - Dashboard bằng aggregation (US-39).
 
@@ -160,7 +162,7 @@ dùng dự phòng → kéo dài Sprint → dời Sprint sau, **không cắt stor
 | Sprint | Thời gian | Mục tiêu | Story (thứ tự làm) |
 |---|---|---|---|
 | 3 | 29/10 – 05/11/2026 (thực tế) | Tạo đơn và tính phí | US-14 → US-19, xong 6/6 |
-| 4 | 06/11 – 01/12/2026 (18 ngày) | Hành trình đơn, tiếp nhận tại quầy, phân công lấy hàng | TL1, US-20, 21, 22, 40, 23, 24, 25, 27 (US-26 đã xong sớm) |
+| 4 | 05/11 – 11/11/2026 (thực tế; kế hoạch 06/11 – 01/12) | Hành trình đơn, tiếp nhận tại quầy, phân công lấy hàng | TL1, US-20, 21, 22, 40, 23, 24, 25, 27, xong 8/8 (US-26 đã xong sớm) |
 | 5 | 02/12 – 18/12/2026 (13 ngày) | Lấy hàng, quy trình tại kho, check-in GPS | US-28, 41, 29, 30, 42, TL2 |
 | 6 | 21/12/2026 – 11/01/2027 (15 ngày) | Giao hàng, thu COD, giao lại, hoàn hàng | US-35, 31, 32, 33, 36, 37 |
 | 7 | 12/01 – 02/02/2027 (16 ngày) | Thanh toán VietQR, đối soát, sự cố, thống kê | US-44, 34, 43, 38, 39 |

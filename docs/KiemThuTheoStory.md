@@ -8,18 +8,18 @@
 
 | | Số story |
 |---|---|
-| 🟢 Đạt (mọi tiêu chí có test và pass) | 24 |
+| 🟢 Đạt (mọi tiêu chí có test và pass) | 28 |
 | 🔴 Lỗi (có test fail) | 0 |
-| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 20 |
+| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 16 |
 
-Điểm story đạt: **80/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
+Điểm story đạt: **96/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
 | Sprint 1 | 4/4 | 16/16 |
 | Sprint 2 | 9/9 | 24/24 |
 | Sprint 3 | 6/6 | 21/21 |
-| Sprint 4 | 5/9 | 19/35 |
+| Sprint 4 | 9/9 | 35/35 |
 | Sprint 5 | 0/5 | 0/20 |
 | Sprint 6 | 0/6 | 0/27 |
 | Sprint 7 | 0/5 | 0/27 |
@@ -56,11 +56,11 @@ server nên không nằm trong lệnh này.
 | 4 | US-21 | Hàng đợi sự kiện và consumer ghi nhật ký hành trình đơn | 5 | 🟢 Đạt | 5/5 | Story kỹ thuật, không có màn hình: hàng đợi thật (BullMQ trên Redis) trong test API; kết quả thấy qua tra cứu công khai (US-22) |
 | 4 | US-22 | Tra cứu hành trình đơn hàng bằng mã vận đơn | 3 | 🟢 Đạt | 4/4 | Web + App KH: tra cứu khi chưa đăng nhập, 4 nhóm, che số · Quy trình 3 app: shop tạo đơn → kho duyệt → người nhận tra cứu · Maestro KH 11 |
 | 4 | US-40 | Tiếp nhận hàng tại quầy: kiểm hàng, báo giá, tạo đơn hộ khách | 5 | 🟢 Đạt | 8/8 | App NV: tiếp nhận khách lẻ / shop, gợi ý xe tải, thu tiền mặt · Quy trình: kho tiếp nhận → người nhận tra cứu Web, shop thấy đơn · Maestro NV 09 |
-| 4 | US-23 | Quản lý ca làm việc và phân công nhân viên vào tuyến | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 4 | US-24 | Cấu hình năng lực xử lý tối đa của người giao hàng | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 4 | US-25 | Phân công đơn lấy hàng cho người giao hàng | 7 | ⚪ Chưa làm | 0/0 · còn 3 tiêu chí |  |
+| 4 | US-23 | Quản lý ca làm việc và phân công nhân viên vào tuyến | 3 | 🟢 Đạt | 7/7 | App NV: kho xếp ca → tài xế thấy ca hôm nay; kho HCM chỉ thấy tuyến mình, trùng giờ bị chặn · Maestro NV 10 |
+| 4 | US-24 | Cấu hình năng lực xử lý tối đa của người giao hàng | 3 | 🟢 Đạt | 5/5 | App NV: admin đặt mặc định → kho đặt năng lực riêng tài xế → bỏ ghi đè về theo tuyến · Maestro NV 10 |
+| 4 | US-25 | Phân công đơn lấy hàng cho người giao hàng | 7 | 🟢 Đạt | 6/6 | App NV: quy trình shop tạo đơn → kho duyệt → tự phân công theo ca/năng lực → hàng chờ → phân công tay có lý do → tài xế thấy đơn · Maestro NV 10 |
 | 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro NV 01–07 trên máy ảo Android · App NV: 17 kịch bản |
-| 4 | US-27 | Xem danh sách đơn cần lấy trong ca làm việc | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
+| 4 | US-27 | Xem danh sách đơn cần lấy trong ca làm việc | 3 | 🟢 Đạt | 1/1 | App NV: tài xế thấy số đơn cần lấy trên thẻ Ca hôm nay và danh sách theo ca (trong quy trình US-25) · Maestro NV 11 |
 | 5 | US-28 | Xác nhận đã lấy hàng hoặc ghi nhận không lấy được | 4 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
 | 5 | US-41 | Quy trình tại kho: nhập kho, phân loại, xuất kho và trung chuyển | 6 | ⚪ Chưa làm | 0/0 · còn 3 tiêu chí |  |
 | 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
