@@ -4,6 +4,8 @@ import { ROLES, USER_STATUS, CUSTOMER_TYPE } from "../constants/enums.js";
 const bankAccountSchema = new mongoose.Schema(
   {
     bankName: String,
+    // Ma ngan hang theo chuan VietQR (US-42)
+    bankCode: String,
     accountNumber: String,
     accountName: String,
   },
