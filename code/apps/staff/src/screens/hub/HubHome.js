@@ -8,7 +8,7 @@ const UPCOMING_TILES = [
   { key: "incidents", title: "Sự cố, khiếu nại", description: "Ghi nhận và theo dõi xử lý", upcoming: "#38 · Sprint 7" },
 ];
 
-export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts, onOpenCapacity, onOpenAssign }) {
+export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts, onOpenCapacity, onOpenAssign, onOpenWarehouse }) {
   const hub = user.hubId;
   const [waiting, setWaiting] = useState();
   const [queued, setQueued] = useState();
@@ -50,6 +50,12 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCo
       description: "Tự động theo ca và năng lực, điều chỉnh tay",
       meta: queued !== undefined ? `${queued} đơn chờ phân công` : undefined,
       onPress: onOpenAssign,
+    },
+    {
+      key: "warehouse",
+      title: "Nhập / xuất kho",
+      description: "Quét mã: nhận, phân loại, xuất kho",
+      onPress: onOpenWarehouse,
     },
     {
       key: "shifts",
