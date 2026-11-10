@@ -13,4 +13,8 @@ const shiftSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Tra ca theo ngay + tuyen (danh sach ca, phan cong US-25); ma ca la duy nhat (tuyen-ngay-gio bat dau)
+shiftSchema.index({ shiftDate: 1, routeId: 1 });
+shiftSchema.index({ code: 1 }, { unique: true });
+
 export const Shift = mongoose.model("Shift", shiftSchema);

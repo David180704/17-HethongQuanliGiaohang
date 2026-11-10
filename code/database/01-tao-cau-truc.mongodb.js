@@ -1142,7 +1142,7 @@ const COLLECTIONS = [
   {
     // ---------------- shifts (model Shift) ----------------
     name: "shifts",
-    indexes: [],
+    indexes: [[{"shiftDate":1,"routeId":1},{}],[{"code":1},{"unique":true}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
