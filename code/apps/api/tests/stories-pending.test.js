@@ -7,10 +7,6 @@ import { test } from "node:test";
 const pending = {
   // ---------- Sprint 4 (06/11 - 01/12/2026): da xong het ----------
   // ---------- Sprint 5 (02/12 - 18/12/2026) ----------
-  "US-28": [
-    "Xac nhan da lay hang: quet ma van don, ghi toa do GPS va thoi gian",
-    "Khong lay duoc hang: bat buoc chon nguyen nhan, ghi vao hanh trinh don (PB#34)",
-  ],
   "US-41": [
     "Nhap kho bang ma van don: don chuyen AT_HUB (AT_DEST_HUB neu la kho dich), ghi nhan vien va thoi gian",
     "Phan loai theo loai hang (danh sach co dinh theo de 14) va tuyen: don chuyen SORTED",
