@@ -40,6 +40,10 @@ erDiagram
 
     ORDER ||--o{ ASSIGNMENT : "orderId"
     SHIFT ||--o{ ASSIGNMENT : "shiftId"
+    CHECKINPOINT ||--o{ CHECKINLOG : "pointId"
+    ORDER ||--o{ CHECKINLOG : "orderId"
+    USER ||--o{ CHECKINLOG : "shipperId"
+    HUB |o--o{ CHECKINPOINT : "hubId"
 
     ROLE {
         string code PK
@@ -130,6 +134,26 @@ erDiagram
         object fee "nhung - lockedAt khi CONFIRMED"
         object cod "nhung"
         string unassignedReason "hang cho phan cong"
+        ObjectId destHubId FK "kho dich"
+        ObjectId currentHubId FK "kho dang giu"
+        string itemCategory "loai hang khi phan loai"
+    }
+    CHECKINPOINT {
+        ObjectId _id PK
+        string code UK
+        number lat
+        number lng
+        number radiusM "mac dinh 150"
+        ObjectId hubId FK
+    }
+    CHECKINLOG {
+        ObjectId _id PK
+        ObjectId pointId FK
+        ObjectId orderId FK
+        ObjectId shipperId FK
+        date at "thoi diem goc"
+        string source "AUTO hoac MANUAL"
+        string clientEventId "chong ghi trung khi gui lai"
     }
     ORDERDRAFT {
         ObjectId _id PK
@@ -147,6 +171,8 @@ erDiagram
         string status "ASSIGNED DONE FAILED CANCELLED"
         string method "AUTO hoac MANUAL"
         string reason "bat buoc khi MANUAL"
+        date doneAt "ket qua lay hang"
+        string failReason "nguyen nhan khong lay duoc"
     }
 ```
 
