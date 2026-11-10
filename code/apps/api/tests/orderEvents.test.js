@@ -194,6 +194,8 @@ test("[US-21] consumer loi -> thu lai dung 5 lan (gian cach tang dan) roi chuyen
 test("[US-21] luong nghiep vu: khach tao don, kho duyet -> consumer ghi hanh trinh cong khai 2 moc, doc lai duoc tu Redis", async () => {
   // worker chay dung handler cua ung dung tren hang doi that cua API (nhu server.js)
   const container = getContainer();
+  // Hang doi test (order-events-test) con job cua cac file test khac (khong co worker) -> bo truoc
+  await container.orderEvents.queue.drain(true);
   workers.push(container.orderEvents.startWorker(container.orderEventHandlers));
   const order = await createOrder("Nhận luồng US-21");
   assert.equal((await as("kho", request(app).post(`/orders/${order._id}/confirm`))).status, 200);
