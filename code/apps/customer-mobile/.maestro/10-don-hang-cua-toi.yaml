@@ -35,8 +35,10 @@ tags:
       - extendedWaitUntil:
           visible: "\\d+ đơn"
           timeout: 15000
+      # Bam theo nhan (content-desc "Đã giao") - chip tren cung, truoc cac the don co nhan cung ten
       - tapOn:
-          id: "orders-group-DELIVERED"
+          text: "Đã giao"
+          index: 0
       - extendedWaitUntil:
           visible: "5 đơn"
           timeout: 8000

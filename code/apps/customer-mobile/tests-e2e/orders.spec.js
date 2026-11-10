@@ -124,7 +124,10 @@ test("[US-20] mobile: loc don theo nhom trang thai, thoi gian, ma van don; chi t
   await page.getByTestId("orders-range-ALL").click();
   await expect(page.getByTestId("orders-total")).toHaveText("3 đơn");
 
-  // Chi tiet don da duoc kho duyet: hanh trinh moi nhat o tren, phi da khoa
+  // Chi tiet don da duoc kho duyet: hanh trinh moi nhat o tren, phi da khoa. Mo tu nhom "Chua nhan" ->
+  // quay lai van o nhom do (bo loc khong mat khi mo chi tiet).
+  await page.getByTestId("orders-group-NOT_RECEIVED").click();
+  await expect(page.getByTestId("orders-total")).toHaveText("2 đơn");
   await page.getByTestId(`order-${confirmed.trackingCode}`).click();
   await expect(page.getByTestId("journey-0")).toContainText("Đã xác nhận, chờ lấy hàng");
   await expect(page.getByTestId("journey-1")).toContainText("Chờ bưu cục xác nhận");
@@ -134,5 +137,6 @@ test("[US-20] mobile: loc don theo nhom trang thai, thoi gian, ma van don; chi t
   await page.screenshot({ path: `${SHOT_DIR}/us20-m02-chi-tiet.png`, fullPage: true });
 
   await page.getByTestId("back-button").click();
-  await expect(page.getByTestId("orders-total")).toHaveText("3 đơn");
+  await expect(page.getByTestId("orders-total")).toHaveText("2 đơn");
+  await expect(page.getByTestId("orders-group-NOT_RECEIVED")).toHaveAttribute("aria-checked", "true");
 });
