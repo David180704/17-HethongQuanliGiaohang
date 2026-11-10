@@ -1,10 +1,15 @@
 import { test, expect, request } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 
-// Kiem thu dau-cuoi Sprint 3 tren HAI app that cung luc (KT): khach tao don tren Web Khach
-// hang (dien thoai) -> nhan vien kho Hub Ha Noi duyet tren App Nhan vien (may tinh) -> don
-// CONFIRMED, phi khoa dung bang phi khach da xem. Can API (4044), web (5173), staff (8082).
+// Kiem thu QUY TRINH lien vai tro tren BA app that cung luc:
+//   1. Shop tao don tren Web Khach hang (US-18, US-19)
+//   2. Nhan vien kho Hub Ha Noi duyet tren App Nhan vien -> CONFIRMED, phi khoa (US-17, US-18)
+//   3. Shop xem "Don hang cua toi" tren Web: trang thai moi, hanh trinh 2 moc (US-20)
+//   4. Nguoi nhan (khong dang nhap) tra ma tren App Khach hang: moc moi do hang doi su kien ghi (US-21, US-22)
+//   5. Nguoi nhan mo link tra cuu cong khai tren Web (US-22)
+// Can API (4044), web (5173), App Nhan vien (8082), App Khach hang (8083).
 const STAFF_URL = process.env.E2E_STAFF_URL || "http://localhost:8082";
+const CUSTOMER_APP_URL = process.env.E2E_CUSTOMER_URL || "http://localhost:8083";
 const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
 const PASSWORD = "123456";
 const SHOT_DIR = "tests-e2e/screenshots";
@@ -24,13 +29,23 @@ function removeTestOrders() {
   }
 }
 
-test.beforeAll(removeTestOrders);
+test.beforeAll(() => {
+  removeTestOrders();
+  try {
+    // API tra cuu gioi han 20 lan/phut moi IP; moi test deu chay tu may nay
+    execFileSync("docker", ["exec", "edms-redis", "sh", "-c", "redis-cli --scan --pattern 'ratelimit:tracking:*' | xargs -r redis-cli del"], {
+      stdio: "ignore",
+    });
+  } catch {
+    // khong co Docker -> bo qua
+  }
+});
 test.afterAll(removeTestOrders);
 
-test("[US-18] lien app: khach tao don tren Web -> kho Hub Ha Noi duyet tren App Nhan vien -> don CONFIRMED, phi khoa", async ({
+test("[US-18][US-20][US-22] quy trinh: shop tao don tren Web -> kho duyet tren App Nhan vien -> shop thay don doi trang thai -> nguoi nhan tra cuu tren App Khach hang", async ({
   browser,
 }) => {
-  test.setTimeout(3 * 60_000);
+  test.setTimeout(4 * 60_000);
   const customerContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const staffContext = await browser.newContext({ viewport: { width: 1100, height: 760 } });
   const customer = await customerContext.newPage();
@@ -94,6 +109,37 @@ test("[US-18] lien app: khach tao don tren Web -> kho Hub Ha Noi duyet tren App 
   expect(order.flags.fragile).toBe(true);
   await api.dispose();
 
+  // 4. Shop xem "Don hang cua toi" tren Web: don da sang "Da xac nhan", hanh trinh 2 moc, phi da khoa
+  await customer.goto(`/don-hang?q=${trackingCode}`);
+  const row = customer.getByRole("list", { name: "Danh sách đơn hàng" }).getByRole("link", { name: new RegExp(trackingCode) });
+  await expect(row).toContainText("Đã xác nhận, chờ lấy hàng");
+  await row.click();
+  const journey = customer.getByRole("region", { name: "Hành trình đơn hàng" }).getByRole("listitem");
+  await expect(journey).toHaveCount(2);
+  await expect(journey.first()).toContainText("Đã xác nhận, chờ lấy hàng");
+  await expect(customer.getByText(/Phí đã khóa lúc/)).toBeVisible();
+  await customer.screenshot({ path: `${SHOT_DIR}/15-cross-customer-detail.png` });
+
+  // 5. Nguoi nhan (thiet bi khac, khong dang nhap) tra ma tren App Khach hang
+  const recipientContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const recipient = await recipientContext.newPage();
+  await recipient.goto(CUSTOMER_APP_URL);
+  await expect(recipient.getByText("Gửi hàng toàn quốc, theo dõi từng chặng")).toBeVisible({ timeout: 60_000 });
+  await recipient.getByTestId("home-track-code").fill(trackingCode);
+  await recipient.getByTestId("home-track-submit").click();
+  await expect(recipient.getByTestId("track-group")).toHaveText("Chưa nhận");
+  await expect(recipient.getByTestId("track-event-0")).toContainText("Đã xác nhận, chờ lấy hàng");
+  await expect(recipient.getByTestId("track-result")).toContainText("09xx xxx 444");
+  await expect(recipient.getByTestId("track-result")).not.toContainText(RECEIVER);
+  await recipient.screenshot({ path: `${SHOT_DIR}/15-cross-recipient-track.png` });
+
+  // 6. Link tra cuu cong khai tu trang chi tiet don (shop gui cho nguoi nhan) mo duoc khi khong dang nhap
+  const link = await customer.getByRole("link", { name: "Link tra cứu công khai cho người nhận" }).getAttribute("href");
+  const guest = await (await browser.newContext()).newPage();
+  await guest.goto(link);
+  await expect(guest.getByRole("region", { name: "Kết quả tra cứu" })).toContainText("Đã xác nhận, chờ lấy hàng");
+
+  await recipientContext.close();
   await customerContext.close();
   await staffContext.close();
 });
