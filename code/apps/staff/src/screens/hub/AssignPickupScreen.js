@@ -81,13 +81,14 @@ export default function AssignPickupScreen({ accent, onBack }) {
   }
 
   const shippersOf = (routeId) => board?.shippersByRoute.find((r) => r._id === routeId)?.shippers || [];
-  const openForm = (order) => {
+  // allowSame: don lay khong duoc (US-28) duoc giao lai cho chinh nguoi cu
+  const openForm = (order, { allowSame = false } = {}) => {
     reset();
     setForm({
       orderId: order._id,
       trackingCode: order.trackingCode,
       routeId: order.route?._id,
-      currentId: order.assignedTo?._id,
+      currentId: allowSame ? null : order.assignedTo?._id,
       shipperId: "",
       reason: "",
     });
@@ -162,6 +163,34 @@ export default function AssignPickupScreen({ accent, onBack }) {
                   variant="secondary"
                   accessibilityLabel={`Phân công tay ${order.trackingCode}`}
                   onPress={() => openForm(order)}
+                />
+              )}
+              {manualForm(order)}
+            </View>
+          ))}
+
+          {board.failed?.length ? (
+            <Text role="heading" style={styles.section}>
+              Lấy không được ({board.failed.length})
+            </Text>
+          ) : null}
+          {board.failed?.map((order) => (
+            <View key={order._id} style={styles.card} testID={`assign-failed-${order.trackingCode}`}>
+              <View style={styles.head}>
+                <Text style={styles.title}>{order.trackingCode}</Text>
+                <Text style={styles.badge}>{order.route?.code || "?"}</Text>
+              </View>
+              <Text style={styles.muted}>
+                {order.customerName} · {order.assignedTo?.fullName || "?"}
+              </Text>
+              {order.failNote ? <Text style={styles.reason}>{order.failNote}</Text> : null}
+              {form?.orderId === order._id ? null : (
+                <Button
+                  title="Giao lại"
+                  size="sm"
+                  variant="secondary"
+                  accessibilityLabel={`Giao lại ${order.trackingCode}`}
+                  onPress={() => openForm(order, { allowSame: true })}
                 />
               )}
               {manualForm(order)}
