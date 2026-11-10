@@ -110,6 +110,58 @@ import { OrderController } from "./OrderController.js";
  *     responses:
  *       200: { description: "Chi tiet don kem toan bo hanh trinh (statusHistory co nhan tung moc) va display" }
  *       404: { description: Khong co hoac khong thuoc pham vi }
+ * /orders/counter/customers:
+ *   get:
+ *     tags: [Orders]
+ *     summary: "Tiep nhan tai quay (US-40) - nhan vien kho tim khach theo so dien thoai"
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: query, name: phone, required: true, schema: { type: string, example: "0909000031" } }]
+ *     responses:
+ *       200: { description: "{ found, phone, customer? { _id, fullName, customerType, shopName, status, walkIn } }" }
+ *       400: { description: So dien thoai sai hoac thuoc tai khoan nhan vien }
+ * /orders/counter/quote:
+ *   post:
+ *     tags: [Orders]
+ *     summary: "Bao gia tai quay (US-40) - noi gui la diem cua nhan vien; kem goi y phuong tien (xe may / xe tai)"
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               receiver: { type: object, properties: { province: { type: string }, district: { type: string } } }
+ *               item: { type: object }
+ *               flags: { type: object }
+ *     responses:
+ *       200: { description: "Nhu estimate-fee + vehicle { code MOTORBIKE|TRUCK, label, reason } + counter { hubId, hubName }" }
+ * /orders/counter:
+ *   post:
+ *     tags: [Orders]
+ *     summary: "Tao don tai quay (US-40) - tim hoac tao khach le, khoa phi ngay, don CREATED -> CONFIRMED -> AT_HUB trong mot transaction"
+ *     description: >
+ *       Nhan vien kho (quyen order:approve) tiep nhan hang tai diem cua minh. Khach chua co tai khoan -> tao khach le
+ *       theo so dien thoai (can fullName), chua dang nhap duoc. Tra truoc tien mat (SHOP_PREPAID + CASH) -> ghi da thu phi.
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [customer, receiver, item, serviceTypeId]
+ *             properties:
+ *               customer: { type: object, properties: { phone: { type: string }, fullName: { type: string } } }
+ *               receiver: { type: object }
+ *               item: { type: object }
+ *               flags: { type: object }
+ *               serviceTypeId: { type: string }
+ *               cod: { type: object }
+ *               shopOrderCode: { type: string, description: "Ma don tren website ban hang cua shop (tuy chon)" }
+ *     responses:
+ *       201: { description: "Don channel COUNTER, status AT_HUB, fee.lockedAt, vehicleSuggestion, newCustomer" }
+ *       400: { description: Thieu / sai du lieu }
+ *       403: { description: Nhan vien chua gan diem hoac khach bi khoa }
+ *       422: { description: "OUT_OF_SERVICE_AREA, PRICE_NOT_AVAILABLE, COD_LESS_THAN_FEE" }
  * /orders/{id}/confirm:
  *   post:
  *     tags: [Orders]
@@ -135,6 +187,10 @@ export function buildOrdersRouter({ pricingService, orderService, middleware }) 
   router.use(requireAuth);
   router.get("/", requirePermission(READ_PERMISSIONS), asyncHandler(controller.list));
   router.post("/", requirePermission("order:create"), asyncHandler(controller.create));
+  // Tiep nhan tai quay (US-40): dat truoc "/:id"; nhan vien kho co quyen duyet don thi tiep nhan duoc
+  router.get("/counter/customers", requirePermission("order:approve"), asyncHandler(controller.counterCustomer));
+  router.post("/counter/quote", requirePermission("order:approve"), asyncHandler(controller.counterQuote));
+  router.post("/counter", requirePermission("order:approve"), asyncHandler(controller.createAtCounter));
   router.get("/:id", requirePermission(READ_PERMISSIONS), asyncHandler(controller.get));
   router.post("/:id/confirm", requirePermission("order:approve"), asyncHandler(controller.confirm));
   return router;

@@ -3,7 +3,7 @@ import { Order } from "../../models/Order.js";
 
 export class OrderRepository extends BaseRepository {
   constructor() {
-    super(Order, { searchFields: ["trackingCode", "receiver.name", "receiver.phone"] });
+    super(Order, { searchFields: ["trackingCode", "shopOrderCode", "receiver.name", "receiver.phone"] });
   }
 
   /** Them don trong transaction (Model.create can mang khi truyen session). */

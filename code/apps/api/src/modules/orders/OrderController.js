@@ -24,4 +24,11 @@ export class OrderController {
   get = async (req, res) => ok(res, await this.orderService.get(req.user, req.params.id));
 
   confirm = async (req, res) => ok(res, await this.orderService.confirm(req.user, req.params.id));
+
+  // Tiep nhan tai quay (US-40)
+  counterCustomer = async (req, res) => ok(res, await this.orderService.findCounterCustomer(req.user, req.query));
+
+  counterQuote = async (req, res) => ok(res, await this.orderService.counterQuote(req.user, req.body || {}));
+
+  createAtCounter = async (req, res) => created(res, await this.orderService.createAtCounter(req.user, req.body || {}));
 }

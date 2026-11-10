@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
-import { ORDER_STATUS, ZONE, FEE_PAYER, FEE_PAYMENT_METHOD, COD_METHOD, PACKING_TYPE } from "../constants/enums.js";
+import {
+  ORDER_STATUS,
+  ORDER_CHANNEL,
+  VEHICLE_TYPE,
+  ZONE,
+  FEE_PAYER,
+  FEE_PAYMENT_METHOD,
+  COD_METHOD,
+  PACKING_TYPE,
+} from "../constants/enums.js";
 
 const receiverSchema = new mongoose.Schema(
   {
@@ -90,8 +99,23 @@ const orderSchema = new mongoose.Schema(
     trackingCode: { type: String, required: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     customerName: { type: String, required: true },
+    // Kenh tao don (US-40): ONLINE - khach tu tao; COUNTER - nhan vien kho tiep nhan tai quay (hang da o diem,
+    // khong co dia diem lay hang, nguoi tiep nhan = receivedBy)
+    channel: { type: String, enum: ORDER_CHANNEL, default: "ONLINE" },
+    receivedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    // Ma don cua shop tren website ban hang (de 14 muc a) - tuy chon, tim kiem duoc
+    shopOrderCode: { type: String, default: null, trim: true },
+    // Phuong tien goi y luc tiep nhan (US-40): MOTORBIKE | TRUCK
+    vehicle: { type: String, enum: VEHICLE_TYPE, default: null },
 
-    pickupLocationId: { type: mongoose.Schema.Types.ObjectId, ref: "PickupLocation", required: true },
+    pickupLocationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PickupLocation",
+      required() {
+        return this.channel !== "COUNTER";
+      },
+      default: null,
+    },
     pickupWard: { type: String, required: true },
     // Hub/buu cuc quan ly tuyen cua khu vuc lay hang: nhan vien diem nay (va hub cap
     // tren) duyet don, phan cong lay hang (US-18). Xac dinh luc tao don.

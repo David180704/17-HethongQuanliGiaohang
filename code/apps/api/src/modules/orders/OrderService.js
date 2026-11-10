@@ -4,6 +4,8 @@ import { orderValidator } from "./orders.validator.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "./CounterRepository.js";
 import { assertCodCoversFee } from "./cod.js";
 import { groupFilter, withDisplay } from "./orderStatus.js";
+import { suggestVehicle } from "./vehicle.js";
+import { randomBytes } from "node:crypto";
 
 const MAX_LIMIT = 100;
 
@@ -30,6 +32,7 @@ export class OrderService {
     pricingService,
     transactions,
     orderEvents = null,
+    passwordHasher = null,
     validator = orderValidator,
   }) {
     Object.assign(this, {
@@ -44,6 +47,7 @@ export class OrderService {
       pricingService,
       transactions,
       orderEvents,
+      passwordHasher,
       validator,
     });
   }
@@ -107,6 +111,8 @@ export class OrderService {
       priceTableId: quote.priceTableId,
       fee: quote.fee,
       cod: data.cod,
+      shopOrderCode: data.shopOrderCode,
+      vehicle: suggestVehicle({ chargeableWeight: quote.chargeableWeight, item: data.item, flags: quote.flags }).code,
       status: "CREATED",
       statusHistory: [{ status: "CREATED", at: now, by: customer._id, note: "Khách tạo đơn" }],
     };
@@ -123,6 +129,128 @@ export class OrderService {
     });
     await this.#publishStatusChanged(saved, null, customer._id);
     return withDisplay(saved);
+  }
+
+  // ---------------------------------------------------------------- tiep nhan tai quay (US-40)
+
+  /** Diem (hub/buu cuc) cua nhan vien kho kem khu vuc phuc vu - noi gui cua don tai quay. */
+  async #counterPoint(user) {
+    const staff = await this.userRepository.findById(user.id);
+    const hub = staff?.hubId ? await this.hubRepository.findById(staff.hubId) : null;
+    if (!hub) throw ErrorCodes.FORBIDDEN("Tài khoản chưa được gán điểm tiếp nhận");
+    const area = hub.serviceAreaId ? await this.serviceAreaRepository.findById(hub.serviceAreaId) : null;
+    if (!area) throw ErrorCodes.OUT_OF_SERVICE_AREA(`Điểm ${hub.name} chưa gắn khu vực phục vụ`);
+    return { staff, hub, area };
+  }
+
+  /** Tim khach theo so dien thoai (UC21). Khong co -> found = false, nhan vien tao khach le khi tao don. */
+  async findCounterCustomer(user, query) {
+    const phone = this.validator.counterPhone(query);
+    await this.#counterPoint(user);
+    const customer = await this.userRepository.findByPhone(phone);
+    if (!customer) return { found: false, phone };
+    if (customer.role !== "CUSTOMER") {
+      throw ErrorCodes.VALIDATION_ERROR("Số điện thoại này thuộc tài khoản nhân viên, không phải khách hàng");
+    }
+    const { _id, fullName, customerType, shopName, status, walkIn } = customer;
+    return { found: true, phone, customer: { _id, fullName, phone, customerType, shopName, status, walkIn } };
+  }
+
+  /** Bao gia tai quay: noi gui la diem cua nhan vien; moi loai dich vu kem goi y phuong tien. */
+  async counterQuote(user, input) {
+    const data = this.validator.counterQuote(input);
+    const { hub } = await this.#counterPoint(user);
+    const estimate = await this.pricingService.estimate({
+      pickup: { province: hub.province, district: hub.district },
+      receiver: data.receiver,
+      item: data.item,
+      flags: data.flags,
+    });
+    const vehicle = suggestVehicle({ chargeableWeight: estimate.chargeableWeight, item: data.item, flags: estimate.flags });
+    return { ...estimate, vehicle, counter: { hubId: hub._id, hubName: hub.name } };
+  }
+
+  /**
+   * Tao don tai quay trong MOT transaction: tim hoac tao khach le, sinh ma van don, phi khoa ngay, don di
+   * CREATED -> CONFIRMED -> AT_HUB (hang da nam tai diem). Tra truoc tien mat -> ghi da thu phi.
+   */
+  async createAtCounter(user, input) {
+    const data = this.validator.counter(input);
+    const { staff, hub, area: pickupArea } = await this.#counterPoint(user);
+    const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
+    const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
+    assertCodCoversFee(data.cod, quote.fee);
+    const vehicle = suggestVehicle({ chargeableWeight: quote.chargeableWeight, item: data.item, flags: quote.flags });
+
+    const existing = await this.userRepository.findByPhone(data.customer.phone);
+    if (existing && existing.role !== "CUSTOMER") {
+      throw ErrorCodes.VALIDATION_ERROR("Số điện thoại này thuộc tài khoản nhân viên, không phải khách hàng");
+    }
+    if (existing && existing.status === "LOCKED") throw ErrorCodes.FORBIDDEN("Tài khoản khách đang bị khóa");
+    if (!existing && !data.customer.fullName) {
+      throw ErrorCodes.VALIDATION_ERROR("Khách chưa có tài khoản: nhập họ tên để tạo khách lẻ");
+    }
+    // Khach le: email noi bo theo so dien thoai, mat khau ngau nhien (chua dang nhap duoc)
+    const walkInHash = existing ? null : await this.passwordHasher.hash(randomBytes(24).toString("hex"));
+
+    const now = new Date();
+    const paidAtCounter = data.cod.feePayer === "SHOP_PREPAID" && data.cod.feePaymentMethod === "CASH";
+    const by = staff._id;
+    const saved = await this.transactions.run(async (session) => {
+      const customer =
+        existing ||
+        (await this.userRepository.insert(
+          {
+            email: `${data.customer.phone}@khachle.edms.vn`,
+            phone: data.customer.phone,
+            passwordHash: walkInHash,
+            fullName: data.customer.fullName,
+            role: "CUSTOMER",
+            customerType: "INDIVIDUAL",
+            status: "ACTIVE",
+            walkIn: true,
+          },
+          { session },
+        ));
+      const seq = await this.counterRepository.next(TRACKING_COUNTER, {
+        session,
+        startAfter: () => this.orderRepository.maxTrackingNumber({ session }),
+      });
+      return this.orderRepository.insert(
+        {
+          trackingCode: formatTrackingCode(seq),
+          channel: "COUNTER",
+          receivedBy: by,
+          customerId: customer._id,
+          customerName: customer.shopName || customer.fullName,
+          shopOrderCode: data.shopOrderCode,
+          pickupLocationId: null,
+          pickupWard: hub.address || hub.district,
+          pickupHubId: hub._id,
+          receiver: { ...data.receiver, province: receiverArea.province, district: receiverArea.district },
+          item: data.item,
+          flags: quote.flags,
+          serviceTypeId: serviceType._id,
+          serviceName: serviceType.name,
+          zone: quote.zone,
+          chargeableWeight: quote.chargeableWeight,
+          priceTableId: quote.priceTableId,
+          fee: { ...quote.fee, lockedAt: now },
+          cod: { ...data.cod, feePaid: paidAtCounter, feePaidAt: paidAtCounter ? now : null },
+          vehicle: vehicle.code,
+          status: "AT_HUB",
+          statusHistory: [
+            { status: "CREATED", at: now, by, note: `Tiếp nhận tại quầy ${hub.name}` },
+            { status: "CONFIRMED", at: now, by, note: "Kiểm hàng, báo giá và khóa phí tại quầy" },
+            { status: "AT_HUB", at: now, by, note: `Hàng đã nhận tại ${hub.name}` },
+          ],
+        },
+        { session },
+      );
+    });
+    await this.#publishStatusChanged(saved, null, by);
+    return { ...withDisplay(saved), vehicleSuggestion: vehicle, newCustomer: !existing };
   }
 
   async list(user, query = {}) {
