@@ -167,6 +167,8 @@ test("may ao: kho duyet don tren App Nhan vien -> nguoi nhan tra cuu tren web th
     await recipient.screenshot({ path: `${SHOT_DIR}/22-thiet-bi-nguoi-nhan-tra-cuu.png` });
     const shop = await (await browser.newContext()).newPage();
     await loginOnWeb(shop, "shop2@edms.vn");
+    // Doi dang nhap xong (ve trang chu) roi moi mo trang khac, khong thi goto cat ngang request dang nhap
+    await expect(shop).toHaveURL(/\/$/);
     await shop.goto(`/don-hang?q=${trackingCode}`);
     await expect(shop.getByRole("list", { name: "Danh sách đơn hàng" })).toContainText("Đã xác nhận, chờ lấy hàng");
   } finally {
