@@ -42,6 +42,9 @@ export default function OrderDetailPage() {
           <p className="text-sm text-gray-500">Mã vận đơn</p>
           <h1 className="text-3xl font-extrabold tracking-wide text-brand-600">{order.trackingCode}</h1>
           <p className="mt-1 text-sm text-gray-500">Tạo lúc {formatDateTime(order.createdAt)}</p>
+          <Link to={`/tra-cuu?ma=${order.trackingCode}`} className="text-sm font-medium text-brand-600 hover:underline">
+            Link tra cứu công khai cho người nhận
+          </Link>
         </div>
         <StatusBadge display={order.display} />
       </div>
