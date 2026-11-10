@@ -9,11 +9,12 @@ const TONES = {
 };
 
 // Khong co noi dung thi khong render gi - goi <Banner>{error}</Banner> thoai mai.
-export default function Banner({ tone = "error", children }) {
+export default function Banner({ tone = "error", testID, children }) {
   if (!children) return null;
   const palette = TONES[tone] || TONES.error;
   return (
     <View
+      testID={testID}
       role={tone === "error" ? "alert" : "status"}
       style={[styles.box, { backgroundColor: palette.bg, borderColor: palette.border }]}
     >
