@@ -160,6 +160,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     pricingService,
     transactions: new MongooseTransactionRunner(),
     orderEvents,
+    passwordHasher,
   });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,

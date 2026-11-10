@@ -53,6 +53,10 @@ export const FINISHED_ORDER_STATUS = ["DELIVERED", "RETURNED", "CANCELLED"];
 
 export const PACKING_TYPE = ["BOX", "BAG", "PALLET", "ENVELOPE", "OTHER"];
 
+// Kenh tao don va phuong tien goi y (US-40)
+export const ORDER_CHANNEL = ["ONLINE", "COUNTER"];
+export const VEHICLE_TYPE = ["MOTORBIKE", "TRUCK"];
+
 export const ASSIGNMENT_TYPE = ["PICKUP", "DELIVERY", "RETURN"];
 
 export const ASSIGNMENT_STATUS = ["ASSIGNED", "DONE", "FAILED"];
