@@ -213,6 +213,9 @@ function Remove-MobileTestData {
   $deleted = docker exec edms-mongo mongosh edms --quiet --eval 'db.users.deleteMany({ email: /^maestro\d+@edms\.vn$/ }).deletedCount' 2>$null
   if ("$deleted".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$deleted".Trim()) tai khoan test do flow dang ky tao" }
   # Don do flow tao don tao ra (nguoi nhan "E2E Maestro", Sprint 3): API khong co chuc nang xoa don
-  $orders = docker exec edms-mongo mongosh edms --quiet --eval 'db.orders.deleteMany({ "receiver.name": /^E2E Maestro/ }).deletedCount' 2>$null
+  $orders = docker exec edms-mongo mongosh edms --quiet --eval 'db.orders.deleteMany({ ''receiver.name'': /^E2E Maestro/ }).deletedCount' 2>$null
   if ("$orders".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$orders".Trim()) don test do flow tao don tao" }
+  # Ca lam viec do flow NV 10 tao (Sprint 4)
+  $shifts = docker exec edms-mongo mongosh edms --quiet --eval 'db.shifts.deleteMany({ name: /^KT23 Maestro/ }).deletedCount' 2>$null
+  if ("$shifts".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$shifts".Trim()) ca test do flow NV 10 tao" }
 }
