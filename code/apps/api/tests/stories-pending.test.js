@@ -7,8 +7,6 @@ import { test } from "node:test";
 const pending = {
   // ---------- Sprint 4 (06/11 - 01/12/2026): da xong het ----------
   // ---------- Sprint 5 (02/12 - 18/12/2026) ----------
-  "US-29": ["Quan ly diem check-in tren ban do: toa do + ban kinh mac dinh 150m"],
-  "US-30": ["Tu dong check-in khi di qua diem, chan trung 30 phut, xep hang doi khi mat mang"],
   "US-42": ["Khach khai bao tai khoan ngan hang nhan tien thu ho: ngan hang, so tai khoan, chu tai khoan (PB#12)"],
   // ---------- Sprint 6 (21/12/2026 - 11/01/2027) ----------
   "US-35": [
