@@ -31,6 +31,8 @@ import { RouteService } from "./modules/routes/RouteService.js";
 import { RouteRepository } from "./modules/routes/RouteRepository.js";
 import { ShiftRepository } from "./modules/shifts/ShiftRepository.js";
 import { ShiftService } from "./modules/shifts/ShiftService.js";
+import { CapacityService } from "./modules/capacity/CapacityService.js";
+import { SettingRepository } from "./modules/capacity/SettingRepository.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
@@ -171,6 +173,14 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     userRepository,
     hubRepository,
   });
+  // US-24: nang luc 3 cap (nguoi giao hang -> tuyen -> mac dinh he thong)
+  const capacityService = new CapacityService({
+    settingRepository: new SettingRepository(),
+    routeRepository,
+    userRepository,
+    hubRepository,
+    cache,
+  });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,
@@ -198,6 +208,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     orderDraftService,
     orderService,
     shiftService,
+    capacityService,
     orderEvents,
     journeyService,
     orderEventHandlers,

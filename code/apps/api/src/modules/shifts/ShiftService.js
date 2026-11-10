@@ -1,4 +1,5 @@
 import { ErrorCodes } from "../../core/errors.js";
+import { routeScopeFor } from "../routes/routeScope.js";
 import { shiftValidator, parseShiftDate } from "./shifts.validator.js";
 
 const pad = (n) => String(n).padStart(2, "0");
@@ -20,13 +21,8 @@ export class ShiftService {
   }
 
   /** Cac tuyen nguoi dung duoc quan ly; null = moi tuyen (quan tri vien). */
-  async #routeScope(user) {
-    if (user.role === "ADMIN") return null;
-    const staff = await this.userRepository.findById(user.id);
-    if (!staff?.hubId) return [];
-    const hubIds = await this.hubRepository.findFamilyIds(staff.hubId);
-    const routes = await this.routeRepository.findByHubs(hubIds);
-    return routes.map((r) => String(r._id));
+  #routeScope(user) {
+    return routeScopeFor(user, this);
   }
 
   async #assertRoute(user, routeId) {
