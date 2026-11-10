@@ -19,7 +19,7 @@ tags:
     timeout: 15000
 - takeScreenshot: 03-admin-trang-chu
 # Danh muc thu 7 (Sprint 5, US-29) nam duoi cung
+# Cuon toi dong mo ta (nam duoi ten danh muc) - cuon toi ten thi mo ta van khuat mep duoi
 - scrollUntilVisible:
-    element: "Điểm check-in"
+    element: "Tọa độ, bán kính tự check-in"
     direction: DOWN
-- assertVisible: "Tọa độ, bán kính tự check-in"
