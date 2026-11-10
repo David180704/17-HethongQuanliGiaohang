@@ -16,6 +16,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# Goi thang docker.exe: may dev co file rong C:\Windows\System32\docker (khong duoi) lam PowerShell
+# goi nham file do thay vi docker.exe -> lenh docker treo / khong chay (gap 11/11/2026).
+$dockerExe = Get-Command docker.exe -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($dockerExe) { Set-Alias -Name docker -Value $dockerExe.Source -Scope Script }
 $root = $PSScriptRoot
 $localUri = "mongodb://localhost:27018/edms?directConnection=true"
 
