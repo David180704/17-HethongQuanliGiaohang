@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema(
 
     // Chi CUSTOMER
     customerType: { type: String, enum: CUSTOMER_TYPE },
+    // Khach le do nhan vien kho tao tai quay (US-40): email noi bo, chua dat mat khau -> chua dang nhap duoc
+    walkIn: { type: Boolean, default: false },
     shopName: String,
     taxCode: String,
 

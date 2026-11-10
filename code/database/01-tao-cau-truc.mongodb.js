@@ -252,7 +252,6 @@ const COLLECTIONS = [
           "trackingCode",
           "customerId",
           "customerName",
-          "pickupLocationId",
           "pickupWard",
           "receiver",
           "item",
@@ -272,8 +271,45 @@ const COLLECTIONS = [
           "customerName": {
             "bsonType": "string"
           },
+          "channel": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ONLINE",
+              "COUNTER",
+              null
+            ]
+          },
+          "receivedBy": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "shopOrderCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "vehicle": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MOTORBIKE",
+              "TRUCK",
+              null
+            ]
+          },
           "pickupLocationId": {
-            "bsonType": "objectId"
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
           },
           "pickupWard": {
             "bsonType": "string"
@@ -1225,6 +1261,12 @@ const COLLECTIONS = [
               "INDIVIDUAL",
               "BUSINESS",
               null
+            ]
+          },
+          "walkIn": {
+            "bsonType": [
+              "bool",
+              "null"
             ]
           },
           "shopName": {

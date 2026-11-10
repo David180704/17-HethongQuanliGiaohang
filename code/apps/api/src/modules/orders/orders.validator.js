@@ -1,6 +1,6 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { normalizeVnPhone } from "../../core/phone.js";
-import { parseFlags, parseItem } from "../pricing/pricing.validator.js";
+import { parseArea, parseFlags, parseItem } from "../pricing/pricing.validator.js";
 import { parseCod } from "./cod.js";
 import { CUSTOMER_GROUPS } from "./orderStatus.js";
 
@@ -31,6 +31,23 @@ const RECEIVER_LABELS = {
 
 const isFilled = (value) => typeof value === "string" && value.trim() !== "";
 
+// Ma don cua shop tren website ban hang (de 14 muc a): tuy chon, toi da 50 ky tu
+function parseShopOrderCode(value) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || value.trim().length > 50) {
+    throw ErrorCodes.VALIDATION_ERROR("Mã đơn của shop tối đa 50 ký tự");
+  }
+  return value.trim() || null;
+}
+
+// Khach tai quay: so dien thoai bat buoc; ho ten chi can khi phai tao khach le moi
+function parseCounterCustomer(customer) {
+  if (!customer || typeof customer !== "object") throw ErrorCodes.VALIDATION_ERROR("Thiếu thông tin khách gửi");
+  const phone = normalizeVnPhone(customer.phone);
+  if (!phone) throw ErrorCodes.VALIDATION_ERROR("Số điện thoại khách gửi phải gồm 10–11 chữ số, bắt đầu bằng 0");
+  return { phone, fullName: isFilled(customer.fullName) ? customer.fullName.trim() : null };
+}
+
 function parseReceiver(receiver) {
   if (!receiver || typeof receiver !== "object") throw ErrorCodes.VALIDATION_ERROR("Thiếu thông tin người nhận");
   const missing = Object.keys(RECEIVER_LABELS).filter((field) => !isFilled(receiver[field]));
@@ -55,8 +72,38 @@ export const orderValidator = {
       item: parseItem(body.item, { requireName: true }),
       flags: parseFlags(body.flags),
       cod: parseCod(body.cod),
+      shopOrderCode: parseShopOrderCode(body.shopOrderCode),
       draftToken: isFilled(body.draftToken) ? body.draftToken : null,
     };
+  },
+
+  /** Don tiep nhan tai quay (US-40): khong co dia diem lay hang; noi gui la diem cua nhan vien. */
+  counter(body = {}) {
+    if (!isFilled(body.serviceTypeId)) throw ErrorCodes.VALIDATION_ERROR("Chọn loại dịch vụ");
+    return {
+      customer: parseCounterCustomer(body.customer),
+      serviceTypeId: body.serviceTypeId,
+      receiver: parseReceiver(body.receiver),
+      item: parseItem(body.item, { requireName: true }),
+      flags: parseFlags(body.flags),
+      cod: parseCod(body.cod),
+      shopOrderCode: parseShopOrderCode(body.shopOrderCode),
+    };
+  },
+
+  /** Bao gia tai quay: chi can noi nhan (tinh, quan) va kien hang. */
+  counterQuote(body = {}) {
+    return {
+      receiver: parseArea(body.receiver, "nhận"),
+      item: parseItem(body.item),
+      flags: parseFlags(body.flags),
+    };
+  },
+
+  counterPhone(query = {}) {
+    const phone = normalizeVnPhone(query.phone);
+    if (!phone) throw ErrorCodes.VALIDATION_ERROR("Số điện thoại phải gồm 10–11 chữ số, bắt đầu bằng 0");
+    return phone;
   },
 
   /** Bo loc danh sach don (US-20): nhom trang thai cua khach va khoang ngay tao. */
