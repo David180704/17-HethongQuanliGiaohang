@@ -10,3 +10,5 @@ export { PickupLocation } from "./PickupLocation.js";
 export { Order } from "./Order.js";
 export { OrderDraft } from "./OrderDraft.js";
 export { Assignment } from "./Assignment.js";
+export { CheckinPoint } from "./CheckinPoint.js";
+export { CheckinLog } from "./CheckinLog.js";

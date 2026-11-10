@@ -2,8 +2,22 @@ import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
 import { connectDB, disconnectDB, LOCAL_MONGO_URI, isLocalUri, describeUri } from "../config/db.js";
 import { env } from "../config/env.js";
-import { Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment } from "../models/index.js";
-import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables } from "./referenceData.js";
+import {
+  Role,
+  User,
+  Hub,
+  Route,
+  ServiceArea,
+  ServiceType,
+  PriceTable,
+  PickupLocation,
+  Order,
+  OrderDraft,
+  Assignment,
+  CheckinPoint,
+  CheckinLog,
+} from "../models/index.js";
+import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables, checkinPoints } from "./referenceData.js";
 import { buildStatusChain, countDeliveryAttempts, isAssignedStage } from "./orderHistory.js";
 import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
@@ -55,7 +69,7 @@ function buildStatusPool() {
 
 async function clearAll() {
   await Promise.all(
-    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, Counter].map(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, CheckinPoint, CheckinLog, Counter].map(
       (m) => m.deleteMany({}),
     ),
   );
@@ -327,7 +341,7 @@ async function main() {
   await clearAll();
   // Tao lai chi muc (unique, TTL...) ngay ca khi CSDL moi tinh tren cloud
   await Promise.all(
-    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment].map(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, CheckinPoint, CheckinLog].map(
       (m) => m.syncIndexes(),
     ),
   );
@@ -340,6 +354,8 @@ async function main() {
   const routeMap = await seedRoutes(hubMap);
   const serviceAreaDocs = await seedServiceAreas(routeMap);
   await linkHubsToServiceAreas(hubMap, serviceAreaDocs);
+  // Diem check-in (US-29) - khong goi faker nen du lieu ngau nhien phia sau giu nguyen
+  await CheckinPoint.insertMany(checkinPoints.map(({ hubKey, ...p }) => ({ ...p, hubId: hubKey ? hubMap[hubKey]._id : null })));
 
   console.log("Dang seed loai dich vu va bang gia...");
   const serviceTypeMap = await seedServiceTypes();

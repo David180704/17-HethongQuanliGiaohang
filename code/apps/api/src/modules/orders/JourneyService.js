@@ -12,12 +12,14 @@ export class JourneyService {
    * @param {import("./OrderRepository.js").OrderRepository} deps.orderRepository repository KHONG cache
    * @param {import("ioredis").Redis} deps.redis
    */
-  constructor({ orderRepository, redis }) {
+  constructor({ orderRepository, redis, checkinsOf = async () => [] }) {
     this.orderRepository = orderRepository;
     this.redis = redis;
+    // Moc check-in cua don (US-30) - ham do container truyen vao, test co the thay
+    this.checkinsOf = checkinsOf;
   }
 
-  /** Handler cua su kien order.status.changed. */
+  /** Handler cua su kien order.status.changed va order.checkin.recorded. */
   async project({ orderId, trackingCode }) {
     const order = await this.orderRepository.findById(orderId);
     if (!order) {
@@ -25,7 +27,7 @@ export class JourneyService {
       if (trackingCode) await this.redis.del(KEY(trackingCode));
       return null;
     }
-    const journey = buildPublicJourney(order);
+    const journey = buildPublicJourney(order, await this.checkinsOf(order._id));
     await this.redis.set(KEY(order.trackingCode), JSON.stringify(journey), "EX", TTL_SECONDS);
     return journey;
   }

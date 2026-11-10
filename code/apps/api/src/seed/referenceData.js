@@ -65,6 +65,15 @@ export const hubs = [
   },
 ];
 
+// Diem check-in mau (US-29): toa do that gan dung, ban kinh mac dinh 150 m; tai xe chon "dang o" diem nay tren app
+export const checkinPoints = [
+  { code: "CP-HN-HUB", name: "Hub Hà Nội", address: "Hoàn Kiếm, Hà Nội", lat: 21.0285, lng: 105.8542, hubKey: "HUB_HN" },
+  { code: "CP-HN-CG", name: "Ngã tư Xuân Thủy – Cầu Giấy", address: "Cầu Giấy, Hà Nội", lat: 21.0368, lng: 105.7826, hubKey: "HUB_HN" },
+  { code: "CP-QL1-NB", name: "Trạm QL1A Ninh Bình", address: "Ninh Bình", lat: 20.2506, lng: 105.9745, radiusM: 300 },
+  { code: "CP-DN-PO", name: "Bưu cục Đà Nẵng", address: "Hải Châu, Đà Nẵng", lat: 16.0678, lng: 108.2208, hubKey: "PO_DN" },
+  { code: "CP-HCM-HUB", name: "Hub Hồ Chí Minh", address: "Quận 1, TP Hồ Chí Minh", lat: 10.7769, lng: 106.7009, hubKey: "HUB_HCM" },
+];
+
 export const routes = [
   { _key: "R_HN_NOI", code: "R-HN-NOI", name: "Nội thành Hà Nội", hubKey: "HUB_HN", maxPickupPerShift: 25, maxDeliveryPerShift: 25 },
   { _key: "R_HN_LIEN", code: "R-HN-LIEN", name: "Liên tỉnh phía Bắc", hubKey: "HUB_HN", maxPickupPerShift: 20, maxDeliveryPerShift: 20 },
