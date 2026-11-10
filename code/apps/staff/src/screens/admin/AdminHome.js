@@ -14,8 +14,8 @@ const CATALOG_TILES = [
 
 // Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
 const UPCOMING_TILES = [
-  { key: "settlements", title: "Đối soát", description: "Tổng hợp COD trả cho shop", upcoming: "#34 · Sprint 5" },
-  { key: "dashboard", title: "Thống kê", description: "Dashboard tổng hợp", upcoming: "#39 · Sprint 6" },
+  { key: "settlements", title: "Đối soát", description: "Tổng hợp COD trả cho shop", upcoming: "#34 · Sprint 7" },
+  { key: "dashboard", title: "Thống kê", description: "Dashboard tổng hợp", upcoming: "#39 · Sprint 7" },
 ];
 
 export default function AdminHome({ user, theme, onLogout, onOpenCatalog, onOpenCapacity }) {
