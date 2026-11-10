@@ -1,0 +1,28 @@
+appId: host.exp.exponent
+name: "[Lien thiet bi][US-18] Nhan vien kho Hub Ha Noi duyet don TRACKING_CODE tren may ao"
+---
+# Khong chay rieng: test web goi kem ma van don cua don vua tao (apps/web/tests-e2e/mobile-cross.spec.js)
+#   maestro test cross/kho-duyet-don.yaml -e TRACKING_CODE=EXP...
+- runFlow:
+    file: ../subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+- tapOn: "Duyệt đơn mới"
+- extendedWaitUntil:
+    visible:
+      id: "approve-search"
+    timeout: 15000
+- tapOn:
+    id: "approve-search"
+- inputText: ${TRACKING_CODE}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "approve-${TRACKING_CODE}"
+    timeout: 15000
+- takeScreenshot: cross-kho-truoc-duyet
+- tapOn: "Xác nhận ${TRACKING_CODE}"
+- extendedWaitUntil:
+    visible: "Đã xác nhận ${TRACKING_CODE}"
+    timeout: 15000
+- takeScreenshot: cross-kho-da-duyet

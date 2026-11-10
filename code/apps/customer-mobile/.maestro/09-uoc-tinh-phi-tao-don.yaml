@@ -20,15 +20,37 @@ tags:
     id: "to-district"
 - inputText: "quan 1"
 - tapOn: "Chọn Quận 1, TP Hồ Chí Minh"
+# Man hinh may ao thap: o khoi luong nam duoi, phai cuon toi
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-weightGram"
+    direction: DOWN
 - tapOn:
     id: "est-weightGram"
 - inputText: "1000"
+# Ban phim ao che cac o ben duoi -> an ban phim va cuon toi tung o
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-length"
+    direction: DOWN
 - tapOn:
     id: "est-length"
 - inputText: "40"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-width"
+    direction: DOWN
 - tapOn:
     id: "est-width"
 - inputText: "30"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-height"
+    direction: DOWN
 - tapOn:
     id: "est-height"
 - inputText: "20"

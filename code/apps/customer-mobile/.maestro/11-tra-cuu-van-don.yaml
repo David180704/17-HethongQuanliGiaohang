@@ -1,0 +1,28 @@
+appId: host.exp.exponent
+name: "[US-22] Khach vang lai tra cuu ma van don tu Trang chu, thay nhom Da giao va hanh trinh"
+tags:
+  - sprint4
+---
+# Don seed EXP1000000006 (Da giao, 11 moc) - chua co flow nao doi trang thai don nay.
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-track-code"
+- inputText: "EXP1000000006"
+- hideKeyboard
+- tapOn:
+    id: "home-track-submit"
+- extendedWaitUntil:
+    visible:
+      id: "track-result"
+    timeout: 20000
+- assertVisible: "Đã giao"
+- assertVisible: "Giao thành công"
+# Dong "Giao den: <quan>, <tinh> · 09xx xxx 123" - Maestro khop CA dong nen can .* o dau
+- assertVisible: ".*09xx xxx \\d{3}.*"
+- takeScreenshot: c19-tra-cuu-van-don
+- tapOn:
+    id: "back-button"
+- extendedWaitUntil:
+    visible:
+      id: "home-track-code"
+    timeout: 10000
