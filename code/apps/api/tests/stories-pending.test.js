@@ -7,11 +7,6 @@ import { test } from "node:test";
 const pending = {
   // ---------- Sprint 4 (06/11 - 01/12/2026): da xong het ----------
   // ---------- Sprint 5 (02/12 - 18/12/2026) ----------
-  "US-41": [
-    "Nhap kho bang ma van don: don chuyen AT_HUB (AT_DEST_HUB neu la kho dich), ghi nhan vien va thoi gian",
-    "Phan loai theo loai hang (danh sach co dinh theo de 14) va tuyen: don chuyen SORTED",
-    "Xuat kho len chang sau: don chuyen IN_TRANSIT; nhan vien kho chi thao tac don cua hub minh",
-  ],
   "US-29": ["Quan ly diem check-in tren ban do: toa do + ban kinh mac dinh 150m"],
   "US-30": ["Tu dong check-in khi di qua diem, chan trung 30 phut, xep hang doi khi mat mang"],
   "US-42": ["Khach khai bao tai khoan ngan hang nhan tien thu ho: ngan hang, so tai khoan, chu tai khoan (PB#12)"],
