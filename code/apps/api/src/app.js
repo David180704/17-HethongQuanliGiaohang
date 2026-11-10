@@ -16,6 +16,7 @@ import { buildOrderDraftsRouter } from "./modules/orderDrafts/orderDrafts.router
 import { buildTrackingRouter } from "./modules/tracking/tracking.router.js";
 import { buildShiftsRouter } from "./modules/shifts/shifts.router.js";
 import { buildCapacityRouter } from "./modules/capacity/capacity.router.js";
+import { buildAssignmentsRouter } from "./modules/assignments/assignments.router.js";
 import { buildServiceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { buildServiceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
 import { buildPriceTablesRouter } from "./modules/priceTables/priceTables.router.js";
@@ -57,6 +58,7 @@ export function createApp(container = getContainer()) {
   app.use("/tracking", buildTrackingRouter(container));
   app.use("/shifts", buildShiftsRouter(container));
   app.use("/capacity", buildCapacityRouter(container));
+  app.use("/assignments", buildAssignmentsRouter(container));
 
   app.use((req, res, next) => {
     next(ErrorCodes.NOT_FOUND("Không tìm thấy đường dẫn"));

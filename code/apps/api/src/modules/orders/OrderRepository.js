@@ -23,6 +23,11 @@ export class OrderRepository extends BaseRepository {
     return last ? Number(last.trackingCode.slice(3)) : 999_999_999;
   }
 
+  /** Cap nhat co dieu kien trong transaction (phan cong US-25); null = don da doi trang thai. */
+  updateWhere(filter, update, { session } = {}) {
+    return this.model.findOneAndUpdate(filter, update, { new: true, session: session ?? null }).lean();
+  }
+
   /** Doi trang thai CO DIEU KIEN: hai nguoi cung bam thi chi mot nguoi thanh cong. */
   transition(id, fromStatus, update) {
     return this.model.findOneAndUpdate({ _id: id, status: fromStatus }, update, { new: true }).lean();

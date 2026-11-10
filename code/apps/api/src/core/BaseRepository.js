@@ -50,6 +50,14 @@ export class BaseRepository {
     return this.model.findById(id).select(this.projection).lean();
   }
 
+  /** Doc nhieu ban ghi theo dieu kien (vd danh sach id) - cho cac man hinh ghep du lieu. */
+  findMany(filter, { select, sort } = {}) {
+    let query = this.model.find(filter);
+    if (select) query = query.select(select);
+    if (sort) query = query.sort(sort);
+    return query.lean();
+  }
+
   findOne(filter) {
     return this.model.findOne(filter).select(this.projection).lean();
   }
