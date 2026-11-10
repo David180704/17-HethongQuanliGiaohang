@@ -87,6 +87,15 @@ export default function TrackingScreen({ initialCode = "", onBack }) {
               </View>
             ))}
           </Card>
+          {data.checkins?.length ? (
+            <Card title="Đã đi qua" testID="track-checkins">
+              {data.checkins.map((checkin, index) => (
+                <Text key={`${checkin.point}-${checkin.at}`} style={styles.muted} testID={`track-checkin-${index}`}>
+                  {checkin.point} · {formatDateTime(checkin.at)}
+                </Text>
+              ))}
+            </Card>
+          ) : null}
         </>
       ) : null}
     </Screen>
