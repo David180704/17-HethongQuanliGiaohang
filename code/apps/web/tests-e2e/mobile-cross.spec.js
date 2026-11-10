@@ -124,3 +124,54 @@ test("may ao: admin khoa tai khoan khach -> web tu choi dang nhap; mo khoa -> va
   await loginOnWeb(page, LOCK_TARGET);
   await expect(page).toHaveURL(/\/$/);
 });
+
+// Quy trinh lien thiet bi (US-18, US-20, US-21, US-22): shop2 co don moi -> nhan vien kho Hub Ha Noi duyet
+// TREN MAY AO -> nguoi nhan tra cuu tren web thay moc moi (hang doi su kien ghi), shop thay don doi trang thai.
+test("may ao: kho duyet don tren App Nhan vien -> nguoi nhan tra cuu tren web thay moc moi, shop thay don da xac nhan", async ({
+  browser,
+}) => {
+  test.setTimeout(8 * 60 * 1000);
+  const api = await request.newContext({ baseURL: API_URL });
+  const login = await api.post("/auth/login", { data: { emailOrPhone: "shop2@edms.vn", password: PASSWORD } });
+  const headers = { Authorization: `Bearer ${(await login.json()).data.accessToken}` };
+  const location = (await (await api.get("/pickupLocations", { headers })).json()).data.find((l) => l.isDefault);
+  const serviceType = (await (await api.get("/public/service-types")).json()).data.find((s) => s.code === "STANDARD");
+  const res = await api.post("/orders", {
+    headers,
+    data: {
+      pickupLocationId: location._id,
+      serviceTypeId: serviceType._id,
+      receiver: { name: "KT4 Người Nhận Thiết Bị", phone: "0977111222", address: "3 Tây Sơn", province: "Hà Nội", district: "Đống Đa", ward: "Quang Trung" },
+      item: { name: "Sách", weightGram: 700, length: 20, width: 15, height: 5 },
+    },
+  });
+  expect(res.status(), await res.text()).toBe(201);
+  const { trackingCode } = (await res.json()).data;
+
+  try {
+    // Nguoi nhan tra cuu truoc khi duyet: 1 moc
+    const recipient = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+    await recipient.goto(`/tra-cuu?ma=${trackingCode}`);
+    const result = recipient.getByRole("region", { name: "Kết quả tra cứu" });
+    await expect(result.getByRole("list", { name: "Hành trình" }).getByRole("listitem")).toHaveCount(1);
+
+    // May ao: nhan vien kho duyet
+    await runOnEmulator("cross/kho-duyet-don.yaml", { TRACKING_CODE: trackingCode });
+
+    // Web: tra cuu lai thay moc moi; shop thay don da xac nhan trong "Don hang cua toi"
+    await recipient.reload();
+    await expect(result.getByRole("list", { name: "Hành trình" }).getByRole("listitem").first()).toContainText(
+      "Đã xác nhận, chờ lấy hàng",
+      { timeout: 20_000 },
+    );
+    await recipient.screenshot({ path: `${SHOT_DIR}/22-thiet-bi-nguoi-nhan-tra-cuu.png` });
+    const shop = await (await browser.newContext()).newPage();
+    await loginOnWeb(shop, "shop2@edms.vn");
+    await shop.goto(`/don-hang?q=${trackingCode}`);
+    await expect(shop.getByRole("list", { name: "Danh sách đơn hàng" })).toContainText("Đã xác nhận, chờ lấy hàng");
+  } finally {
+    await api.dispose();
+    // don thu nghiem: xoa qua mongosh (CSDL local, e2e-guard da kiem)
+    await execAsync(`docker exec edms-mongo mongosh edms --quiet --eval "db.orders.deleteMany({ trackingCode: '${trackingCode}' })"`).catch(() => {});
+  }
+});
