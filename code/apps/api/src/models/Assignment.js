@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ASSIGNMENT_TYPE, ASSIGNMENT_STATUS, ASSIGNMENT_METHOD } from "../constants/enums.js";
+import { ASSIGNMENT_TYPE, ASSIGNMENT_STATUS, ASSIGNMENT_METHOD, PICKUP_FAIL_REASON } from "../constants/enums.js";
 
 const assignmentSchema = new mongoose.Schema(
   {
@@ -17,6 +17,11 @@ const assignmentSchema = new mongoose.Schema(
     reason: { type: String, default: null },
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     cancelledAt: { type: Date, default: null },
+    // Ket qua cua tai xe (US-28): thoi gian, toa do GPS luc xac nhan; nguyen nhan khi that bai
+    doneAt: { type: Date, default: null },
+    location: { lat: Number, lng: Number },
+    failReason: { type: String, enum: PICKUP_FAIL_REASON, default: null },
+    failNote: { type: String, default: null },
   },
   { timestamps: true },
 );
