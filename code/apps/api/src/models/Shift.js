@@ -9,6 +9,9 @@ const shiftSchema = new mongoose.Schema(
     routeId: { type: mongoose.Schema.Types.ObjectId, ref: "Route", required: true },
     shipperIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     shiftDate: { type: Date, required: true },
+    // Khoa phan cong (US-25): moi lan gan don vao ca thi tang trong transaction -> hai transaction cung
+    // gan vao mot ca se xung dot ghi, mot ben chay lai va thay tai moi (khong vuot nang luc).
+    assignSeq: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
