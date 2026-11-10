@@ -12,6 +12,7 @@ import CounterIntakeScreen from "../screens/hub/CounterIntakeScreen";
 import ShiftsScreen from "../screens/hub/ShiftsScreen";
 import CapacityScreen from "../screens/hub/CapacityScreen";
 import AssignPickupScreen from "../screens/hub/AssignPickupScreen";
+import WarehouseScreen from "../screens/hub/WarehouseScreen";
 import PickupListScreen from "../screens/shipper/PickupListScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
@@ -48,6 +49,9 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "shifts") {
     return <ShiftsScreen accent={theme.color} onBack={pop} />;
   }
+  if (top?.name === "warehouse") {
+    return <WarehouseScreen accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "assignPickup") {
     return <AssignPickupScreen accent={theme.color} onBack={pop} />;
   }
@@ -82,6 +86,7 @@ export default function StaffNavigator({ user }) {
         onOpenShifts={() => push({ name: "shifts" })}
         onOpenCapacity={() => push({ name: "capacity" })}
         onOpenAssign={() => push({ name: "assignPickup" })}
+        onOpenWarehouse={() => push({ name: "warehouse" })}
       />;
   }
   return <ShipperHome {...homeProps} onOpenPickups={() => push({ name: "pickups" })} />;
