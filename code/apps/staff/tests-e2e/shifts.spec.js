@@ -43,24 +43,24 @@ test("[US-23] quy trinh: kho xep ca hom nay cho tai xe tren tuyen cua hub -> tai
   const form = page.getByTestId("shift-form");
   await form.getByRole("radio", { name: "R-HN-NOI" }).click();
   await page.getByTestId("shift-name").fill("KT23 Ca kiểm thử");
-  await page.getByTestId("shift-start").fill("06:00");
-  await page.getByTestId("shift-end").fill("05:00");
+  await page.getByTestId("shift-start").fill("00:10");
+  await page.getByTestId("shift-end").fill("00:05");
   await form.getByRole("checkbox", { name: "Tài Xế 5" }).click();
   await page.getByTestId("shift-save").click();
   await expect(page.getByTestId("shift-error")).toContainText("Giờ kết thúc phải sau giờ bắt đầu");
 
-  await page.getByTestId("shift-end").fill("06:30");
+  await page.getByTestId("shift-end").fill("00:20");
   await page.getByTestId("shift-save").click();
   await expect(page.getByTestId("shift-notice")).toContainText("Đã thêm KT23 Ca kiểm thử");
   const card = page.locator('[data-testid^="shift-R-HN-NOI-"]').filter({ hasText: "KT23 Ca kiểm thử" });
-  await expect(card).toContainText("06:00–06:30");
+  await expect(card).toContainText("00:10–00:20");
   await expect(card).toContainText("Tài Xế 5");
   await page.screenshot({ path: `${SHOT_DIR}/23-ca-lam-viec.png`, fullPage: true });
 
   // Tai xe dang nhap (thiet bi khac) thay ca hom nay cua minh
   const driver = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
   await login(driver, "taixe5@edms.vn");
-  await expect(driver.getByTestId("shipper-shift")).toContainText("KT23 Ca kiểm thử 06:00–06:30 · R-HN-NOI");
+  await expect(driver.getByTestId("shipper-shift")).toContainText("KT23 Ca kiểm thử 00:10–00:20 · R-HN-NOI");
   await driver.screenshot({ path: `${SHOT_DIR}/23-tai-xe-thay-ca.png`, fullPage: true });
   await driver.close();
 
@@ -78,16 +78,16 @@ test("[US-23] kho HCM chi thay tuyen cua hub minh; trung gio voi ca khac cua cun
   await expect(form.getByRole("radio", { name: "R-HN-NOI" })).toHaveCount(0);
 
   await page.getByTestId("shift-name").fill("KT23 Ca một");
-  await page.getByTestId("shift-start").fill("07:00");
-  await page.getByTestId("shift-end").fill("08:00");
+  await page.getByTestId("shift-start").fill("00:30");
+  await page.getByTestId("shift-end").fill("00:40");
   await form.getByRole("checkbox", { name: "Tài Xế 3" }).click();
   await page.getByTestId("shift-save").click();
   await expect(page.getByTestId("shift-notice")).toContainText("Đã thêm KT23 Ca một");
   await page.getByTestId("shift-add").click();
   await page.getByTestId("shift-name").fill("KT23 Ca hai");
-  await page.getByTestId("shift-start").fill("07:30");
-  await page.getByTestId("shift-end").fill("09:00");
+  await page.getByTestId("shift-start").fill("00:35");
+  await page.getByTestId("shift-end").fill("00:50");
   await page.getByTestId("shift-form").getByRole("checkbox", { name: "Tài Xế 3" }).click();
   await page.getByTestId("shift-save").click();
-  await expect(page.getByTestId("shift-error")).toContainText("Tài Xế 3 đã có ca \"KT23 Ca một\" 07:00–08:00 cùng ngày");
+  await expect(page.getByTestId("shift-error")).toContainText("Tài Xế 3 đã có ca \"KT23 Ca một\" 00:30–00:40 cùng ngày");
 });

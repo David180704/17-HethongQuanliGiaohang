@@ -4,12 +4,14 @@ tags:
   - sprint4
 ---
 # Ca thu nghiem "KT23 Maestro ..." - code/test-mobile.ps1 xoa sau khi chay (Remove-MobileTestData).
+# Ca 00:02-00:03 (da qua gio) tuyen R-HN-LIEN: khong mo nen khong lam phan cong tu dong cua test khac chay
+# cung luc (test-song-song.ps1) gan don vao ca nay.
 - runFlow:
     file: subflows/login-ok.yaml
     env:
       USER_EMAIL: kho1@edms.vn
 
-# 1. Ca lam viec: them ca 21:00-22:00 tuyen R-HN-NOI cho Tai Xe 1
+# 1. Ca lam viec: them ca 00:02-00:03 tuyen R-HN-LIEN cho Tai Xe 2
 - tapOn: "Ca làm việc.*"
 - extendedWaitUntil:
     visible:
@@ -18,27 +20,27 @@ tags:
 - tapOn:
     id: "shift-add"
 - tapOn:
-    text: "R-HN-NOI"
+    text: "R-HN-LIEN"
     index: 0
 - tapOn:
     id: "shift-name"
 - eraseText: 20
-- inputText: "KT23 Maestro ca toi"
+- inputText: "KT23 Maestro ca som"
 - hideKeyboard
 - tapOn:
     id: "shift-start"
 - eraseText: 10
-- inputText: "21:00"
+- inputText: "00:02"
 - hideKeyboard
 - tapOn:
     id: "shift-end"
 - eraseText: 10
-- inputText: "22:00"
+- inputText: "00:03"
 - hideKeyboard
 - scrollUntilVisible:
-    element: "Tài Xế 1"
+    element: "Tài Xế 2"
     direction: DOWN
-- tapOn: "Tài Xế 1"
+- tapOn: "Tài Xế 2"
 - scrollUntilVisible:
     element:
       id: "shift-save"
@@ -46,9 +48,9 @@ tags:
 - tapOn:
     id: "shift-save"
 - extendedWaitUntil:
-    visible: "Đã thêm KT23 Maestro ca toi"
+    visible: "Đã thêm KT23 Maestro ca som"
     timeout: 15000
-- assertVisible: "KT23 Maestro ca toi · 21:00–22:00"
+- assertVisible: "KT23 Maestro ca som · 00:02–00:03"
 - takeScreenshot: 10-kho-them-ca
 - tapOn: "Quay lại"
 
@@ -74,7 +76,7 @@ tags:
     visible: "Hàng chờ \\(\\d+\\)"
     timeout: 15000
 - scrollUntilVisible:
-    element: "KT23 Maestro ca toi · 21:00–22:00"
+    element: "KT23 Maestro ca som · 00:02–00:03"
     direction: DOWN
-- assertVisible: "Tài Xế 1: 0/\\d+ đơn · 0 chưa lấy"
+- assertVisible: "Tài Xế 2: 0/\\d+ đơn · 0 chưa lấy"
 - takeScreenshot: 10-kho-phan-cong
