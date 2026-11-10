@@ -100,7 +100,7 @@ npm run dev                 # chạy API ở cổng 4044, sửa code tự khởi
 **Test API** (mở cửa sổ khác, API không cần đang chạy):
 
 ```powershell
-npm test                    # toàn bộ: 197 test + 24 tiêu chí chờ làm (todo), khoảng 1 phút
+npm test                    # toàn bộ: 216 test + 16 tiêu chí chờ làm (todo), khoảng 1 phút
 npm run test:story -- 6     # chỉ story US-06 (đăng nhập)
 npm run test:story -- 10 11 # nhiều story
 npm run test:story -- CACHE # phần cache 30 giây
@@ -144,7 +144,7 @@ Thử nhanh:
 **Test tự động** (cần API và web đang chạy):
 
 ```powershell
-npm run test:e2e -- --workers=2         # 26 kịch bản (3 kịch bản liên thiết bị cần máy ảo, không có thì bỏ qua)
+npm run test:e2e -- --workers=2         # 27 kịch bản (3 kịch bản liên thiết bị cần máy ảo, không có thì bỏ qua)
 npx playwright test --headed             # xem trình duyệt tự bấm
 npx playwright test --ui                 # bảng điều khiển, tua từng bước
 ```
@@ -170,9 +170,16 @@ Màn hình đăng nhập có nút **Điền nhanh**: Quản trị / Nhân viên 
 - Đơn được duyệt sẽ **tự phân công** cho tài xế có ca còn mở hôm nay trên tuyến lấy hàng, ít đơn chưa lấy
   nhất và chưa đầy năng lực. Muốn thử: kho xếp ca cho `taixe1` (tuyến R-HN-NOI) rồi duyệt một đơn của
   `khach1`; đăng nhập `taixe1` thấy số **Cần lấy** trên thẻ ca và mục **Đơn cần lấy**.
+- Tài xế: trong **Đơn cần lấy** bấm **Đã lấy hàng** rồi nhập mã vận đơn trên kiện (sai mã bị chặn), hoặc **Không
+  lấy được** và chọn nguyên nhân; kho thấy đơn lấy không được ở bảng phân công và **Giao lại**.
+- Kho: **Nhập / xuất kho** — nhập mã vận đơn, app cho biết bước tiếp theo: nhận vào kho → phân loại (chọn loại hàng)
+  → xuất kho; kho đích (ví dụ `kho2`, Hub HCM) thấy đơn ở **Hàng sắp tới** và bấm nhận.
+- Tài xế: **Vị trí & check-in** — chọn **Tôi đang ở đây** ở một điểm (vị trí giả lập) thì app tự check-in cho các
+  đơn đang chở; mất mạng thì xếp hàng, có mạng gửi lại. Người nhận tra cứu thấy mục **Đã đi qua**.
+- Admin: danh mục **Điểm check-in** (tọa độ, bán kính mặc định 150 m).
 - Tài xế thấy thẻ ca hôm nay.
 
-**Test tự động:** `npm run test:e2e` (24 kịch bản, cần API và `npm run web` đang chạy).
+**Test tự động:** `npm run test:e2e` (27 kịch bản, cần API và `npm run web` đang chạy).
 
 ## D. App Nhân viên trên máy ảo Android
 
@@ -181,9 +188,9 @@ Cần API và Metro (`npm start` trong `apps/staff`) đang chạy.
 ```powershell
 cd code
 powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -OpenOnly -App staff   # bật máy ảo + mở App Nhân viên
-powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App staff             # chạy 11 flow Maestro
+powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App staff             # chạy 13 flow Maestro
 powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App staff -Flow 06-admin-crud-khu-vuc
-powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1                        # cả 2 app: 11 + 11 flow
+powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1                        # cả 2 app: 13 + 12 flow
 ```
 
 - Script tự bật máy ảo nếu chưa chạy (lần đầu khoảng 1 phút), nối cổng, rồi mở app trong Expo Go.
@@ -218,7 +225,7 @@ npm run web                 # bản trình duyệt: http://localhost:8083
 
 cd code
 powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -OpenOnly -App customer   # mở trên máy ảo
-powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App customer             # chạy 11 flow Maestro
+powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App customer             # chạy 12 flow Maestro
 ```
 
 - Màn hình đăng nhập có nút **Điền nhanh** (khach1, shop1) khi chạy chế độ dev.
@@ -241,7 +248,7 @@ powershell -ExecutionPolicy Bypass -File .\test-song-song.ps1 -OnlyCross
 Cần chạy trước: `start-dev.ps1 -Local` (API CSDL local, web 5173, Metro 8082 + 8083).
 
 - Giai đoạn 1 — chạy **cùng lúc**: 3 bộ Playwright trên trình duyệt (Web Khách hàng, App Nhân viên,
-  App Khách hàng) và Maestro trên máy ảo (App Nhân viên 11 flow, App Khách hàng 11 flow). Dữ liệu thử của
+  App Khách hàng) và Maestro trên máy ảo (App Nhân viên 13 flow, App Khách hàng 12 flow). Dữ liệu thử của
   phần phân công (ca mở cả ngày) đặt ở tuyến Đà Nẵng, ca thử khác dùng giờ đã qua, nên các bộ chạy cùng lúc
   không làm đơn của nhau bị phân công.
 - Giai đoạn 2 — kịch bản **liên thiết bị**, như giao dịch thật:
