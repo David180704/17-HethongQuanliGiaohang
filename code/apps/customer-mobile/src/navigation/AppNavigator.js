@@ -131,7 +131,11 @@ export default function AppNavigator() {
     return (
       <OrdersScreen
         onBack={pop}
-        onOpenOrder={(id) => push({ name: "orderDetail", id })}
+        initialFilters={top.filters}
+        // Ghi bo loc vao muc "orders" cua ngan xep: mo chi tiet roi quay lai van giu nhom / thoi gian / tu khoa
+        onOpenOrder={(id, filters) =>
+          setStack((current) => [...current.slice(0, -1), { ...top, filters }, { name: "orderDetail", id }])
+        }
         onCreateOrder={() => push({ name: "createOrder" })}
       />
     );
