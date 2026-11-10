@@ -9,7 +9,7 @@ const UPCOMING_TILES = [
   { key: "incidents", title: "Sự cố, khiếu nại", description: "Ghi nhận và theo dõi xử lý", upcoming: "#38 · Sprint 6" },
 ];
 
-export default function HubHome({ user, theme, onLogout, onOpenApprove }) {
+export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter }) {
   const hub = user.hubId;
   const [waiting, setWaiting] = useState();
 
@@ -26,6 +26,12 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove }) {
   }, []);
 
   const workTiles = [
+    {
+      key: "counter",
+      title: "Tiếp nhận tại quầy",
+      description: "Kiểm hàng, báo giá, tạo đơn hộ khách",
+      onPress: onOpenCounter,
+    },
     {
       key: "approve",
       title: "Duyệt đơn mới",
