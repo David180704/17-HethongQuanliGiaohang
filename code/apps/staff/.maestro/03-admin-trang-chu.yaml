@@ -1,5 +1,5 @@
 appId: host.exp.exponent
-name: ADMIN thay trang quan tri voi 6 danh muc va so ban ghi that
+name: ADMIN thay trang quan tri voi 7 danh muc va so ban ghi that
 tags:
   - smoke
 ---
@@ -18,3 +18,8 @@ tags:
     visible: "\\d+ bản ghi"
     timeout: 15000
 - takeScreenshot: 03-admin-trang-chu
+# Danh muc thu 7 (Sprint 5, US-29) nam duoi cung
+- scrollUntilVisible:
+    element: "Điểm check-in"
+    direction: DOWN
+- assertVisible: "Tọa độ, bán kính tự check-in"

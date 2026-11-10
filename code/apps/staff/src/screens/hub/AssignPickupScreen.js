@@ -169,6 +169,27 @@ export default function AssignPickupScreen({ accent, onBack }) {
             </View>
           ))}
 
+          <Text role="heading" style={styles.section}>
+            Tải theo ca hôm nay
+          </Text>
+          {board.shifts.length === 0 ? <Text style={styles.muted}>Hôm nay chưa có ca nào — vào "Ca làm việc" để xếp ca.</Text> : null}
+          {board.shifts.map((shift) => (
+            <View key={shift._id} style={styles.card} testID={`assign-shift-${shift.code}`}>
+              <View style={styles.head}>
+                <Text style={styles.title}>
+                  {shift.name} · {shift.startTime}–{shift.endTime}
+                </Text>
+                <Text style={styles.badge}>{shift.route?.code}</Text>
+              </View>
+              {shift.shippers.length === 0 ? <Text style={styles.muted}>Chưa gán người.</Text> : null}
+              {shift.shippers.map((s) => (
+                <Text key={s._id} style={[styles.load, s.capacity && s.used >= s.capacity ? styles.full : null]}>
+                  {s.fullName}: {s.used}/{s.capacity ?? "?"} đơn · {s.pending} chưa lấy
+                </Text>
+              ))}
+            </View>
+          ))}
+
           {board.failed?.length ? (
             <Text role="heading" style={styles.section}>
               Lấy không được ({board.failed.length})
@@ -194,27 +215,6 @@ export default function AssignPickupScreen({ accent, onBack }) {
                 />
               )}
               {manualForm(order)}
-            </View>
-          ))}
-
-          <Text role="heading" style={styles.section}>
-            Tải theo ca hôm nay
-          </Text>
-          {board.shifts.length === 0 ? <Text style={styles.muted}>Hôm nay chưa có ca nào — vào "Ca làm việc" để xếp ca.</Text> : null}
-          {board.shifts.map((shift) => (
-            <View key={shift._id} style={styles.card} testID={`assign-shift-${shift.code}`}>
-              <View style={styles.head}>
-                <Text style={styles.title}>
-                  {shift.name} · {shift.startTime}–{shift.endTime}
-                </Text>
-                <Text style={styles.badge}>{shift.route?.code}</Text>
-              </View>
-              {shift.shippers.length === 0 ? <Text style={styles.muted}>Chưa gán người.</Text> : null}
-              {shift.shippers.map((s) => (
-                <Text key={s._id} style={[styles.load, s.capacity && s.used >= s.capacity ? styles.full : null]}>
-                  {s.fullName}: {s.used}/{s.capacity ?? "?"} đơn · {s.pending} chưa lấy
-                </Text>
-              ))}
             </View>
           ))}
 
