@@ -174,6 +174,153 @@ const COLLECTIONS = [
     },
   },
   {
+    // ---------------- checkinlogs (model CheckinLog) ----------------
+    name: "checkinlogs",
+    indexes: [[{"orderId":1,"pointId":1,"at":-1},{}],[{"shipperId":1,"clientEventId":1,"orderId":1,"pointId":1},{"unique":true,"partialFilterExpression":{"clientEventId":{"$type":"string"}}}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "pointId",
+          "orderId",
+          "shipperId",
+          "at",
+          "lat",
+          "lng",
+          "_id"
+        ],
+        "properties": {
+          "pointId": {
+            "bsonType": "objectId"
+          },
+          "orderId": {
+            "bsonType": "objectId"
+          },
+          "shipperId": {
+            "bsonType": "objectId"
+          },
+          "at": {
+            "bsonType": "date"
+          },
+          "lat": {
+            "bsonType": "number"
+          },
+          "lng": {
+            "bsonType": "number"
+          },
+          "source": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "AUTO",
+              "MANUAL",
+              null
+            ]
+          },
+          "clientEventId": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
+    // ---------------- checkinpoints (model CheckinPoint) ----------------
+    name: "checkinpoints",
+    indexes: [[{"code":1},{"unique":true}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "code",
+          "name",
+          "lat",
+          "lng",
+          "_id"
+        ],
+        "properties": {
+          "code": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "address": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "lat": {
+            "bsonType": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "bsonType": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "radiusM": {
+            "bsonType": [
+              "number",
+              "null"
+            ],
+            "minimum": 20,
+            "maximum": 2000
+          },
+          "hubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "isActive": {
+            "bsonType": [
+              "bool",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
     // ---------------- hubs (model Hub) ----------------
     name: "hubs",
     indexes: [[{"code":1},{"unique":true}]],
