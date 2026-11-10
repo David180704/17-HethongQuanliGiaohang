@@ -100,7 +100,7 @@ npm run dev                 # chạy API ở cổng 4044, sửa code tự khởi
 **Test API** (mở cửa sổ khác, API không cần đang chạy):
 
 ```powershell
-npm test                    # toàn bộ: 153 test + 38 tiêu chí chờ làm (todo), khoảng 40 giây
+npm test                    # toàn bộ: 197 test + 24 tiêu chí chờ làm (todo), khoảng 1 phút
 npm run test:story -- 6     # chỉ story US-06 (đăng nhập)
 npm run test:story -- 10 11 # nhiều story
 npm run test:story -- CACHE # phần cache 30 giây
@@ -135,11 +135,16 @@ Thử nhanh:
    từng khoản phí; chọn trừ phí vào tiền thu hộ mà tiền thu hộ nhỏ hơn phí thì không cho xác nhận. Đơn tạo
    xong có mã `EXP…` ở trạng thái chờ xác nhận — đăng nhập `kho1` trên App Nhân viên (phần C) để duyệt.
 6. Dưới các trang có dòng _"Cập nhật lúc … · tự làm mới mỗi 30 giây"_: dữ liệu lấy từ cache.
+7. **Đơn hàng** (`/don-hang`, menu tài khoản): lọc theo 4 nhóm trạng thái (Chưa nhận, Đã nhận – Chưa giao,
+   Đã nhận – Đang giao, Đã giao), khoảng thời gian, mã vận đơn hoặc mã đơn của shop; mở đơn thấy toàn bộ
+   hành trình và phí đã khóa.
+8. **Tra cứu** (`/tra-cuu`, không cần đăng nhập): nhập mã `EXP…` thấy hành trình, số điện thoại người nhận bị
+   che; tra quá 20 lần/phút từ một máy thì bị chặn tạm.
 
 **Test tự động** (cần API và web đang chạy):
 
 ```powershell
-npm run test:e2e                         # 22 kịch bản (3 kịch bản liên thiết bị cần máy ảo, không có thì bỏ qua)
+npm run test:e2e -- --workers=2         # 26 kịch bản (3 kịch bản liên thiết bị cần máy ảo, không có thì bỏ qua)
 npx playwright test --headed             # xem trình duyệt tự bấm
 npx playwright test --ui                 # bảng điều khiển, tua từng bước
 ```
@@ -158,9 +163,16 @@ Màn hình đăng nhập có nút **Điền nhanh**: Quản trị / Nhân viên 
   chọn hub cấp trên), Bảng giá (lưới bậc khối lượng).
 - Kho thấy hub phụ trách và mục **Duyệt đơn mới**: đơn khách vừa tạo của hub mình và các bưu cục trực thuộc
   (`kho1` — Hub Hà Nội, thấy cả bưu cục Đà Nẵng). Bấm xác nhận thì đơn chuyển *Đã xác nhận*, phí khóa.
+- Kho: **Tiếp nhận tại quầy** (tìm khách theo số điện thoại hoặc tạo khách lẻ, kiểm hàng, báo giá, gợi ý xe
+  máy / xe tải, tạo đơn vào kho ngay); **Ca làm việc** (xếp tài xế vào ca theo tuyến, chặn trùng giờ);
+  **Năng lực mỗi ca** (tuyến và từng tài xế; admin đổi thêm mặc định hệ thống); **Phân công lấy hàng**
+  (hàng chờ kèm lý do, tải từng người theo ca, phân công lại tự động, phân công tay bắt buộc lý do).
+- Đơn được duyệt sẽ **tự phân công** cho tài xế có ca còn mở hôm nay trên tuyến lấy hàng, ít đơn chưa lấy
+  nhất và chưa đầy năng lực. Muốn thử: kho xếp ca cho `taixe1` (tuyến R-HN-NOI) rồi duyệt một đơn của
+  `khach1`; đăng nhập `taixe1` thấy số **Cần lấy** trên thẻ ca và mục **Đơn cần lấy**.
 - Tài xế thấy thẻ ca hôm nay.
 
-**Test tự động:** `npm run test:e2e` (17 kịch bản, cần API và `npm run web` đang chạy).
+**Test tự động:** `npm run test:e2e` (24 kịch bản, cần API và `npm run web` đang chạy).
 
 ## D. App Nhân viên trên máy ảo Android
 
@@ -169,17 +181,19 @@ Cần API và Metro (`npm start` trong `apps/staff`) đang chạy.
 ```powershell
 cd code
 powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -OpenOnly -App staff   # bật máy ảo + mở App Nhân viên
-powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App staff             # chạy 8 flow Maestro
+powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App staff             # chạy 11 flow Maestro
 powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App staff -Flow 06-admin-crud-khu-vuc
-powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1                        # cả 2 app: 8 + 9 flow
+powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1                        # cả 2 app: 11 + 11 flow
 ```
 
 - Script tự bật máy ảo nếu chưa chạy (lần đầu khoảng 1 phút), nối cổng, rồi mở app trong Expo Go.
 - Báo cáo HTML: `code/apps/staff/maestro-report/bao-cao.html`.
 - Muốn chọn phần tử trên máy ảo để viết flow mới: VS Code Task `EDMS: Maestro Studio`.
-- Flow NV 08 (kho duyệt đơn) và KH 09 (ước tính phí → tạo đơn) viết ở Sprint 3, chưa chạy trên máy ảo vì
-  máy dev thiếu bộ nhớ ảo. Trước khi bật máy ảo, kiểm tra bộ nhớ ảo còn trống (đơn vị GB):
-  `(Get-CimInstance Win32_OperatingSystem).FreeVirtualMemory/1MB` — dưới khoảng 6 GB thì đừng bật.
+- Trước khi bật máy ảo, kiểm tra bộ nhớ ảo còn trống (đơn vị GB):
+  `(Get-CimInstance Win32_OperatingSystem).FreeVirtualMemory/1MB` — dưới khoảng 6 GB thì đừng bật (từ
+  10/11/2026 page file đặt ở ổ D: nên thường còn hơn 10 GB).
+- Flow NV 10 (ca, năng lực, bảng phân công) tạo ca thử "KT23 Maestro" lúc 00:02–00:03 (đã qua giờ) nên không
+  làm đơn của test khác bị phân công; script tự xóa ca này sau khi chạy.
 
 ## E. App Nhân viên trên điện thoại thật
 
@@ -204,13 +218,13 @@ npm run web                 # bản trình duyệt: http://localhost:8083
 
 cd code
 powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -OpenOnly -App customer   # mở trên máy ảo
-powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App customer             # chạy 9 flow Maestro
+powershell -ExecutionPolicy Bypass -File .\test-mobile.ps1 -App customer             # chạy 11 flow Maestro
 ```
 
 - Màn hình đăng nhập có nút **Điền nhanh** (khach1, shop1) khi chạy chế độ dev.
 - Trang chủ có **Tạo đơn ngay** và **Ước tính phí**; tab Tài khoản có **Địa điểm lấy hàng** và **Tạo đơn mới**
   (cùng luồng 4 bước như Web Khách hàng).
-- Test trình duyệt: `npm run test:e2e` trong `apps/customer-mobile` (14 kịch bản, khung điện thoại 390×844;
+- Test trình duyệt: `npm run test:e2e` trong `apps/customer-mobile` (15 kịch bản, khung điện thoại 390×844;
   3 kịch bản liên thiết bị cần máy ảo).
 - Báo cáo Maestro: `code/apps/customer-mobile/maestro-report/bao-cao.html`; ảnh chụp từng bước nằm
   trong `maestro-report/chi-tiet/`.
@@ -227,7 +241,9 @@ powershell -ExecutionPolicy Bypass -File .\test-song-song.ps1 -OnlyCross
 Cần chạy trước: `start-dev.ps1 -Local` (API CSDL local, web 5173, Metro 8082 + 8083).
 
 - Giai đoạn 1 — chạy **cùng lúc**: 3 bộ Playwright trên trình duyệt (Web Khách hàng, App Nhân viên,
-  App Khách hàng) và Maestro trên máy ảo (App Nhân viên 8 flow, App Khách hàng 9 flow).
+  App Khách hàng) và Maestro trên máy ảo (App Nhân viên 11 flow, App Khách hàng 11 flow). Dữ liệu thử của
+  phần phân công (ca mở cả ngày) đặt ở tuyến Đà Nẵng, ca thử khác dùng giờ đã qua, nên các bộ chạy cùng lúc
+  không làm đơn của nhau bị phân công.
 - Giai đoạn 2 — kịch bản **liên thiết bị**, như giao dịch thật:
   - Nhân viên trên **máy ảo** thêm/xóa khu vực, khóa/mở `khach3` → khách trên **web** thấy ngay.
   - Nhân viên trên **web** khóa/mở `khach4`, thêm/xóa khu vực → khách trên **máy ảo** (App Khách hàng) thấy ngay.
