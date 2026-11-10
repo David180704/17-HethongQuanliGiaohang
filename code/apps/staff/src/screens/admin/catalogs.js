@@ -304,4 +304,31 @@ const priceTables = {
   ],
 };
 
-export const CATALOGS = { users, hubs, routes, serviceAreas, serviceTypes, priceTables };
+// US-29: diem check-in - toa do (vi do, kinh do) va ban kinh; tai xe di qua trong ban kinh thi tu ghi moc hanh trinh
+const checkinPointFields = [
+  { name: "code", label: "Mã điểm", required: true, placeholder: "CP-HN-01", autoCapitalize: "characters" },
+  { name: "name", label: "Tên điểm", required: true, autoCapitalize: "sentences" },
+  { name: "address", label: "Địa chỉ / mô tả", autoCapitalize: "sentences" },
+  { name: "lat", label: "Vĩ độ (lat)", type: "number", required: true, placeholder: "21.0285" },
+  { name: "lng", label: "Kinh độ (lng)", type: "number", required: true, placeholder: "105.8542" },
+  { name: "radiusM", label: "Bán kính (m)", type: "number", defaultValue: "150", help: "Mặc định 150 m, từ 20 đến 2000 m." },
+  hubSelect({ label: "Hub gần nhất (tuỳ chọn)" }),
+  { name: "isActive", label: "Đang dùng", type: "checkbox", defaultValue: true },
+];
+
+const checkinPoints = {
+  title: "Điểm check-in",
+  endpoint: "/checkinPoints",
+  searchPlaceholder: "Tìm theo mã, tên điểm...",
+  columns: [
+    { key: "name", label: "Tên điểm" },
+    { key: "code", label: "Mã điểm" },
+    { key: "lat", label: "Tọa độ", format: (item) => `${item.lat}, ${item.lng}` },
+    { key: "radiusM", label: "Bán kính", format: (item) => `${item.radiusM} m` },
+    { key: "isActive", label: "Đang dùng" },
+  ],
+  createFields: checkinPointFields,
+  updateFields: checkinPointFields,
+};
+
+export const CATALOGS = { users, hubs, routes, serviceAreas, serviceTypes, priceTables, checkinPoints };

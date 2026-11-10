@@ -8,7 +8,6 @@ import { radius } from "../../theme";
 const SHIPPER_TILES = [
   { key: "deliveries", title: "Đơn cần giao", short: "GH", description: "Danh sách đơn giao trong ca", upcoming: "#31 · Sprint 6" },
   { key: "cod", title: "Thu COD", description: "Ghi nhận tiền thu hộ khi giao", upcoming: "#33 · Sprint 6" },
-  { key: "checkin", title: "Check-in GPS", description: "Tự động khi đi qua điểm", upcoming: "#30 · Sprint 5" },
 ];
 
 // The "ca hom nay" kieu app tai xe (Grab Driver/Ahamove): ca truc that do kho xep (US-23); so don can lay
@@ -53,7 +52,7 @@ function ShiftCard({ color, toPick }) {
   );
 }
 
-export default function ShipperHome({ user, theme, onLogout, onOpenPickups }) {
+export default function ShipperHome({ user, theme, onLogout, onOpenPickups, onOpenCheckin }) {
   const [pickups, setPickups] = useState();
   useEffect(() => {
     let cancelled = false;
@@ -73,6 +72,12 @@ export default function ShipperHome({ user, theme, onLogout, onOpenPickups }) {
       description: "Danh sách đơn lấy trong ca",
       meta: pickups ? `${pickups.toPick} đơn cần lấy` : undefined,
       onPress: onOpenPickups,
+    },
+    {
+      key: "checkin",
+      title: "Vị trí & check-in",
+      description: "Tự check-in khi đi qua điểm",
+      onPress: onOpenCheckin,
     },
     ...SHIPPER_TILES,
   ];
