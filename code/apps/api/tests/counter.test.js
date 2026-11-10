@@ -112,6 +112,10 @@ test("[US-40] bao gia tai quay: noi gui la diem cua nhan vien, kem goi y phuong 
   assert.equal(small.body.data.counter.hubName, hub.name);
   assert.equal(small.body.data.vehicle.code, "MOTORBIKE");
   assert.ok(small.body.data.options.length >= 2, "bao gia moi loai dich vu");
+  // Cau truc App Nhan vien dung de chon dich vu (da gap loi doc nham o.serviceType._id)
+  for (const option of small.body.data.options) {
+    assert.ok(option.serviceTypeId && option.name && option.fee.total > 0, JSON.stringify(option));
+  }
 
   const bike = await as("kho", request(app).post("/orders/counter/quote")).send({
     receiver: { province: "Hà Nội", district: "Cầu Giấy" },
