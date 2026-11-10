@@ -30,6 +30,20 @@ export class UserRepository extends BaseRepository {
     return this.model.findOne({ phone }).select(this.projection).session(session ?? null).lean();
   }
 
+  /** Nguoi giao hang dang hoat dong phu trach mot trong cac tuyen (ca lam viec, phan cong - US-23, US-25). */
+  findActiveShippers({ ids, routeIds } = {}) {
+    return this.model
+      .find({
+        role: "SHIPPER",
+        status: "ACTIVE",
+        ...(ids && { _id: { $in: ids } }),
+        ...(routeIds && { routeIds: { $in: routeIds } }),
+      })
+      .select("fullName phone routeIds maxPickupPerShift maxDeliveryPerShift")
+      .sort({ fullName: 1 })
+      .lean();
+  }
+
   /** Tao khach le trong transaction; tra ve ban da an passwordHash. */
   async insert(doc, { session }) {
     const [created] = await this.model.create([doc], { session });

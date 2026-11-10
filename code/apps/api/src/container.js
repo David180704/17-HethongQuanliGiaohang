@@ -10,7 +10,6 @@
 import { env } from "./config/env.js";
 import { getRedis } from "./config/redis.js";
 import { Role } from "./models/Role.js";
-import { Route } from "./models/Route.js";
 import { EventBus } from "./core/EventBus.js";
 import { BaseRepository } from "./core/BaseRepository.js";
 import { CachedRepository } from "./core/CachedRepository.js";
@@ -29,6 +28,9 @@ import { createRateLimit } from "./middleware/rateLimit.js";
 import { UserRepository } from "./modules/users/UserRepository.js";
 import { UserService } from "./modules/users/UserService.js";
 import { RouteService } from "./modules/routes/RouteService.js";
+import { RouteRepository } from "./modules/routes/RouteRepository.js";
+import { ShiftRepository } from "./modules/shifts/ShiftRepository.js";
+import { ShiftService } from "./modules/shifts/ShiftService.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
@@ -82,7 +84,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   // ---- Repository: ban doc thang DB + ban co cache (Decorator) cho man hinh quan tri ----
   const withCache = (repository, scope) => new CachedRepository(repository, { cache, scope });
   const userRepository = new UserRepository();
-  const routeRepository = new BaseRepository(Route, { searchFields: ["code", "name"] });
+  const routeRepository = new RouteRepository();
   const hubRepository = new HubRepository();
   const serviceAreaRepository = new ServiceAreaRepository();
   const serviceTypeRepository = new ServiceTypeRepository();
@@ -162,6 +164,13 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     orderEvents,
     passwordHasher,
   });
+  // US-23: ca lam viec - doc tuyen / nguoi giao hang KHONG cache (rang buoc can so moi nhat)
+  const shiftService = new ShiftService({
+    shiftRepository: new ShiftRepository(),
+    routeRepository,
+    userRepository,
+    hubRepository,
+  });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,
@@ -188,6 +197,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     pricingService,
     orderDraftService,
     orderService,
+    shiftService,
     orderEvents,
     journeyService,
     orderEventHandlers,
