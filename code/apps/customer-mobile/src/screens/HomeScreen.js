@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Screen from "../components/Screen";
 import Button from "../components/Button";
@@ -17,7 +18,8 @@ const STEPS = [
 ];
 
 // Trang chu cong khai: khach vang lai xem duoc het, khong can dang nhap (giong Web Khach hang).
-export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate }) {
+export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate, onTrack }) {
+  const [trackCode, setTrackCode] = useState("");
   const { user } = useAuth();
   const typesQuery = useCachedQuery("/public/service-types");
   const areasQuery = useCachedQuery("/public/service-areas");
@@ -68,17 +70,26 @@ export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate
         <Text style={styles.muted}>Nhập mã vận đơn dạng EXP + 10 chữ số.</Text>
         <View style={styles.trackRow}>
           <TextInput
-            editable={false}
+            testID="home-track-code"
             aria-label="Mã vận đơn"
+            value={trackCode}
+            onChangeText={setTrackCode}
+            autoCapitalize="characters"
+            onSubmitEditing={() => onTrack(trackCode)}
             placeholder="EXP0000000001"
             placeholderTextColor={colors.faint}
             style={styles.trackInput}
           />
-          <View style={styles.trackButton}>
+          <Pressable
+            testID="home-track-submit"
+            role="button"
+            aria-label="Tra cứu"
+            onPress={() => onTrack(trackCode)}
+            style={styles.trackButton}
+          >
             <Text style={styles.trackButtonText}>Tra cứu</Text>
-          </View>
+          </Pressable>
         </View>
-        <Text style={styles.soon}>Sắp có · #22 · Sprint 4</Text>
       </Card>
 
       <Banner>{error}</Banner>
@@ -171,8 +182,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     color: colors.text,
   },
-  trackButton: { borderRadius: radius.md, backgroundColor: colors.border, paddingHorizontal: 14, justifyContent: "center" },
-  trackButtonText: { color: colors.muted, fontWeight: "700" },
+  trackButton: { borderRadius: radius.md, backgroundColor: colors.primary, paddingHorizontal: 14, justifyContent: "center" },
+  trackButtonText: { color: "#FFFFFF", fontWeight: "700" },
   soon: {
     alignSelf: "flex-start",
     fontSize: 12,

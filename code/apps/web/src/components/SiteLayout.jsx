@@ -7,6 +7,7 @@ const NAV = [
   { to: "/bang-gia", label: "Bảng giá" },
   { to: "/uoc-tinh-phi", label: "Ước tính phí" },
   { to: "/vung-phuc-vu", label: "Vùng phục vụ" },
+  { to: "/tra-cuu", label: "Tra cứu" },
 ];
 
 const navClass = ({ isActive }) =>

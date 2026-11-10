@@ -14,6 +14,7 @@ import PickupLocationsScreen from "../screens/PickupLocationsScreen";
 import EstimateScreen from "../screens/EstimateScreen";
 import OrdersScreen from "../screens/OrdersScreen";
 import OrderDetailScreen from "../screens/OrderDetailScreen";
+import TrackingScreen from "../screens/TrackingScreen";
 import { colors } from "../theme";
 
 // Dieu huong tu viet (khong them thu vien, giong App Nhan vien):
@@ -135,6 +136,9 @@ export default function AppNavigator() {
       />
     );
   }
+  if (top?.name === "tracking") {
+    return <TrackingScreen key={top.code} initialCode={top.code} onBack={pop} />;
+  }
   if (top?.name === "orderDetail" && user) {
     return <OrderDetailScreen key={top.id} orderId={top.id} onBack={pop} />;
   }
@@ -147,6 +151,7 @@ export default function AppNavigator() {
     onLogout: requestLogout,
     onOpenPickupLocations: () => push({ name: "pickupLocations" }),
     onOpenOrders: () => push({ name: "orders" }),
+    onTrack: (code) => push({ name: "tracking", code: (code || "").trim().toUpperCase() }),
     onEstimate: () => push({ name: "estimate" }),
   };
 
