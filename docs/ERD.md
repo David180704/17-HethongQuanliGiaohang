@@ -39,6 +39,7 @@ erDiagram
     PICKUPLOCATION ||--o{ ORDER : "pickupLocationId"
 
     ORDER ||--o{ ASSIGNMENT : "orderId"
+    SHIFT ||--o{ ASSIGNMENT : "shiftId"
 
     ROLE {
         string code PK
@@ -83,9 +84,13 @@ erDiagram
     }
     SHIFT {
         ObjectId _id PK
+        string code UK "tuyen-ngay-gio bat dau"
         ObjectId routeId FK
         ObjectId_array shipperIds FK
         date shiftDate
+        string startTime "HH:mm"
+        string endTime "HH:mm"
+        number assignSeq "khoa phan cong"
     }
     SERVICETYPE {
         ObjectId _id PK
@@ -116,10 +121,15 @@ erDiagram
         ObjectId serviceTypeId FK
         ObjectId priceTableId FK
         ObjectId assignedTo FK
+        ObjectId receivedBy FK "nhan vien tiep nhan tai quay"
+        string channel "ONLINE hoac COUNTER"
+        string shopOrderCode "ma don cua shop"
+        string vehicle "MOTORBIKE hoac TRUCK"
         string status
         array statusHistory "nhung"
         object fee "nhung - lockedAt khi CONFIRMED"
         object cod "nhung"
+        string unassignedReason "hang cho phan cong"
     }
     ORDERDRAFT {
         ObjectId _id PK
@@ -132,8 +142,11 @@ erDiagram
         ObjectId orderId FK
         ObjectId shipperId FK
         ObjectId assignedBy FK
+        ObjectId shiftId FK "ca tinh vao nang luc"
         string type
-        string status
+        string status "ASSIGNED DONE FAILED CANCELLED"
+        string method "AUTO hoac MANUAL"
+        string reason "bat buoc khi MANUAL"
     }
 ```
 
@@ -177,6 +190,11 @@ tại thời điểm xác nhận).
 hai đơn tạo đồng thời không bao giờ trùng mã, còn transaction bị hủy thì không tốn số. Seed đặt
 `seq = 1000000199` (200 đơn mẫu); thiếu bộ đếm thì bắt đầu sau mã lớn nhất đang có. Collection này cố
 ý không export qua `models/index.js` nên không có trong sơ đồ và file cấu trúc mongosh.
+
+`settings` (`models/Setting.js`, Sprint 4): `{ _id: "capacity", maxPickupPerShift, maxDeliveryPerShift,
+updatedBy }` — năng lực mặc định hệ thống, cấp thấp nhất của năng lực 3 cấp (người giao hàng → tuyến →
+hệ thống, US-24). Chỉ quản trị viên đổi; chưa có bản ghi thì dùng 20 lấy / 30 giao mỗi ca. Cũng không
+export qua `models/index.js`.
 
 ## Đối chiếu với code thật
 
