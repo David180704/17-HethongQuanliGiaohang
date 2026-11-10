@@ -96,3 +96,13 @@ Danh mục dùng chung đi qua `createCrudRouter`; dữ liệu **của từng ng
 | Ca làm việc (US-23) | `/shifts` (quyền `shift:manage`), phạm vi tuyến theo hub dùng chung `routes/routeScope.js`; tài xế xem ca mình ở `/shifts/mine` |
 | Năng lực 3 cấp (US-24) | Hàm thuần `capacity/capacity.js` (`effectiveCapacity`: người → tuyến → hệ thống); mặc định hệ thống ở collection kỹ thuật `settings` (như `counters`, không tính vào 12 collection nghiệp vụ); `/capacity/system` chỉ quản trị viên (quyền `capacity:system`) |
 | Phân công lấy hàng (US-25, US-27) | `AssignmentService`: ca còn mở hôm nay của tuyến lấy hàng → người ít đơn chưa lấy nhất, chưa đầy năng lực. **Khóa ca**: trong cùng transaction tăng `Shift.assignSeq` rồi mới đếm tải — hai transaction gán vào một ca xung đột ghi, `withTransaction` chạy lại bên thua. Hết chỗ: đơn giữ CONFIRMED, ghi `unassignedReason`. Điều chỉnh tay (`POST /assignments/pickup`) bắt buộc lý do, hủy phân công cũ (CANCELLED). Tài xế: `/assignments/mine/pickups` |
+
+## Lấy hàng, kho, check-in, tài khoản nhận thu hộ (Sprint 5)
+
+| Thành phần | Cách làm |
+|---|---|
+| Lấy hàng (US-28) | `POST /assignments/pickups/:orderId/picked` (mã vận đơn phải khớp kiện, tọa độ bắt buộc) và `/failed` (6 nguyên nhân cố định, hàm thuần `assignments/pickupOutcome.js`). Một transaction: đơn PICKED_UP / PICKUP_FAILED có điều kiện trạng thái cũ + phân công DONE / FAILED; phát `order.status.changed` |
+| Quy trình tại kho (US-41) | `/warehouse/*` (quyền `order:approve`): hàm thuần `warehouse/warehouse.js` (`nextWarehouseAction`) quyết định bước tiếp theo theo trạng thái và nhóm hub; đơn lưu `pickupHubId`, `destHubId`, `currentHubId`, `itemCategory`. Đơn cũ thiếu kho đích thì tính từ khu vực người nhận |
+| Điểm check-in (US-29) | `/checkinPoints` theo khuôn `createCrudRouter` (quyền `checkinPoints:manage`, chỉ ADMIN qua `*`); `GET /checkins/points` cho app tài xế |
+| Check-in (US-30) | `POST /checkins`: hàm thuần `checkins/geo.js` (haversine, bán kính); chặn trùng cùng điểm + đơn trong 30 phút; chỉ mục unique (tài xế, mã sự kiện, đơn, điểm) cho lần gửi lại khi mất mạng; phát `order.checkin.recorded` → consumer dựng lại hành trình (thêm danh sách điểm, không lộ tọa độ). App: `lib/location.js` (vị trí giả lập), `lib/checkinQueue.js` (AsyncStorage) |
+| Tài khoản nhận thu hộ (US-42) | `/profile/bank-account` (quyền `profile:update:own`, chỉ khách hàng) qua `ProfileService`; hàm thuần `profile/bankAccount.js` (danh sách ngân hàng theo mã VietQR, bỏ dấu tên chủ tài khoản) |

@@ -8,11 +8,11 @@
 
 | | Số story |
 |---|---|
-| 🟢 Đạt (mọi tiêu chí có test và pass) | 28 |
+| 🟢 Đạt (mọi tiêu chí có test và pass) | 33 |
 | 🔴 Lỗi (có test fail) | 0 |
-| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 16 |
+| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 11 |
 
-Điểm story đạt: **96/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
+Điểm story đạt: **116/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
@@ -20,7 +20,7 @@
 | Sprint 2 | 9/9 | 24/24 |
 | Sprint 3 | 6/6 | 21/21 |
 | Sprint 4 | 9/9 | 35/35 |
-| Sprint 5 | 0/5 | 0/20 |
+| Sprint 5 | 5/5 | 20/20 |
 | Sprint 6 | 0/6 | 0/27 |
 | Sprint 7 | 0/5 | 0/27 |
 
@@ -61,11 +61,11 @@ server nên không nằm trong lệnh này.
 | 4 | US-25 | Phân công đơn lấy hàng cho người giao hàng | 7 | 🟢 Đạt | 6/6 | App NV: quy trình shop tạo đơn → kho duyệt → tự phân công theo ca/năng lực → hàng chờ → phân công tay có lý do → tài xế thấy đơn · Maestro NV 10 |
 | 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro NV 01–07 trên máy ảo Android · App NV: 17 kịch bản |
 | 4 | US-27 | Xem danh sách đơn cần lấy trong ca làm việc | 3 | 🟢 Đạt | 1/1 | App NV: tài xế thấy số đơn cần lấy trên thẻ Ca hôm nay và danh sách theo ca (trong quy trình US-25) · Maestro NV 11 |
-| 5 | US-28 | Xác nhận đã lấy hàng hoặc ghi nhận không lấy được | 4 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 5 | US-41 | Quy trình tại kho: nhập kho, phân loại, xuất kho và trung chuyển | 6 | ⚪ Chưa làm | 0/0 · còn 3 tiêu chí |  |
-| 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 5 | US-30 | Tự động check-in vị trí khi đi qua điểm đã cài đặt | 5 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 5 | US-42 | Khai báo tài khoản ngân hàng nhận tiền thu hộ | 2 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
+| 5 | US-28 | Xác nhận đã lấy hàng hoặc ghi nhận không lấy được | 4 | 🟢 Đạt | 4/4 | App NV: tài xế quét mã lấy hàng (sai mã bị chặn), ghi không lấy được + nguyên nhân → kho giao lại → người nhận tra cứu |
+| 5 | US-41 | Quy trình tại kho: nhập kho, phân loại, xuất kho và trung chuyển | 6 | 🟢 Đạt | 6/6 | App NV: quy trình hai kho Hà Nội nhập, phân loại (bắt buộc loại hàng), xuất → Hồ Chí Minh nhận tại kho đích · Maestro NV 12 |
+| 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | 🟢 Đạt | 1/1 | App NV: admin thêm điểm check-in (tọa độ sai bị chặn, bán kính mặc định 150 m) |
+| 5 | US-30 | Tự động check-in vị trí khi đi qua điểm đã cài đặt | 5 | 🟢 Đạt | 5/5 | App NV: tài xế tự check-in, cắt mạng xếp hàng rồi gửi lại, không ghi trùng → người nhận thấy điểm đã qua trên Web · Maestro NV 13 |
+| 5 | US-42 | Khai báo tài khoản ngân hàng nhận tiền thu hộ | 2 | 🟢 Đạt | 3/3 | Liên app: khai báo trên Web, đổi trên App KH, Web thấy tài khoản mới · Maestro KH 12 |
 | 6 | US-35 | Phân công tự động đơn giao hàng cho người giao hàng | 6 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
 | 6 | US-31 | Xem danh sách đơn cần giao và phiếu giao hàng có mã QR | 6 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
 | 6 | US-32 | Xác nhận giao hàng thành công hoặc ghi nhận giao thất bại | 5 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
