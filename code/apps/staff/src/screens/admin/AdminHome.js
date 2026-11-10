@@ -18,7 +18,7 @@ const UPCOMING_TILES = [
   { key: "dashboard", title: "Thống kê", description: "Dashboard tổng hợp", upcoming: "#39 · Sprint 6" },
 ];
 
-export default function AdminHome({ user, theme, onLogout, onOpenCatalog }) {
+export default function AdminHome({ user, theme, onLogout, onOpenCatalog, onOpenCapacity }) {
   const [counts, setCounts] = useState({});
 
   // So ban ghi that cua tung danh muc (limit=1, chi lay meta.total), doc qua cache
@@ -52,6 +52,10 @@ export default function AdminHome({ user, theme, onLogout, onOpenCatalog }) {
       onLogout={onLogout}
       sections={[
         { title: "Danh mục", tiles: catalogTiles },
+        {
+          title: "Vận hành",
+          tiles: [{ key: "capacity", title: "Năng lực mỗi ca", description: "Mặc định hệ thống, tuyến, người giao hàng", onPress: onOpenCapacity }],
+        },
         { title: "Sắp có", tiles: UPCOMING_TILES },
       ]}
     />

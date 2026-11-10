@@ -10,6 +10,7 @@ import HubHome from "../screens/hub/HubHome";
 import ApproveOrdersScreen from "../screens/hub/ApproveOrdersScreen";
 import CounterIntakeScreen from "../screens/hub/CounterIntakeScreen";
 import ShiftsScreen from "../screens/hub/ShiftsScreen";
+import CapacityScreen from "../screens/hub/CapacityScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
 // Dieu huong dang ngan xep tu viet (khong them thu vien): moi vai tro chi co vai
@@ -45,6 +46,9 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "shifts") {
     return <ShiftsScreen accent={theme.color} onBack={pop} />;
   }
+  if (top?.name === "capacity") {
+    return <CapacityScreen user={user} accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "counterIntake") {
     return <CounterIntakeScreen user={user} accent={theme.color} onBack={pop} />;
   }
@@ -54,7 +58,13 @@ export default function StaffNavigator({ user }) {
 
   const homeProps = { user, theme, onLogout: requestLogout };
   if (user.role === "ADMIN") {
-    return <AdminHome {...homeProps} onOpenCatalog={(key) => push({ name: "catalog", key })} />;
+    return (
+      <AdminHome
+        {...homeProps}
+        onOpenCatalog={(key) => push({ name: "catalog", key })}
+        onOpenCapacity={() => push({ name: "capacity" })}
+      />
+    );
   }
   if (user.role === "HUB_STAFF") {
     return <HubHome
@@ -62,6 +72,7 @@ export default function StaffNavigator({ user }) {
         onOpenApprove={() => push({ name: "approveOrders" })}
         onOpenCounter={() => push({ name: "counterIntake" })}
         onOpenShifts={() => push({ name: "shifts" })}
+        onOpenCapacity={() => push({ name: "capacity" })}
       />;
   }
   return <ShipperHome {...homeProps} />;
