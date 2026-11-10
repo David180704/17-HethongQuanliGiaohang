@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Screen from "../components/Screen";
 import Button from "../components/Button";
 import Banner from "../components/Banner";
@@ -117,7 +117,8 @@ function ChipRow({ label, items, value, onChange, testID }) {
   return (
     <View style={styles.chipBlock}>
       <Text style={styles.chipLabel}>{label}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      {/* Xuong dong thay vi cuon ngang: man hinh hep van thay du cac nhom (chip khuat mep phai de bo sot) */}
+      <View style={styles.chips}>
         {items.map((item) => {
           const active = item.code === value;
           return (
@@ -134,7 +135,7 @@ function ChipRow({ label, items, value, onChange, testID }) {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   small: { fontSize: 12, color: colors.muted },
   chipBlock: { gap: 6 },
   chipLabel: { fontSize: 13, fontWeight: "600", color: colors.text },
-  chips: { gap: 8 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     borderWidth: 1,
     borderColor: colors.border,
