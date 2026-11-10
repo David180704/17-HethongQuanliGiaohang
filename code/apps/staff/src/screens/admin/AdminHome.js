@@ -10,6 +10,7 @@ const CATALOG_TILES = [
   { key: "serviceAreas", description: "Quận/huyện thuộc từng tuyến" },
   { key: "serviceTypes", description: "Gửi thường, gửi nhanh, phụ phí" },
   { key: "priceTables", description: "Giá theo vùng và bậc khối lượng" },
+  { key: "checkinPoints", description: "Tọa độ, bán kính tự check-in" },
 ];
 
 // Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)

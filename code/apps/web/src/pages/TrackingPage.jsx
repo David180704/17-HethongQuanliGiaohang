@@ -128,6 +128,19 @@ export default function TrackingPage() {
               ))}
             </ol>
           </div>
+
+          {data.checkins?.length ? (
+            <div>
+              <h2 className="font-semibold">Đã đi qua</h2>
+              <ul aria-label="Điểm check-in đã qua" className="mt-2 space-y-1 text-sm text-gray-700">
+                {data.checkins.map((checkin) => (
+                  <li key={`${checkin.point}-${checkin.at}`}>
+                    {checkin.point} <span className="text-xs text-gray-500">· {formatDateTime(checkin.at)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
       )}
     </div>

@@ -14,6 +14,7 @@ import CapacityScreen from "../screens/hub/CapacityScreen";
 import AssignPickupScreen from "../screens/hub/AssignPickupScreen";
 import WarehouseScreen from "../screens/hub/WarehouseScreen";
 import PickupListScreen from "../screens/shipper/PickupListScreen";
+import CheckinScreen from "../screens/shipper/CheckinScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
 // Dieu huong dang ngan xep tu viet (khong them thu vien): moi vai tro chi co vai
@@ -55,6 +56,9 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "assignPickup") {
     return <AssignPickupScreen accent={theme.color} onBack={pop} />;
   }
+  if (top?.name === "checkin") {
+    return <CheckinScreen accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "pickups") {
     return <PickupListScreen accent={theme.color} onBack={pop} />;
   }
@@ -89,5 +93,7 @@ export default function StaffNavigator({ user }) {
         onOpenWarehouse={() => push({ name: "warehouse" })}
       />;
   }
-  return <ShipperHome {...homeProps} onOpenPickups={() => push({ name: "pickups" })} />;
+  return (
+    <ShipperHome {...homeProps} onOpenPickups={() => push({ name: "pickups" })} onOpenCheckin={() => push({ name: "checkin" })} />
+  );
 }
