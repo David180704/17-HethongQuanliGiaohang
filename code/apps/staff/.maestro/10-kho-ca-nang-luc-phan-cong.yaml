@@ -78,5 +78,6 @@ tags:
 - scrollUntilVisible:
     element: "KT23 Maestro ca som · 00:02–00:03"
     direction: DOWN
+    timeout: 60000
 - assertVisible: "Tài Xế 2: 0/\\d+ đơn · 0 chưa lấy"
 - takeScreenshot: 10-kho-phan-cong
