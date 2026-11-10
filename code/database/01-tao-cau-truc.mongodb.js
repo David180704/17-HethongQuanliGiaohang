@@ -1574,6 +1574,12 @@ const COLLECTIONS = [
                   "null"
                 ]
               },
+              "bankCode": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
               "accountNumber": {
                 "bsonType": [
                   "string",

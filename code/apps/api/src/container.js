@@ -39,6 +39,7 @@ import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
 import { CheckinPointRepository, CheckinLogRepository } from "./modules/checkins/CheckinRepositories.js";
 import { CheckinPointService } from "./modules/checkins/CheckinPointService.js";
 import { CheckinService } from "./modules/checkins/CheckinService.js";
+import { ProfileService } from "./modules/profile/ProfileService.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
@@ -261,6 +262,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     assignmentService,
     warehouseService,
     checkinService,
+    profileService: new ProfileService({ userRepository, cache }),
     orderEvents,
     journeyService,
     orderEventHandlers,
