@@ -107,6 +107,53 @@ const COLLECTIONS = [
               "null"
             ]
           },
+          "doneAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "location": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "lat": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "lng": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "failReason": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SHOP_UNREACHABLE",
+              "NOT_READY",
+              "WRONG_ADDRESS",
+              "NOT_AS_DESCRIBED",
+              "SHOP_CANCELLED",
+              "OTHER",
+              null
+            ]
+          },
+          "failNote": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
           "_id": {
             "bsonType": "objectId"
           },
@@ -337,6 +384,35 @@ const COLLECTIONS = [
             "bsonType": [
               "objectId",
               "null"
+            ]
+          },
+          "destHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "currentHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "itemCategory": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SMALL_PARCEL",
+              "BAG",
+              "CARTON",
+              "TV",
+              "LAPTOP",
+              "CPU",
+              "VEHICLE",
+              "OTHER",
+              null
             ]
           },
           "receiver": {

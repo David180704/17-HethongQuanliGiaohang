@@ -2,6 +2,7 @@ import { ErrorCodes } from "../../core/errors.js";
 import { parseShiftDate } from "../shifts/shifts.validator.js";
 import { routeScopeFor } from "../routes/routeScope.js";
 import { effectiveCapacity } from "../capacity/capacity.js";
+import { PICKUP_FAIL_LABELS, parsePickedUp, parsePickupFailed } from "./pickupOutcome.js";
 
 /** Ngay "YYYY-MM-DD" va gio "HH:mm" theo gio Viet Nam. */
 export function vnNow(date) {
@@ -223,10 +224,11 @@ export class AssignmentService {
     if (!input.orderId || !input.shipperId) throw ErrorCodes.VALIDATION_ERROR("Thiếu đơn hoặc người giao hàng");
     const order = await this.orderRepository.findOne({ _id: input.orderId, ...(await this.#hubScope(user)) });
     if (!order) throw ErrorCodes.NOT_FOUND("Không tìm thấy đơn hàng");
-    if (!["CONFIRMED", "PICKUP_ASSIGNED"].includes(order.status)) {
+    if (!["CONFIRMED", "PICKUP_ASSIGNED", "PICKUP_FAILED"].includes(order.status)) {
       throw ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} không còn ở bước chờ lấy hàng`);
     }
-    if (order.assignedTo && same(order.assignedTo, input.shipperId)) {
+    // Don lay khong duoc (US-28) duoc giao lai cho chinh nguoi cu (vd hen lai gio khac)
+    if (order.status === "PICKUP_ASSIGNED" && same(order.assignedTo, input.shipperId)) {
       throw ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} đã được giao cho người này`);
     }
     const route = await this.#pickupRoute(order);
@@ -275,7 +277,7 @@ export class AssignmentService {
       );
       return { order: updated, overCapacity, load: shift ? used + 1 : null, capacity };
     });
-    if (order.status === "CONFIRMED") await this.#publish(result.order, "CONFIRMED", user.id);
+    if (order.status !== "PICKUP_ASSIGNED") await this.#publish(result.order, order.status, user.id);
     return {
       trackingCode: result.order.trackingCode,
       status: result.order.status,
@@ -287,6 +289,65 @@ export class AssignmentService {
     };
   }
 
+  // ------------------------------------------------------------------ ket qua lay hang (US-28)
+
+  /** Don lay hang dang giao cho chinh tai xe nay (PICKUP_ASSIGNED). */
+  async #myPickup(user, orderId) {
+    if (user.role !== "SHIPPER") throw ErrorCodes.FORBIDDEN("Chỉ người giao hàng được giao đơn này mới xác nhận lấy hàng");
+    const order = await this.orderRepository.findOne({ _id: orderId, assignedTo: user.id });
+    if (!order) throw ErrorCodes.NOT_FOUND("Không tìm thấy đơn được giao cho bạn");
+    if (order.status !== "PICKUP_ASSIGNED") {
+      throw ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} không ở bước chờ lấy hàng`);
+    }
+    return order;
+  }
+
+  /** Ghi ket qua trong mot transaction: don doi trang thai + phan cong DONE/FAILED (dieu kien chong bam 2 lan). */
+  async #recordPickup(user, order, { status, assignmentStatus, location, note, failReason = null, failNote = null }) {
+    const at = this.clock();
+    const updated = await this.transactions.run(async (session) => {
+      const saved = await this.orderRepository.updateWhere(
+        { _id: order._id, status: "PICKUP_ASSIGNED", assignedTo: user.id },
+        { $push: { statusHistory: { status, at, by: user.id, note, location } }, $set: { status } },
+        { session },
+      );
+      if (!saved) throw ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} vừa được cập nhật, tải lại để xem`);
+      await this.assignmentRepository.finishActive(
+        { orderId: order._id, type: "PICKUP", shipperId: user.id },
+        { status: assignmentStatus, doneAt: at, location, failReason, failNote },
+        { session },
+      );
+      return saved;
+    });
+    await this.#publish(updated, "PICKUP_ASSIGNED", user.id);
+    return { trackingCode: updated.trackingCode, status: updated.status, at, location };
+  }
+
+  async confirmPickup(user, orderId, input = {}) {
+    const order = await this.#myPickup(user, orderId);
+    const { location } = parsePickedUp(input, order.trackingCode);
+    return this.#recordPickup(user, order, {
+      status: "PICKED_UP",
+      assignmentStatus: "DONE",
+      location,
+      note: "Người giao hàng đã lấy hàng (quét mã vận đơn)",
+    });
+  }
+
+  async failPickup(user, orderId, input = {}) {
+    const order = await this.#myPickup(user, orderId);
+    const { reason, note, location } = parsePickupFailed(input);
+    const label = PICKUP_FAIL_LABELS[reason];
+    return this.#recordPickup(user, order, {
+      status: "PICKUP_FAILED",
+      assignmentStatus: "FAILED",
+      location,
+      note: `Không lấy được hàng: ${label}${note ? ` — ${note}` : ""}`,
+      failReason: reason,
+      failNote: note,
+    });
+  }
+
   // ------------------------------------------------------------------ bang phan cong (kho)
 
   /** Hang cho, don da phan cong va tai tung nguoi trong cac ca hom nay cua tuyen trong pham vi. */
@@ -295,7 +356,7 @@ export class AssignmentService {
     const routeIds = await routeScopeFor(user, this);
     const { day } = vnNow(this.clock());
     const shiftDate = parseShiftDate(day);
-    const [queue, assigned, shifts, system] = await Promise.all([
+    const [queue, assigned, shifts, system, failed] = await Promise.all([
       this.orderRepository.findMany(
         { ...scope, status: "CONFIRMED", assignedTo: null, channel: { $ne: "COUNTER" } },
         { select: "trackingCode customerName pickupWard pickupLocationId createdAt unassignedReason", sort: { createdAt: 1 } },
@@ -306,8 +367,12 @@ export class AssignmentService {
       ),
       this.shiftRepository.findForRoutes({ routeIds, shiftDate }),
       this.capacityService.system(),
+      this.orderRepository.findMany(
+        { ...scope, status: "PICKUP_FAILED" },
+        { select: "trackingCode customerName pickupWard pickupLocationId assignedTo statusHistory updatedAt", sort: { updatedAt: -1 } },
+      ),
     ]);
-    const routes = await this.#pickupRoutes([...queue, ...assigned]);
+    const routes = await this.#pickupRoutes([...queue, ...assigned, ...failed]);
     const routeDocs = await this.routeRepository.findActive(routeIds);
     const routeById = new Map(routeDocs.map((r) => [String(r._id), r]));
     const people = await this.userRepository.findActiveShippers({ routeIds: routeDocs.map((r) => r._id) });
@@ -343,6 +408,12 @@ export class AssignmentService {
     }
     return {
       queue: queue.map(view),
+      // Lay khong duoc (US-28): kho xem nguyen nhan, phan cong lai
+      failed: failed.map(({ statusHistory, ...o }) => ({
+        ...view(o),
+        failNote: statusHistory?.at(-1)?.note ?? null,
+        assignedTo: personById.get(String(o.assignedTo)) ? { _id: o.assignedTo, fullName: personById.get(String(o.assignedTo)).fullName } : { _id: o.assignedTo },
+      })),
       assigned: assigned.map((o) => ({ ...view(o), assignedTo: personById.get(String(o.assignedTo)) ? { _id: o.assignedTo, fullName: personById.get(String(o.assignedTo)).fullName } : { _id: o.assignedTo } })),
       shifts: shiftViews,
       // Lua chon cho dieu chinh tay: nguoi giao hang theo tuyen
