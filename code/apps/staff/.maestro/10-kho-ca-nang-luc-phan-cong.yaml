@@ -75,9 +75,10 @@ tags:
 - extendedWaitUntil:
     visible: "Hàng chờ \\(\\d+\\)"
     timeout: 15000
+# Cuon toi dong tai cua Tai Xe 2 (nam duoi ten ca) trong the ca vua them
 - scrollUntilVisible:
-    element: "KT23 Maestro ca som · 00:02–00:03"
+    element: "Tài Xế 2: 0/\\d+ đơn · 0 chưa lấy"
     direction: DOWN
     timeout: 60000
-- assertVisible: "Tài Xế 2: 0/\\d+ đơn · 0 chưa lấy"
+- assertVisible: "KT23 Maestro ca som · 00:02–00:03"
 - takeScreenshot: 10-kho-phan-cong
