@@ -19,6 +19,9 @@ export const env = {
 
   // Hang doi su kien doi trang thai don (US-21, BullMQ tren Redis): thu lai toi da ORDER_EVENTS_ATTEMPTS lan,
   // gian cach tang dan tu ORDER_EVENTS_BACKOFF_MS; het luot -> <ten>-dlq
+  // Tra cuu cong khai bang ma van don (US-22): toi da TRACKING_RATE_LIMIT lan / phut cho moi IP
+  trackingRateLimit: { limit: Number(process.env.TRACKING_RATE_LIMIT || 20), windowSeconds: 60 },
+
   orderEvents: {
     queueName: process.env.ORDER_EVENTS_QUEUE || "order-events",
     attempts: Number(process.env.ORDER_EVENTS_ATTEMPTS || 5),
