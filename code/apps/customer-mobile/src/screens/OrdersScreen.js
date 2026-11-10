@@ -16,12 +16,12 @@ const PAGE_SIZE = 10;
 
 // US-20: danh sach don cua khach - loc nhom trang thai (4 nhom de 14), khoang thoi gian, tim ma van don /
 // nguoi nhan. Cung API voi Web Khach hang (GET /orders?group&from&search), cache 30 giay.
-export default function OrdersScreen({ onBack, onOpenOrder, onCreateOrder }) {
-  const [group, setGroup] = useState("");
-  const [range, setRange] = useState("");
-  const [searchText, setSearchText] = useState("");
-  const [search, setSearch] = useState("");
-  const [pages, setPages] = useState(1);
+export default function OrdersScreen({ onBack, onOpenOrder, onCreateOrder, initialFilters = {} }) {
+  const [group, setGroup] = useState(initialFilters.group || "");
+  const [range, setRange] = useState(initialFilters.range || "");
+  const [searchText, setSearchText] = useState(initialFilters.search || "");
+  const [search, setSearch] = useState(initialFilters.search || "");
+  const [pages, setPages] = useState(initialFilters.pages || 1);
   const days = RANGE_FILTERS.find((r) => r.code === range)?.days;
   const query = { group, from: rangeFrom(days), search, page: 1, limit: PAGE_SIZE * pages };
   const { data: orders, meta, error, updatedAt, refresh } = useCachedQuery("/orders", query);
@@ -83,7 +83,7 @@ export default function OrdersScreen({ onBack, onOpenOrder, onCreateOrder }) {
                   testID={`order-${order.trackingCode}`}
                   role="button"
                   aria-label={`Đơn ${order.trackingCode}`}
-                  onPress={() => onOpenOrder(order._id)}
+                  onPress={() => onOpenOrder(order._id, { group, range, search, pages })}
                   style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
                 >
                   <View style={styles.cardHead}>
