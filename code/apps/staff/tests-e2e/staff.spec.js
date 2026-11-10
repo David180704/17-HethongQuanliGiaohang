@@ -71,7 +71,7 @@ test("ADMIN vao trang quan tri, so ban ghi that, phien con sau khi tai lai trang
   }
   await expect(page.getByText(/\d+ bản ghi/).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Đối soát", exact: true })).toBeDisabled();
-  await expect(page.getByText("Sắp có · #34 · Sprint 5")).toBeVisible();
+  await expect(page.getByText("Sắp có · #34 · Sprint 7")).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/03-admin-home-desktop.png`, fullPage: true });
 
   await page.reload();
@@ -378,7 +378,8 @@ test.describe("giao dien dien thoai", () => {
     await expect(page.getByRole("heading", { name: "EDMS Nhân viên" })).toBeVisible();
     await expect(page.getByText(/Hub phụ trách: .+\((HUB|PO)-/)).toBeVisible();
     await expect(page.getByRole("button", { name: /Duyệt đơn mới/ })).toBeEnabled();
-    await expect(page.getByText(/\d+ đơn chờ/)).toBeVisible();
+    await expect(page.getByText(/^\d+ đơn chờ$/)).toBeVisible();
+    await expect(page.getByText(/^\d+ đơn chờ phân công$/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Người dùng" })).toHaveCount(0);
     await page.screenshot({ path: `${SHOT_DIR}/10-hub-home-phone.png`, fullPage: true });
   });
