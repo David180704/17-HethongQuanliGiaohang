@@ -10,7 +10,7 @@ export function maskPhone(phone) {
   return `${digits.slice(0, 2)}xx xxx ${digits.slice(-3)}`;
 }
 
-export function buildPublicJourney(order) {
+export function buildPublicJourney(order, checkins = []) {
   const group = customerGroup(order);
   return {
     trackingCode: order.trackingCode,
@@ -30,6 +30,10 @@ export function buildPublicJourney(order) {
       status: h.status,
       label: STATUS_LABELS[h.status] || h.status,
     })),
+    // Cac diem don da di qua (US-30): ten diem va thoi gian, moi nhat truoc - khong lo toa do, nguoi giao
+    checkins: [...checkins]
+      .sort((a, b) => new Date(b.at) - new Date(a.at))
+      .map((c) => ({ at: new Date(c.at).toISOString(), point: c.point?.name || "Điểm check-in" })),
     updatedAt: new Date(order.updatedAt || Date.now()).toISOString(),
   };
 }

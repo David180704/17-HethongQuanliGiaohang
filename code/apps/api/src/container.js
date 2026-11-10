@@ -36,6 +36,9 @@ import { SettingRepository } from "./modules/capacity/SettingRepository.js";
 import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
 import { AssignmentService } from "./modules/assignments/AssignmentService.js";
 import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
+import { CheckinPointRepository, CheckinLogRepository } from "./modules/checkins/CheckinRepositories.js";
+import { CheckinPointService } from "./modules/checkins/CheckinPointService.js";
+import { CheckinService } from "./modules/checkins/CheckinService.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
@@ -150,7 +153,8 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     attempts: env.orderEvents.attempts,
     backoffMs: env.orderEvents.backoffMs,
   });
-  const journeyService = new JourneyService({ orderRepository, redis });
+  // Hanh trinh cong khai kem cac moc check-in (US-30); checkinService tao ben duoi
+  const journeyService = new JourneyService({ orderRepository, redis, checkinsOf: (orderId) => checkinService.forOrder(orderId) });
   // Consumer: moi loai su kien mot handler; handler goi lan luot cac consumer (dat ben duoi khi da tao
   // xong service). Moi consumer idempotent vi BullMQ co the chay lai job.
   const orderEventHandlers = {
@@ -158,6 +162,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
       await journeyService.project(event);
       await assignmentService.onOrderStatusChanged(event);
     },
+    "order.checkin.recorded": (event) => journeyService.project(event),
   };
   const orderService = new OrderService({
     orderRepository,
@@ -203,6 +208,19 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     transactions: new MongooseTransactionRunner(),
     orderEvents,
   });
+  // US-29, US-30: diem check-in (danh muc admin) va check-in vi tri cua tai xe
+  const checkinPointRepository = new CheckinPointRepository();
+  services.checkinPoints = new CheckinPointService({
+    repository: withCache(checkinPointRepository, "checkinPoints"),
+    hubRepository,
+    events,
+  });
+  const checkinService = new CheckinService({
+    checkinPointRepository,
+    checkinLogRepository: new CheckinLogRepository(),
+    orderRepository,
+    orderEvents,
+  });
   // US-41: quy trinh tai kho (nhap kho, phan loai, xuat kho) - doc thang DB
   const warehouseService = new WarehouseService({
     orderRepository,
@@ -242,6 +260,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     capacityService,
     assignmentService,
     warehouseService,
+    checkinService,
     orderEvents,
     journeyService,
     orderEventHandlers,
