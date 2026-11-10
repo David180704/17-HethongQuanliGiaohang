@@ -6,17 +6,6 @@ import { test } from "node:test";
 
 const pending = {
   // ---------- Sprint 4 (06/11 - 01/12/2026) ----------
-  "US-22": [
-    "GET /tracking/:code cong khai, gom 18 trang thai thanh 4 nhom cho khach",
-    "Che so dien thoai dang 09xx xxx 123, gioi han 20 request/phut/IP",
-  ],
-  "US-40": [
-    "Nhan vien kho tim khach theo so dien thoai hoac tao nhanh khach le tai quay",
-    "Tao don ho khach bang bo tao don 4 buoc: don thuoc hub cua nhan vien, ghi nguoi tiep nhan",
-    "Nhap ma don cua shop (ma tren website ban hang); goi y phuong tien theo khoi luong, kich thuoc, hang la xe",
-  ],
-  "US-23": ["Quan ly ca lam viec, gan nguoi giao hang vao tuyen theo tung ca"],
-  "US-24": ["Nang luc toi da 3 cap uu tien: nhan vien -> tuyen -> mac dinh he thong"],
   "US-25": [
     "Tu dong phan cong don lay hang theo tuyen, chon nguoi it don nhat chua day nang luc",
     "Transaction chong vuot nang luc khi nhieu don gan cung luc; het cho -> hang cho UNASSIGNED",
