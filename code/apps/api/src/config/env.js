@@ -23,7 +23,9 @@ export const env = {
   trackingRateLimit: { limit: Number(process.env.TRACKING_RATE_LIMIT || 20), windowSeconds: 60 },
 
   orderEvents: {
-    queueName: process.env.ORDER_EVENTS_QUEUE || "order-events",
+    // Test (node --test dat NODE_TEST_CONTEXT) dung hang doi rieng: API dev dang chay cung Redis khong
+    // tieu thu su kien cua don thu nghiem (vd tu phan cong US-25 giua chung mot test).
+    queueName: process.env.ORDER_EVENTS_QUEUE || (process.env.NODE_TEST_CONTEXT ? "order-events-test" : "order-events"),
     attempts: Number(process.env.ORDER_EVENTS_ATTEMPTS || 5),
     backoffMs: Number(process.env.ORDER_EVENTS_BACKOFF_MS || 2000),
   },

@@ -59,6 +59,7 @@ export const VEHICLE_TYPE = ["MOTORBIKE", "TRUCK"];
 
 export const ASSIGNMENT_TYPE = ["PICKUP", "DELIVERY", "RETURN"];
 
-export const ASSIGNMENT_STATUS = ["ASSIGNED", "DONE", "FAILED"];
+// CANCELLED: phan cong bi thay khi quan ly dieu chinh tay (US-25) - khong tinh vao nang luc ca
+export const ASSIGNMENT_STATUS = ["ASSIGNED", "DONE", "FAILED", "CANCELLED"];
 
 export const ASSIGNMENT_METHOD = ["AUTO", "MANUAL"];

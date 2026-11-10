@@ -21,7 +21,7 @@ const COLLECTIONS = [
   {
     // ---------------- assignments (model Assignment) ----------------
     name: "assignments",
-    indexes: [[{"shipperId":1,"shiftDate":1,"status":1},{}]],
+    indexes: [[{"shipperId":1,"shiftDate":1,"status":1},{}],[{"shiftId":1,"type":1,"status":1},{}],[{"orderId":1,"type":1,"status":1},{}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
@@ -51,6 +51,12 @@ const COLLECTIONS = [
           "shiftDate": {
             "bsonType": "date"
           },
+          "shiftId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "status": {
             "bsonType": [
               "string",
@@ -60,6 +66,7 @@ const COLLECTIONS = [
               "ASSIGNED",
               "DONE",
               "FAILED",
+              "CANCELLED",
               null
             ]
           },
@@ -85,6 +92,18 @@ const COLLECTIONS = [
           "reason": {
             "bsonType": [
               "string",
+              "null"
+            ]
+          },
+          "cancelledBy": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "cancelledAt": {
+            "bsonType": [
+              "date",
               "null"
             ]
           },
@@ -703,6 +722,12 @@ const COLLECTIONS = [
               "null"
             ]
           },
+          "unassignedReason": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
           "settlementId": {
             "bsonType": [
               "objectId",
@@ -1182,6 +1207,12 @@ const COLLECTIONS = [
           },
           "shiftDate": {
             "bsonType": "date"
+          },
+          "assignSeq": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
           },
           "_id": {
             "bsonType": "objectId"

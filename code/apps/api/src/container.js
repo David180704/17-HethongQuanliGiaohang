@@ -33,6 +33,8 @@ import { ShiftRepository } from "./modules/shifts/ShiftRepository.js";
 import { ShiftService } from "./modules/shifts/ShiftService.js";
 import { CapacityService } from "./modules/capacity/CapacityService.js";
 import { SettingRepository } from "./modules/capacity/SettingRepository.js";
+import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
+import { AssignmentService } from "./modules/assignments/AssignmentService.js";
 import { HubRepository } from "./modules/hubs/HubRepository.js";
 import { HubService } from "./modules/hubs/HubService.js";
 import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
@@ -148,9 +150,13 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     backoffMs: env.orderEvents.backoffMs,
   });
   const journeyService = new JourneyService({ orderRepository, redis });
-  // Consumer: moi su kien mot handler; them consumer moi (vd phan cong tu dong US-25) = them dong o day
+  // Consumer: moi loai su kien mot handler; handler goi lan luot cac consumer (dat ben duoi khi da tao
+  // xong service). Moi consumer idempotent vi BullMQ co the chay lai job.
   const orderEventHandlers = {
-    "order.status.changed": (event) => journeyService.project(event),
+    "order.status.changed": async (event) => {
+      await journeyService.project(event);
+      await assignmentService.onOrderStatusChanged(event);
+    },
   };
   const orderService = new OrderService({
     orderRepository,
@@ -167,8 +173,9 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     passwordHasher,
   });
   // US-23: ca lam viec - doc tuyen / nguoi giao hang KHONG cache (rang buoc can so moi nhat)
+  const shiftRepository = new ShiftRepository();
   const shiftService = new ShiftService({
-    shiftRepository: new ShiftRepository(),
+    shiftRepository,
     routeRepository,
     userRepository,
     hubRepository,
@@ -180,6 +187,20 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     userRepository,
     hubRepository,
     cache,
+  });
+  // US-25, US-27: phan cong lay hang (consumer thu hai cua order.status.changed) va don can lay cua tai xe
+  const assignmentService = new AssignmentService({
+    assignmentRepository: new AssignmentRepository(),
+    shiftRepository,
+    orderRepository,
+    routeRepository,
+    userRepository,
+    hubRepository,
+    pickupLocationRepository,
+    serviceAreaRepository,
+    capacityService,
+    transactions: new MongooseTransactionRunner(),
+    orderEvents,
   });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
@@ -209,6 +230,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     orderService,
     shiftService,
     capacityService,
+    assignmentService,
     orderEvents,
     journeyService,
     orderEventHandlers,

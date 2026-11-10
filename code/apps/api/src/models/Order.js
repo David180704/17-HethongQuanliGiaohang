@@ -141,6 +141,8 @@ const orderSchema = new mongoose.Schema(
 
     deliveryAttempts: { type: Number, default: 0 },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    // Hang cho chua phan cong (US-25): ly do phan cong tu dong khong gan duoc (khong co ca, tuyen da day)
+    unassignedReason: { type: String, default: null },
     settlementId: { type: mongoose.Schema.Types.ObjectId, ref: "Settlement", default: null },
   },
   { timestamps: true },
