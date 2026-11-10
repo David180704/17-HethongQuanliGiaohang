@@ -9,6 +9,7 @@ import { CATALOGS } from "../screens/admin/catalogs";
 import HubHome from "../screens/hub/HubHome";
 import ApproveOrdersScreen from "../screens/hub/ApproveOrdersScreen";
 import CounterIntakeScreen from "../screens/hub/CounterIntakeScreen";
+import ShiftsScreen from "../screens/hub/ShiftsScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
 // Dieu huong dang ngan xep tu viet (khong them thu vien): moi vai tro chi co vai
@@ -41,6 +42,9 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "catalog") {
     return <ResourceScreen config={CATALOGS[top.key]} accent={theme.color} onBack={pop} />;
   }
+  if (top?.name === "shifts") {
+    return <ShiftsScreen accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "counterIntake") {
     return <CounterIntakeScreen user={user} accent={theme.color} onBack={pop} />;
   }
@@ -57,6 +61,7 @@ export default function StaffNavigator({ user }) {
         {...homeProps}
         onOpenApprove={() => push({ name: "approveOrders" })}
         onOpenCounter={() => push({ name: "counterIntake" })}
+        onOpenShifts={() => push({ name: "shifts" })}
       />;
   }
   return <ShipperHome {...homeProps} />;
