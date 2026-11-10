@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { apiClient } from "../../lib/apiClient";
 import RoleHome from "../RoleHome";
 import { radius } from "../../theme";
 
@@ -10,13 +12,31 @@ const SHIPPER_TILES = [
   { key: "checkin", title: "Check-in GPS", description: "Tự động khi đi qua điểm", upcoming: "#30 · Sprint 5" },
 ];
 
-// The "ca hom nay" kieu app tai xe (Grab Driver/Ahamove): so don can lay / can
-// giao. Chua co module ca truc va phan cong nen hien 0 kem ghi chu.
+// The "ca hom nay" kieu app tai xe (Grab Driver/Ahamove): ca truc that do kho xep (US-23); so don can lay /
+// can giao co tu phan cong (US-25, US-27).
 function ShiftCard({ color }) {
+  const [shifts, setShifts] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    apiClient
+      .get("/shifts/mine")
+      .then((res) => !cancelled && setShifts(res.data.data))
+      .catch(() => !cancelled && setShifts([]));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const title = !shifts
+    ? "Đang tải ca..."
+    : shifts.length
+      ? shifts.map((s) => `${s.name} ${s.startTime}–${s.endTime} · ${s.routeId?.code}`).join("\n")
+      : "Chưa có ca trực";
   return (
     <View style={[styles.shift, { backgroundColor: color }]}>
       <Text style={styles.shiftLabel}>Ca hôm nay</Text>
-      <Text style={styles.shiftTitle}>Chưa có ca trực</Text>
+      <Text style={styles.shiftTitle} testID="shipper-shift">
+        {title}
+      </Text>
       <View style={styles.counters}>
         <View style={styles.counter}>
           <Text style={styles.counterValue}>0</Text>
@@ -27,7 +47,7 @@ function ShiftCard({ color }) {
           <Text style={styles.counterLabel}>Cần giao</Text>
         </View>
       </View>
-      <Text style={styles.shiftNote}>Ca trực (#23) và phân công (#25) có ở Sprint 4</Text>
+      <Text style={styles.shiftNote}>Số đơn cần lấy, cần giao có khi phân công (#25, #27)</Text>
     </View>
   );
 }

@@ -4,12 +4,11 @@ import { queryCache } from "../../lib/queryCache";
 
 // Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
 const UPCOMING_TILES = [
-  { key: "shifts", title: "Ca làm việc", description: "Xếp tài xế vào ca theo tuyến", upcoming: "#23 · Sprint 4" },
   { key: "assign", title: "Phân công lấy hàng", description: "Tự động theo tuyến và năng lực", upcoming: "#25 · Sprint 4" },
   { key: "incidents", title: "Sự cố, khiếu nại", description: "Ghi nhận và theo dõi xử lý", upcoming: "#38 · Sprint 6" },
 ];
 
-export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter }) {
+export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts }) {
   const hub = user.hubId;
   const [waiting, setWaiting] = useState();
 
@@ -38,6 +37,12 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCo
       description: "Xác nhận đơn, khóa phí vận chuyển",
       meta: waiting !== undefined ? `${waiting} đơn chờ` : undefined,
       onPress: onOpenApprove,
+    },
+    {
+      key: "shifts",
+      title: "Ca làm việc",
+      description: "Xếp người giao hàng vào ca theo tuyến",
+      onPress: onOpenShifts,
     },
     ...UPCOMING_TILES,
   ];
