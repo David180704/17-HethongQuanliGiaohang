@@ -11,6 +11,8 @@ import ApproveOrdersScreen from "../screens/hub/ApproveOrdersScreen";
 import CounterIntakeScreen from "../screens/hub/CounterIntakeScreen";
 import ShiftsScreen from "../screens/hub/ShiftsScreen";
 import CapacityScreen from "../screens/hub/CapacityScreen";
+import AssignPickupScreen from "../screens/hub/AssignPickupScreen";
+import PickupListScreen from "../screens/shipper/PickupListScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
 // Dieu huong dang ngan xep tu viet (khong them thu vien): moi vai tro chi co vai
@@ -46,6 +48,12 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "shifts") {
     return <ShiftsScreen accent={theme.color} onBack={pop} />;
   }
+  if (top?.name === "assignPickup") {
+    return <AssignPickupScreen accent={theme.color} onBack={pop} />;
+  }
+  if (top?.name === "pickups") {
+    return <PickupListScreen accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "capacity") {
     return <CapacityScreen user={user} accent={theme.color} onBack={pop} />;
   }
@@ -73,7 +81,8 @@ export default function StaffNavigator({ user }) {
         onOpenCounter={() => push({ name: "counterIntake" })}
         onOpenShifts={() => push({ name: "shifts" })}
         onOpenCapacity={() => push({ name: "capacity" })}
+        onOpenAssign={() => push({ name: "assignPickup" })}
       />;
   }
-  return <ShipperHome {...homeProps} />;
+  return <ShipperHome {...homeProps} onOpenPickups={() => push({ name: "pickups" })} />;
 }

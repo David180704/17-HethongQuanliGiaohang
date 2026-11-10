@@ -35,3 +35,9 @@ export function tileInitials(title = "") {
     .map((word) => word[0].toUpperCase())
     .join("");
 }
+
+// Hermes tren Android co the thieu Intl vi-VN -> tu nhom hang nghin bang dau cham.
+export function formatVnd(amount) {
+  const digits = String(Math.round(Number(amount) || 0));
+  return `${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")} ₫`;
+}
