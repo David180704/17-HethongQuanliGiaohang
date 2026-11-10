@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { errorMessage } from "../lib/apiClient.js";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
+import BankAccountSection from "../components/BankAccountSection.jsx";
 
 const CUSTOMER_TYPE_LABELS = { INDIVIDUAL: "Cá nhân", BUSINESS: "Doanh nghiệp / shop" };
 
@@ -53,6 +54,8 @@ export default function AccountPage() {
           Xem đơn hàng
         </Link>
       </section>
+
+      <BankAccountSection />
     </div>
   );
 }

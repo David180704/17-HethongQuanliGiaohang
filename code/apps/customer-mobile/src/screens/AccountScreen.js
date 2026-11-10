@@ -8,6 +8,7 @@ import { useCachedQuery } from "../lib/useCachedQuery";
 import { errorMessage } from "../lib/apiClient";
 import { CUSTOMER_TYPE_LABELS, avatarLetter } from "../lib/format";
 import { colors } from "../theme";
+import BankAccountCard from "../components/BankAccountCard";
 
 export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders }) {
   const { user } = useAuth();
@@ -81,6 +82,8 @@ function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations, onOpenO
         <Button testID="account-orders" title="Xem đơn hàng" onPress={onOpenOrders} />
         <Button title="Tạo đơn mới" variant="secondary" onPress={onCreateOrder} />
       </Card>
+
+      <BankAccountCard />
 
       <Button testID="account-logout" title="Đăng xuất" variant="danger" onPress={onLogout} />
     </Screen>
