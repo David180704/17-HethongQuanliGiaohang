@@ -1,0 +1,80 @@
+appId: host.exp.exponent
+name: "[US-23][US-24][US-25] Kho xep ca cho tai xe, xem nang luc moi ca va bang phan cong lay hang"
+tags:
+  - sprint4
+---
+# Ca thu nghiem "KT23 Maestro ..." - code/test-mobile.ps1 xoa sau khi chay (Remove-MobileTestData).
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+
+# 1. Ca lam viec: them ca 21:00-22:00 tuyen R-HN-NOI cho Tai Xe 1
+- tapOn: "Ca làm việc.*"
+- extendedWaitUntil:
+    visible:
+      id: "shift-add"
+    timeout: 15000
+- tapOn:
+    id: "shift-add"
+- tapOn:
+    text: "R-HN-NOI"
+    index: 0
+- tapOn:
+    id: "shift-name"
+- eraseText: 20
+- inputText: "KT23 Maestro ca toi"
+- hideKeyboard
+- tapOn:
+    id: "shift-start"
+- eraseText: 10
+- inputText: "21:00"
+- hideKeyboard
+- tapOn:
+    id: "shift-end"
+- eraseText: 10
+- inputText: "22:00"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Tài Xế 1"
+    direction: DOWN
+- tapOn: "Tài Xế 1"
+- scrollUntilVisible:
+    element:
+      id: "shift-save"
+    direction: DOWN
+- tapOn:
+    id: "shift-save"
+- extendedWaitUntil:
+    visible: "Đã thêm KT23 Maestro ca toi"
+    timeout: 15000
+- assertVisible: "KT23 Maestro ca toi · 21:00–22:00"
+- takeScreenshot: 10-kho-them-ca
+- tapOn: "Quay lại"
+
+# 2. Nang luc moi ca: mac dinh he thong + tuyen cua hub
+- scrollUntilVisible:
+    element: "Năng lực mỗi ca.*"
+    direction: DOWN
+- tapOn: "Năng lực mỗi ca.*"
+- extendedWaitUntil:
+    visible: "Mặc định hệ thống"
+    timeout: 15000
+- assertVisible: "Lấy \\d+ · Giao \\d+ đơn / ca"
+- assertVisible: "R-HN-NOI · Nội thành Hà Nội"
+- takeScreenshot: 10-kho-nang-luc
+- tapOn: "Quay lại"
+
+# 3. Bang phan cong: hang cho, tai theo ca hom nay (co ca vua them)
+- scrollUntilVisible:
+    element: "Phân công lấy hàng.*"
+    direction: UP
+- tapOn: "Phân công lấy hàng.*"
+- extendedWaitUntil:
+    visible: "Hàng chờ \\(\\d+\\)"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "KT23 Maestro ca toi · 21:00–22:00"
+    direction: DOWN
+- assertVisible: "Tài Xế 1: 0/\\d+ đơn · 0 chưa lấy"
+- takeScreenshot: 10-kho-phan-cong
