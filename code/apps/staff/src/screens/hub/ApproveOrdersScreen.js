@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { formatVnd } from "../../lib/format";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Screen from "../../components/Screen";
 import Button from "../../components/Button";
@@ -13,7 +14,8 @@ const FEE_PAYER_LABELS = {
   RECIPIENT_PAID: "Người nhận trả",
   DEDUCT_FROM_COD: "Trừ vào thu hộ",
 };
-const vnd = (amount) => `${Number(amount || 0).toLocaleString("vi-VN")} ₫`;
+// Hermes tren Android co the thieu Intl vi-VN -> dung ham tu nhom hang nghin
+const vnd = formatVnd;
 
 // Duyet don moi (US-18): don CREATED cua hub minh va buu cuc truc thuoc (server loc theo
 // hubId). Xac nhan -> CONFIRMED, phi khoa vao don (US-17). Hai nguoi cung bam -> nguoi
