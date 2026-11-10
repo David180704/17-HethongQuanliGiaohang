@@ -178,7 +178,8 @@ test.describe("cache 30 giay phia web", () => {
     await loginOnPage(page, "khach1@edms.vn");
     await expect(page).toHaveURL(/\/$/);
     await page.getByRole("link", { name: "Khách Hàng 1" }).click(); // /auth/me cua khach1 bat dau, bi giu lai
-    await expect(page.getByText("Đang tải...")).toBeVisible();
+    // Trang tai khoan co nhieu khoi cung dang tai (ho so, dia diem lay hang) -> lay dong dau
+    await expect(page.getByText("Đang tải...").first()).toBeVisible();
     await page.getByRole("button", { name: "Đăng xuất" }).click();
     await page.getByRole("link", { name: "Đăng nhập" }).click();
     await loginOnPage(page, "khach2@edms.vn");
