@@ -21,9 +21,11 @@ import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHa
 import { RefreshTokenStore } from "./infrastructure/security/RefreshTokenStore.js";
 import { JwtTokenService } from "./infrastructure/security/JwtTokenService.js";
 import { LoginThrottle } from "./infrastructure/security/LoginThrottle.js";
+import { RateLimiter } from "./infrastructure/security/RateLimiter.js";
 import { MailService } from "./infrastructure/mail/MailService.js";
 import { createAuthMiddleware } from "./middleware/auth.js";
 import { createRequirePermission } from "./middleware/rbac.js";
+import { createRateLimit } from "./middleware/rateLimit.js";
 import { UserRepository } from "./modules/users/UserRepository.js";
 import { UserService } from "./modules/users/UserService.js";
 import { RouteService } from "./modules/routes/RouteService.js";
@@ -171,6 +173,8 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
 
   const { requireAuth, guardAuthenticated, optionalAuth } = createAuthMiddleware(tokenService);
   const requirePermission = createRequirePermission(permissionService);
+  // US-22: tra cuu cong khai toi da 20 lan/phut moi IP (dem tren Redis, dung chung moi tien trinh)
+  const trackingRateLimit = createRateLimit({ limiter: new RateLimiter(redis), name: "tracking", ...env.trackingRateLimit });
 
   return {
     events,
@@ -189,7 +193,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     /** Chay consumer hang doi su kien don (server.js goi; test US-21 tu chay worker rieng). */
     startOrderEventWorker: () => orderEvents.startWorker(orderEventHandlers),
     services,
-    middleware: { requireAuth, guardAuthenticated, optionalAuth, requirePermission },
+    middleware: { requireAuth, guardAuthenticated, optionalAuth, requirePermission, trackingRateLimit },
   };
 }
 
