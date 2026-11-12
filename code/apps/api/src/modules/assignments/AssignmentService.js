@@ -3,6 +3,7 @@ import { parseShiftDate } from "../shifts/shifts.validator.js";
 import { routeScopeFor } from "../routes/routeScope.js";
 import { effectiveCapacity } from "../capacity/capacity.js";
 import { PICKUP_FAIL_LABELS, parsePickedUp, parsePickupFailed } from "./pickupOutcome.js";
+import { expressChecker, expressFirst } from "../orders/priority.js";
 
 /** Ngay "YYYY-MM-DD" va gio "HH:mm" theo gio Viet Nam. */
 export function vnNow(date) {
@@ -35,12 +36,14 @@ export class AssignmentService {
     hubRepository,
     pickupLocationRepository,
     serviceAreaRepository,
+    serviceTypeRepository,
     capacityService,
     transactions,
     orderEvents,
     clock = () => new Date(),
   }) {
     Object.assign(this, {
+      serviceTypeRepository,
       assignmentRepository,
       shiftRepository,
       orderRepository,
@@ -86,6 +89,11 @@ export class AssignmentService {
     const staff = await this.userRepository.findById(user.id);
     if (!staff?.hubId) return { _id: null };
     return { pickupHubId: { $in: await this.hubRepository.findFamilyIds(staff.hubId) } };
+  }
+
+  async #isExpress() {
+    const express = this.serviceTypeRepository ? await this.serviceTypeRepository.findMany({ code: "EXPRESS" }, { select: "_id" }) : [];
+    return expressChecker(express.map((s) => s._id));
   }
 
   async #publish(order, from, by) {
@@ -205,10 +213,12 @@ export class AssignmentService {
   async runQueue(user) {
     const orders = await this.orderRepository.findMany(
       { ...(await this.#hubScope(user)), status: "CONFIRMED", assignedTo: null, channel: { $ne: "COUNTER" } },
-      { select: "_id", sort: { createdAt: 1 } },
+      { select: "_id serviceTypeId", sort: { createdAt: 1 } },
     );
+    // Gui nhanh duoc phan cong truoc (dung cho con lai trong ca)
+    const ordered = expressFirst(orders, await this.#isExpress());
     const results = [];
-    for (const { _id } of orders) results.push(await this.autoAssignPickup(_id, { by: user.id }));
+    for (const { _id } of ordered) results.push(await this.autoAssignPickup(_id, { by: user.id }));
     return {
       assigned: results.filter((r) => r.status === "ASSIGNED").length,
       unassigned: results.filter((r) => r.status === "UNASSIGNED").length,
@@ -359,7 +369,7 @@ export class AssignmentService {
     const [queue, assigned, shifts, system, failed] = await Promise.all([
       this.orderRepository.findMany(
         { ...scope, status: "CONFIRMED", assignedTo: null, channel: { $ne: "COUNTER" } },
-        { select: "trackingCode customerName pickupWard pickupLocationId createdAt unassignedReason", sort: { createdAt: 1 } },
+        { select: "trackingCode customerName pickupWard pickupLocationId serviceTypeId createdAt unassignedReason", sort: { createdAt: 1 } },
       ),
       this.orderRepository.findMany(
         { ...scope, status: "PICKUP_ASSIGNED" },
@@ -406,8 +416,9 @@ export class AssignmentService {
         }),
       });
     }
+    const isExpress = await this.#isExpress();
     return {
-      queue: queue.map(view),
+      queue: expressFirst(queue, isExpress).map((o) => ({ ...view(o), express: isExpress(o) })),
       // Lay khong duoc (US-28): kho xem nguyen nhan, phan cong lai
       failed: failed.map(({ statusHistory, ...o }) => ({
         ...view(o),
