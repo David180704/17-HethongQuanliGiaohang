@@ -35,7 +35,7 @@ before(async () => {
     name: "Hub Test App Login",
     type: "HUB",
     province: "Hà Nội",
-    district: "Hoàn Kiếm",
+    ward: "Phường Hoàn Kiếm",
     isActive: true,
   });
   hub = { _id: insertedId };

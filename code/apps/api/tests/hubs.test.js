@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { Hub } from "../src/models/Hub.js";
 import { Route } from "../src/models/Route.js";
@@ -18,7 +18,11 @@ const PASSWORD = "Test@12345";
 const EMAILS = ["hub-admin@edms.vn", "hub-customer@edms.vn", "hub-kho-t14@edms.vn"];
 const HUB_CODES = ["HUB-T14", "PO-T14-A", "PO-T14-X", "HUB-T14-AREA", "HUB-T14F", "PO-T14F"];
 const ROUTE_CODES = ["R-T14", "R-T14F"];
-const TEST_PROVINCE = "Tỉnh T14";
+// Xa/phuong co that tam go khoi vung phuc vu trong luc test: TEST_AREA admin them lai qua API,
+// OUTSIDE la dia chi "ngoai vung phuc vu"
+const TEST_AREA = { province: "Cao Bằng", ward: "Phường Thục Phán" };
+const OUTSIDE = { province: "Hà Nội", ward: "Xã Sóc Sơn" };
+let restoreAreas;
 
 let app;
 let adminToken;
@@ -28,7 +32,6 @@ let seededHubs;
 async function cleanup() {
   await Route.deleteMany({ code: { $in: ROUTE_CODES } });
   await Hub.deleteMany({ code: { $in: HUB_CODES } });
-  await ServiceArea.deleteMany({ province: TEST_PROVINCE });
   await User.deleteMany({ email: { $in: EMAILS } });
 }
 
@@ -36,6 +39,7 @@ before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
   await removeLeftovers({ emails: EMAILS, hubCodes: HUB_CODES });
   await cleanup();
+  restoreAreas = await suspendAreas([TEST_AREA, OUTSIDE]);
   app = createApp();
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
@@ -60,6 +64,7 @@ before(async () => {
 after(async () => {
   try {
     await cleanup();
+    await restoreAreas?.();
   } finally {
     await getRedis().quit();
     await mongoose.disconnect();
@@ -80,28 +85,28 @@ test("[US-14] seed: moi diem gan khu vuc phuc vu, buu cuc Da Nang truc thuoc Hub
   for (const hub of Object.values(seededHubs)) {
     const area = await ServiceArea.findById(hub.serviceAreaId).lean();
     assert.ok(area, `${hub.code} chua gan khu vuc phuc vu`);
-    assert.deepEqual([area.province, area.district], [hub.province, hub.district]);
+    assert.deepEqual([area.province, area.ward], [hub.province, hub.ward]);
   }
   assert.equal(String(seededHubs["PO-DN"].parentHubId), String(seededHubs["HUB-HN"]._id));
   assert.equal(seededHubs["HUB-HN"].parentHubId, null);
 });
 
 test("[US-14] mo hub tu gan khu vuc phuc vu tu quan/huyen (go khong dau van ra), trung ma bi 409", async () => {
-  const res = await createHub({ code: "hub-t14", name: "Hub T14", type: "HUB", province: "ha noi", district: "cau giay" });
+  const res = await createHub({ code: "hub-t14", name: "Hub T14", type: "HUB", province: "ha noi", ward: "cau giay" });
   assert.equal(res.status, 201, JSON.stringify(res.body));
   assert.equal(res.body.data.code, "HUB-T14");
   // Luu dung ten chuan trong serviceAreas, khong luu chu go khong dau
-  assert.deepEqual([res.body.data.province, res.body.data.district], ["Hà Nội", "Cầu Giấy"]);
-  const area = await ServiceArea.findOne({ province: "Hà Nội", district: "Cầu Giấy" }).lean();
+  assert.deepEqual([res.body.data.province, res.body.data.ward], ["Hà Nội", "Phường Cầu Giấy"]);
+  const area = await ServiceArea.findOne({ province: "Hà Nội", ward: "Phường Cầu Giấy" }).lean();
   assert.equal(String(res.body.data.serviceAreaId), String(area._id));
 
-  const duplicate = await createHub({ code: "HUB-T14", name: "Trung", type: "HUB", province: "Hà Nội", district: "Đống Đa" });
+  const duplicate = await createHub({ code: "HUB-T14", name: "Trung", type: "HUB", province: "Hà Nội", ward: "Phường Đống Đa" });
   assert.equal(duplicate.status, 409);
 });
 
 test("[US-14] buu cuc phai truc thuoc mot HUB; HUB khong co cap tren", async () => {
   const hub = await findHub("HUB-T14");
-  const po = { code: "PO-T14-A", name: "Bưu cục T14 A", type: "POST_OFFICE", province: "Hà Nội", district: "Đống Đa" };
+  const po = { code: "PO-T14-A", name: "Bưu cục T14 A", type: "POST_OFFICE", province: "Hà Nội", ward: "Phường Đống Đa" };
 
   const noParent = await createHub(po);
   assert.equal(noParent.status, 400);
@@ -111,7 +116,7 @@ test("[US-14] buu cuc phai truc thuoc mot HUB; HUB khong co cap tren", async () 
   assert.equal(parentIsPostOffice.status, 400);
   assert.match(parentIsPostOffice.body.error.message, /cấp trên của bưu cục phải là hub/);
 
-  const hubWithParent = await createHub({ code: "PO-T14-X", name: "X", type: "HUB", province: "Hà Nội", district: "Đống Đa", parentHubId: hub._id });
+  const hubWithParent = await createHub({ code: "PO-T14-X", name: "X", type: "HUB", province: "Hà Nội", ward: "Phường Đống Đa", parentHubId: hub._id });
   assert.equal(hubWithParent.status, 400);
 
   const ok = await createHub({ ...po, parentHubId: hub._id });
@@ -123,19 +128,23 @@ test("[US-14] buu cuc phai truc thuoc mot HUB; HUB khong co cap tren", async () 
   assert.equal(list.body.data[0].parentHubId.code, "HUB-T14", "danh sach kem ma hub cap tren");
 });
 
-test("[US-14] chan mo diem (va doi dia ban) sang quan/huyen ngoai vung phuc vu", async () => {
-  const outside = await createHub({ code: "PO-T14-X", name: "X", type: "HUB", province: "Hà Nội", district: "Sóc Sơn" });
+test("[US-14] chan mo diem (va doi dia ban) sang xa/phuong ngoai vung phuc vu hoac khong thuoc tinh", async () => {
+  const outside = await createHub({ code: "PO-T14-X", name: "X", type: "HUB", province: "Hà Nội", ward: "Xã Sóc Sơn" });
   assert.equal(outside.status, 422);
   assert.equal(outside.body.error.code, "OUT_OF_SERVICE_AREA");
-  assert.match(outside.body.error.message, /Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ/);
+  assert.match(outside.body.error.message, /Xã Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ/);
+
+  const wrongProvince = await createHub({ code: "PO-T14-X", name: "X", type: "HUB", province: "Hà Nội", ward: "Phường Sài Gòn" });
+  assert.equal(wrongProvince.status, 400);
+  assert.match(wrongProvince.body.error.message, /Phường Sài Gòn" không thuộc Hà Nội/);
 
   const hub = await findHub("HUB-T14");
-  const move = await asAdmin(request(app).put(`/hubs/${hub._id}`)).send({ district: "Sóc Sơn" });
+  const move = await asAdmin(request(app).put(`/hubs/${hub._id}`)).send({ ward: "Xã Sóc Sơn" });
   assert.equal(move.status, 422);
-  const moved = await asAdmin(request(app).put(`/hubs/${hub._id}`)).send({ district: "hai ba trung" });
+  const moved = await asAdmin(request(app).put(`/hubs/${hub._id}`)).send({ ward: "hai ba trung" });
   assert.equal(moved.status, 200);
-  assert.equal(moved.body.data.district, "Hai Bà Trưng");
-  const area = await ServiceArea.findOne({ province: "Hà Nội", district: "Hai Bà Trưng" }).lean();
+  assert.equal(moved.body.data.ward, "Phường Hai Bà Trưng");
+  const area = await ServiceArea.findOne({ province: "Hà Nội", ward: "Phường Hai Bà Trưng" }).lean();
   assert.equal(String(moved.body.data.serviceAreaId), String(area._id));
 });
 
@@ -179,13 +188,13 @@ test("[US-14] khong xoa diem con tuyen hoac buu cuc truc thuoc; hub con buu cuc 
 
 test("[US-14] khu vuc phuc vu con diem tap ket thi khong xoa duoc", async () => {
   const area = await asAdmin(request(app).post("/serviceAreas")).send({
-    province: TEST_PROVINCE,
-    district: "Quận T14",
+    province: TEST_AREA.province,
+    ward: TEST_AREA.ward,
     region: "BAC",
     routeId: (await Route.findOne({ code: "R-HN-NOI" }).lean())._id,
   });
   assert.equal(area.status, 201, JSON.stringify(area.body));
-  const hub = await createHub({ code: "HUB-T14-AREA", name: "Hub T14 vùng", type: "HUB", province: TEST_PROVINCE, district: "Quận T14" });
+  const hub = await createHub({ code: "HUB-T14-AREA", name: "Hub T14 vùng", type: "HUB", ...TEST_AREA });
   assert.equal(hub.status, 201, JSON.stringify(hub.body));
 
   const blocked = await asAdmin(request(app).delete(`/serviceAreas/${area.body.data._id}`));
@@ -200,7 +209,7 @@ test("[US-14] khu vuc phuc vu con diem tap ket thi khong xoa duoc", async () => 
 // mo hub -> mo buu cuc truc thuoc -> giao tuyen va nhan vien cho buu cuc -> nhan
 // vien dang nhap thay buu cuc cua minh -> dong buu cuc: phai chuyen tuyen, nhan vien di truoc.
 test("[US-14] luong nghiep vu: hub -> buu cuc -> tuyen + nhan vien -> chuyen di roi moi dong buu cuc", async () => {
-  const hub = await createHub({ code: "HUB-T14F", name: "Hub Hải Phòng", type: "HUB", province: "Hải Phòng", district: "Hồng Bàng" });
+  const hub = await createHub({ code: "HUB-T14F", name: "Hub Hải Phòng", type: "HUB", province: "Hải Phòng", ward: "Phường Hồng Bàng" });
   assert.equal(hub.status, 201, JSON.stringify(hub.body));
   const po = await createHub({
     code: "PO-T14F",
@@ -209,7 +218,7 @@ test("[US-14] luong nghiep vu: hub -> buu cuc -> tuyen + nhan vien -> chuyen di 
     parentHubId: hub.body.data._id,
     address: "12 Tô Hiệu",
     province: "Hải Phòng",
-    district: "Lê Chân",
+    ward: "Phường Lê Chân",
   });
   assert.equal(po.status, 201, JSON.stringify(po.body));
   const poId = po.body.data._id;

@@ -6,7 +6,11 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
+// Xa/phuong co that tam ngung phuc vu trong luc test -> dung lam dia chi "ngoai vung phuc vu"
+const OUTSIDE = [{ province: "Lào Cai", ward: "Phường Sa Pa" }, { province: "Hà Nội", ward: "Xã Sóc Sơn" }];
+let restoreAreas;
+
 import { User } from "../src/models/User.js";
 import { ServiceType } from "../src/models/ServiceType.js";
 import { PriceTable } from "../src/models/PriceTable.js";
@@ -24,8 +28,8 @@ let tokenB;
 const draftIds = [];
 
 const ESTIMATE = {
-  pickup: { province: "ha noi", district: "cau giay" },
-  receiver: { province: "TP Hồ Chí Minh", district: "Quận 1" },
+  pickup: { province: "ha noi", ward: "cau giay" },
+  receiver: { province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
   item: { weightGram: 1000, length: 40, width: 30, height: 20, declaredValue: 6000000 },
   flags: { fragile: true },
 };
@@ -33,6 +37,7 @@ const ESTIMATE = {
 before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
   await removeLeftovers({ emails: EMAILS });
+  restoreAreas = await suspendAreas(OUTSIDE);
   app = createApp();
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
   const customer = (email, phone) => ({ email, phone, passwordHash, fullName: email, role: "CUSTOMER", customerType: "INDIVIDUAL" });
@@ -47,6 +52,7 @@ after(async () => {
   try {
     await OrderDraft.deleteMany({ _id: { $in: draftIds } });
     await User.deleteMany({ email: { $in: EMAILS } });
+    await restoreAreas?.();
   } finally {
     await getRedis().quit();
     await mongoose.disconnect();
@@ -71,15 +77,20 @@ test("[US-16] POST /orders/estimate-fee cong khai: khong can dang nhap, bao gia 
   assert.equal(res.status, 200, JSON.stringify(res.body));
   const data = res.body.data;
   assert.equal(data.zone, "INTER_REGION");
-  assert.deepEqual([data.pickupArea.district, data.receiverArea.district], ["Cầu Giấy", "Quận 1"]);
+  assert.deepEqual([data.pickupArea.ward, data.receiverArea.ward], ["Phường Cầu Giấy", "Phường Sài Gòn"]);
   assert.equal(data.chargeableWeight, 4800, "40x30x20 cm quy doi 4,8 kg > 1 kg thuc");
   assert.deepEqual(data.flags, { fragile: true, highValue: true, isVehicle: false });
   assert.deepEqual(data.options.map((o) => o.code), ["STANDARD", "EXPRESS"]);
+  // Ha Noi -> TP HCM: giao nhanh chi ap dung trong cung tinh -> liet ke kem ly do, khong co phi
+  const fast = data.options.find((o) => o.code === "EXPRESS");
+  assert.deepEqual([fast.available, fast.fee], [false, null]);
+  assert.match(fast.reason, /chỉ áp dụng trong cùng tỉnh\/thành/);
+  assert.ok(data.distanceKm > 1000, `Ha Noi - TP HCM ~1.100 km duong chim bay, nhan ${data.distanceKm}`);
 
   // Cung ket qua voi ham thuan pricing.calculate tren bang gia dang hieu luc LUC NAY (test
   // US-13 chay song song co the dang tao bang gia thu nghiem nam 2099 cung dich vu, cung vung)
   const now = new Date();
-  for (const option of data.options) {
+  for (const option of data.options.filter((o) => o.available)) {
     const serviceType = await ServiceType.findById(option.serviceTypeId).lean();
     const priceTable = await PriceTable.findOne({
       serviceTypeId: serviceType._id,
@@ -93,16 +104,22 @@ test("[US-16] POST /orders/estimate-fee cong khai: khong can dang nhap, bao gia 
   }
 
   const express = data.options.find((o) => o.code === "EXPRESS");
-  const one = await estimate({ ...ESTIMATE, serviceTypeId: express.serviceTypeId });
-  assert.deepEqual(one.body.data.options.map((o) => o.code), ["EXPRESS"]);
+  // Chi hoi gia giao nhanh cho don lien mien -> 422 kem ly do; trong cung tinh thi bao gia binh thuong
+  const blocked = await estimate({ ...ESTIMATE, serviceTypeId: express.serviceTypeId });
+  assert.equal(blocked.status, 422);
+  assert.equal(blocked.body.error.code, "SERVICE_NOT_AVAILABLE");
+  const one = await estimate({ ...ESTIMATE, receiver: { province: "Hà Nội", ward: "Phường Hoàn Kiếm" }, serviceTypeId: express.serviceTypeId });
+  assert.equal(one.status, 200, JSON.stringify(one.body));
+  assert.deepEqual(one.body.data.options.map((o) => [o.code, o.available]), [["EXPRESS", true]]);
+  assert.equal(one.body.data.zone, "INNER_PROVINCE");
 });
 
 test("[US-16] noi gui / noi nhan ngoai vung phuc vu bi chan va bao ro dau nao", async () => {
-  const res = await estimate({ ...ESTIMATE, receiver: { province: "Lào Cai", district: "Sa Pa" } });
+  const res = await estimate({ ...ESTIMATE, receiver: { province: "Lào Cai", ward: "Phường Sa Pa" } });
   assert.equal(res.status, 422);
   assert.equal(res.body.error.code, "OUT_OF_SERVICE_AREA");
-  assert.match(res.body.error.message, /Nơi nhận \(Sa Pa, Lào Cai\)/);
-  const pickup = await estimate({ ...ESTIMATE, pickup: { province: "Hà Nội", district: "Sóc Sơn" } });
+  assert.match(res.body.error.message, /Nơi nhận \(Phường Sa Pa, Lào Cai\)/);
+  const pickup = await estimate({ ...ESTIMATE, pickup: { province: "Hà Nội", ward: "Xã Sóc Sơn" } });
   assert.match(pickup.body.error.message, /Nơi gửi/);
 });
 

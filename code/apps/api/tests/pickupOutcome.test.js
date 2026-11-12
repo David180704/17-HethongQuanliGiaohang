@@ -46,7 +46,7 @@ async function assignedOrder(name) {
   const created = await as("khach", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: standard._id,
-    receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+    receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
     item: { name: "Áo thun", weightGram: 500, length: 20, width: 15, height: 5 },
   });
   assert.equal(created.status, 201, JSON.stringify(created.body));
@@ -82,7 +82,7 @@ before(async () => {
   location = (
     await as("khach", request(app).post("/pickupLocations")).send({
       label: "Kho Đà Nẵng", contactName: "Chủ shop", contactPhone: "0909982701", address: "10 Bạch Đằng",
-      province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang",
+      province: "Đà Nẵng", ward: "Phường Hải Châu",
     })
   ).body.data;
 });
