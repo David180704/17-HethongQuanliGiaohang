@@ -1,5 +1,5 @@
 appId: host.exp.exponent
-name: "[US-30] Tai xe chon dang o Hub Ha Noi, app tu check-in; nhap toa do ngoai ban kinh thi khong ghi"
+name: "[US-30] Tai xe o diem check-in dang ky (Hub Ha Noi) thi tu check-in; toa do noi khac bi tu choi"
 tags:
   - sprint5
 ---
@@ -41,5 +41,6 @@ tags:
 - tapOn:
     id: "chk-set"
 - extendedWaitUntil:
-    visible: ".*chưa trong bán kính điểm nào.*"
+    # Tu 12/11/2026: ngoai ban kinh diem dang ky thi server tu choi (moi tai xe mot diem hop le)
+    visible: ".*chỉ check-in tại điểm đã đăng ký.*"
     timeout: 15000
