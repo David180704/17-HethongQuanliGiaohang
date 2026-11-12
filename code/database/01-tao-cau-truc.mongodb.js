@@ -145,6 +145,10 @@ const COLLECTIONS = [
               "NOT_AS_DESCRIBED",
               "SHOP_CANCELLED",
               "OTHER",
+              "RECIPIENT_UNREACHABLE",
+              "RESCHEDULE_REQUESTED",
+              "REFUSED",
+              "RECIPIENT_ABSENT",
               null
             ]
           },
@@ -938,6 +942,18 @@ const COLLECTIONS = [
           "deliveryAttempts": {
             "bsonType": [
               "number",
+              "null"
+            ]
+          },
+          "returnReason": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "returnHandedAt": {
+            "bsonType": [
+              "date",
               "null"
             ]
           },

@@ -35,6 +35,7 @@ import { CapacityService } from "./modules/capacity/CapacityService.js";
 import { SettingRepository } from "./modules/capacity/SettingRepository.js";
 import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
 import { AssignmentService } from "./modules/assignments/AssignmentService.js";
+import { DeliveryService } from "./modules/delivery/DeliveryService.js";
 import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
 import { CheckinPointRepository, CheckinLogRepository } from "./modules/checkins/CheckinRepositories.js";
 import { CheckinPointService } from "./modules/checkins/CheckinPointService.js";
@@ -170,6 +171,8 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     "order.status.changed": async (event) => {
       await journeyService.project(event);
       await assignmentService.onOrderStatusChanged(event);
+      // Consumer thu ba (US-35, US-37): toi kho dich / cho giao lai -> phan cong giao; dang hoan -> phan cong hoan
+      await deliveryService.onOrderStatusChanged(event);
     },
     "order.checkin.recorded": (event) => journeyService.project(event),
   };
@@ -195,9 +198,10 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     userRepository,
     hubRepository,
   });
+  const settingRepository = new SettingRepository();
   // US-24: nang luc 3 cap (nguoi giao hang -> tuyen -> mac dinh he thong)
   const capacityService = new CapacityService({
-    settingRepository: new SettingRepository(),
+    settingRepository,
     routeRepository,
     userRepository,
     hubRepository,
@@ -214,6 +218,22 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     pickupLocationRepository,
     serviceAreaRepository,
     serviceTypeRepository,
+    capacityService,
+    transactions: new MongooseTransactionRunner(),
+    orderEvents,
+  });
+  // Sprint 6 (de 02): phan cong giao, giao hang, thu COD, giao lai, hoan hang
+  const deliveryService = new DeliveryService({
+    assignmentRepository: new AssignmentRepository(),
+    shiftRepository,
+    orderRepository,
+    routeRepository,
+    userRepository,
+    hubRepository,
+    pickupLocationRepository,
+    serviceAreaRepository,
+    serviceTypeRepository,
+    settingRepository,
     capacityService,
     transactions: new MongooseTransactionRunner(),
     orderEvents,
@@ -270,6 +290,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     shiftService,
     capacityService,
     assignmentService,
+    deliveryService,
     warehouseService,
     checkinService,
     profileService: new ProfileService({ userRepository, cache }),

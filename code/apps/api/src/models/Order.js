@@ -147,7 +147,11 @@ const orderSchema = new mongoose.Schema(
     status: { type: String, enum: ORDER_STATUS, default: "CREATED" },
     statusHistory: { type: [statusHistoryEntrySchema], default: [] },
 
+    // So lan giao that bai (US-32, US-36); vuot so lan cho phep hoac nguoi nhan tu choi -> hoan hang
     deliveryAttempts: { type: Number, default: 0 },
+    // Hoan hang (US-37): ly do hoan; luc tai xe tra hang cho shop (cho shop xac nhan -> RETURNED)
+    returnReason: { type: String, default: null },
+    returnHandedAt: { type: Date, default: null },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     // Hang cho chua phan cong (US-25): ly do phan cong tu dong khong gan duoc (khong co ca, tuyen da day)
     unassignedReason: { type: String, default: null },

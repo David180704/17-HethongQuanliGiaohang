@@ -17,6 +17,7 @@ import { buildTrackingRouter } from "./modules/tracking/tracking.router.js";
 import { buildShiftsRouter } from "./modules/shifts/shifts.router.js";
 import { buildCapacityRouter } from "./modules/capacity/capacity.router.js";
 import { buildAssignmentsRouter } from "./modules/assignments/assignments.router.js";
+import { buildDeliveryRouter } from "./modules/delivery/delivery.router.js";
 import { buildWarehouseRouter } from "./modules/warehouse/warehouse.router.js";
 import { buildCheckinPointsRouter, buildCheckinsRouter } from "./modules/checkins/checkins.router.js";
 import { buildProfileRouter } from "./modules/profile/profile.router.js";
@@ -62,6 +63,7 @@ export function createApp(container = getContainer()) {
   app.use("/shifts", buildShiftsRouter(container));
   app.use("/capacity", buildCapacityRouter(container));
   app.use("/assignments", buildAssignmentsRouter(container));
+  app.use("/deliveries", buildDeliveryRouter(container));
   app.use("/warehouse", buildWarehouseRouter(container));
   app.use("/checkinPoints", buildCheckinPointsRouter(container));
   app.use("/checkins", buildCheckinsRouter(container));
