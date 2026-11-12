@@ -14,6 +14,8 @@ import CapacityScreen from "../screens/hub/CapacityScreen";
 import AssignPickupScreen from "../screens/hub/AssignPickupScreen";
 import WarehouseScreen from "../screens/hub/WarehouseScreen";
 import PickupListScreen from "../screens/shipper/PickupListScreen";
+import DeliveryListScreen from "../screens/shipper/DeliveryListScreen";
+import AssignDeliveryScreen from "../screens/hub/AssignDeliveryScreen";
 import CheckinScreen from "../screens/shipper/CheckinScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
@@ -56,6 +58,12 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "assignPickup") {
     return <AssignPickupScreen accent={theme.color} onBack={pop} onOpenCapacity={() => push({ name: "capacity" })} />;
   }
+  if (top?.name === "assignDelivery") {
+    return <AssignDeliveryScreen accent={theme.color} onBack={pop} />;
+  }
+  if (top?.name === "deliveries") {
+    return <DeliveryListScreen accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "checkin") {
     return <CheckinScreen accent={theme.color} onBack={pop} />;
   }
@@ -90,9 +98,15 @@ export default function StaffNavigator({ user }) {
         onOpenShifts={() => push({ name: "shifts" })}
         onOpenAssign={() => push({ name: "assignPickup" })}
         onOpenWarehouse={() => push({ name: "warehouse" })}
+        onOpenDelivery={() => push({ name: "assignDelivery" })}
       />;
   }
   return (
-    <ShipperHome {...homeProps} onOpenPickups={() => push({ name: "pickups" })} onOpenCheckin={() => push({ name: "checkin" })} />
+    <ShipperHome
+      {...homeProps}
+      onOpenPickups={() => push({ name: "pickups" })}
+      onOpenCheckin={() => push({ name: "checkin" })}
+      onOpenDeliveries={() => push({ name: "deliveries" })}
+    />
   );
 }
