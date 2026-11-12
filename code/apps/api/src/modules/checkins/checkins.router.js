@@ -60,14 +60,14 @@ import { ErrorCodes } from "../../core/errors.js";
  * /checkins/points:
  *   get:
  *     tags: [Checkins]
- *     summary: "Diem check-in dang dung - cho app tai xe (chon vi tri gia lap) va nhan vien"
+ *     summary: "Diem check-in: nguoi giao hang chi thay diem dang ky duy nhat cua minh; nhan vien, admin thay tat ca"
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200: { description: "[{ code, name, lat, lng, radiusM }]" }
  * /checkins:
  *   post:
  *     tags: [Checkins]
- *     summary: "Tai xe gui vi tri (US-30): trong ban kinh diem nao thi ghi moc cho cac don dang cam; chan trung 30 phut"
+ *     summary: "Tai xe gui vi tri (US-30): chi nhan khi o trong ban kinh DIEM DA DANG KY; ghi moc cho don dang cam; chan trung 30 phut"
  *     description: "Mat mang: app gui lai kem at (thoi diem goc, trong 24 gio) va clientEventId - gui lai khong ghi trung. pointId = check-in tay (cach diem <= 1 km)."
  *     security: [{ bearerAuth: [] }]
  *     requestBody:
@@ -84,6 +84,7 @@ import { ErrorCodes } from "../../core/errors.js";
  *               pointId: { type: string, description: "Check-in tay du phong" }
  *     responses:
  *       201: { description: "{ matched: [{ code, name, distanceM }], orders, recorded, duplicates }" }
+ *       400: { description: "Chua dang ky diem check-in, ngoai ban kinh, hoac check-in tay tai diem khac diem dang ky" }
  *       403: { description: Khong phai nguoi giao hang }
  */
 export function buildCheckinPointsRouter({ services, middleware }) {
@@ -98,7 +99,7 @@ export function buildCheckinsRouter({ checkinService, middleware }) {
     "/points",
     asyncHandler(async (req, res) => {
       if (req.user.role === "CUSTOMER") throw ErrorCodes.FORBIDDEN();
-      return ok(res, await checkinService.activePoints());
+      return ok(res, await checkinService.pointsFor(req.user));
     }),
   );
   router.post("/", asyncHandler(async (req, res) => created(res, await checkinService.record(req.user, req.body || {}))));
