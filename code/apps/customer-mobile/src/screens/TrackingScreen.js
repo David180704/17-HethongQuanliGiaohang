@@ -73,7 +73,7 @@ export default function TrackingScreen({ initialCode = "", onBack }) {
             </View>
             <Text style={styles.small}>Người gửi: {data.sender.name}</Text>
             <Text style={styles.small}>
-              Giao đến: {data.receiver.district}, {data.receiver.province} · {data.receiver.phone}
+              Giao đến: {data.receiver.ward}, {data.receiver.province} · {data.receiver.phone}
             </Text>
           </Card>
           <Card title="Hành trình" testID="track-journey">

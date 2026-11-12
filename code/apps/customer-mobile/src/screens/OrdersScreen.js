@@ -91,7 +91,7 @@ export default function OrdersScreen({ onBack, onOpenOrder, onCreateOrder, initi
                     <StatusBadge display={order.display} />
                   </View>
                   <Text style={styles.receiver}>
-                    {order.receiver.name} · {order.receiver.district}, {order.receiver.province}
+                    {order.receiver.name} · {order.receiver.ward}, {order.receiver.province}
                   </Text>
                   <View style={styles.cardFoot}>
                     <Text style={styles.small}>Tạo {formatDateTime(order.createdAt)}</Text>

@@ -7,7 +7,7 @@ import AddressFields from "./AddressFields";
 import { apiClient, errorMessage } from "../lib/apiClient";
 import { queryCache } from "../lib/queryCache";
 
-const EMPTY = { label: "", contactName: "", contactPhone: "", address: "", province: "", district: "", ward: "" };
+const EMPTY = { label: "", contactName: "", contactPhone: "", address: "", province: "", ward: "" };
 
 const pick = (location) =>
   location ? Object.fromEntries(Object.keys(EMPTY).map((key) => [key, location[key] ?? ""])) : {};
