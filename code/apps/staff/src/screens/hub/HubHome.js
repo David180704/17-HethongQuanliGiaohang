@@ -3,12 +3,8 @@ import RoleHome from "../RoleHome";
 import { queryCache } from "../../lib/queryCache";
 import { apiClient } from "../../lib/apiClient";
 
-// Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
-const UPCOMING_TILES = [
-  { key: "incidents", title: "Sự cố, khiếu nại", description: "Ghi nhận và theo dõi xử lý", upcoming: "#38 · Sprint 7" },
-];
 
-export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts, onOpenAssign, onOpenWarehouse, onOpenDelivery }) {
+export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts, onOpenAssign, onOpenWarehouse, onOpenDelivery, onOpenIncidents, onOpenStats }) {
   const hub = user.hubId;
   const [waiting, setWaiting] = useState();
   const [queued, setQueued] = useState();
@@ -76,7 +72,18 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCo
       description: "Xếp người giao hàng vào ca theo tuyến",
       onPress: onOpenShifts,
     },
-    ...UPCOMING_TILES,
+    {
+      key: "incidents",
+      title: "Sự cố, khiếu nại",
+      description: "Ghi nhận, theo dõi xử lý, kết quả",
+      onPress: onOpenIncidents,
+    },
+    {
+      key: "stats",
+      title: "Thống kê",
+      description: "Số đơn, năng suất, doanh thu của kho",
+      onPress: onOpenStats,
+    },
   ];
 
   return (

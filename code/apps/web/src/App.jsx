@@ -14,6 +14,7 @@ import AccountPage from "./pages/AccountPage.jsx";
 import PickupLocationsPage from "./pages/PickupLocationsPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import OrderDetailPage from "./pages/OrderDetailPage.jsx";
+import SettlementsPage from "./pages/SettlementsPage.jsx";
 import TrackingPage from "./pages/TrackingPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
@@ -74,6 +75,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <OrderDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="doi-soat"
+              element={
+                <ProtectedRoute>
+                  <SettlementsPage />
                 </ProtectedRoute>
               }
             />

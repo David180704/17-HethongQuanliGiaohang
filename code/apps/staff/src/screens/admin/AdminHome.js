@@ -13,13 +13,8 @@ const CATALOG_TILES = [
   { key: "checkinPoints", description: "Tọa độ, bán kính tự check-in" },
 ];
 
-// Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
-const UPCOMING_TILES = [
-  { key: "settlements", title: "Đối soát", description: "Tổng hợp COD trả cho shop", upcoming: "#34 · Sprint 7" },
-  { key: "dashboard", title: "Thống kê", description: "Dashboard tổng hợp", upcoming: "#39 · Sprint 7" },
-];
 
-export default function AdminHome({ user, theme, onLogout, onOpenCatalog, onOpenCapacity }) {
+export default function AdminHome({ user, theme, onLogout, onOpenCatalog, onOpenCapacity, onOpenSettlements, onOpenStats, onOpenIncidents }) {
   const [counts, setCounts] = useState({});
 
   // So ban ghi that cua tung danh muc (limit=1, chi lay meta.total), doc qua cache
@@ -55,9 +50,13 @@ export default function AdminHome({ user, theme, onLogout, onOpenCatalog, onOpen
         { title: "Danh mục", tiles: catalogTiles },
         {
           title: "Vận hành",
-          tiles: [{ key: "capacity", title: "Phân công", description: "Năng lực mặc định hệ thống, tuyến, người giao hàng", onPress: onOpenCapacity }],
+          tiles: [
+            { key: "capacity", title: "Phân công", description: "Năng lực mặc định hệ thống, tuyến, người giao hàng", onPress: onOpenCapacity },
+            { key: "incidents", title: "Sự cố, khiếu nại", description: "Ghi nhận, theo dõi xử lý, kết quả", onPress: onOpenIncidents },
+            { key: "settlements", title: "Đối soát", description: "Lập kỳ, điều chỉnh, chi trả thu hộ cho shop", onPress: onOpenSettlements },
+            { key: "stats", title: "Thống kê", description: "Đơn, shop, khu vực, năng suất, doanh thu, thu hộ", onPress: onOpenStats },
+          ],
         },
-        { title: "Sắp có", tiles: UPCOMING_TILES },
       ]}
     />
   );
