@@ -52,7 +52,7 @@ async function seedCustomer() {
         headers,
         data: {
           label: "Kho nhà", contactName: "Khách Mobile", contactPhone: "0909 555 222", address: "1 Xuân Thủy",
-          province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+          province: "Hà Nội", ward: "Phường Cầu Giấy",
         },
       })
     ).json()
@@ -65,7 +65,7 @@ async function seedCustomer() {
       data: {
         pickupLocationId: location._id,
         serviceTypeId: serviceType._id,
-        receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+        receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
         item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10 },
       },
     });

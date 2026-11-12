@@ -21,7 +21,7 @@ async function login(page, email, password = PASSWORD) {
 test("[PB-01] khach vang lai xem trang chu, dich vu va so lieu tu API cong khai", async ({ page }) => {
   await expect(page.getByText("Giao hàng tiêu chuẩn")).toBeVisible();
   await expect(page.getByText("Giao hàng nhanh")).toBeVisible();
-  await expect(page.getByText("quận/huyện đang phục vụ")).toBeVisible();
+  await expect(page.getByText("xã/phường đang phục vụ")).toBeVisible();
   await expect(page.getByTestId("home-login")).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/m01-trang-chu.png` });
 });
@@ -35,14 +35,17 @@ test("[PB-04] bang gia: doi Giao hang nhanh thi gia tang 50%", async ({ page }) 
   await page.screenshot({ path: `${SHOT_DIR}/m02-bang-gia-nhanh.png` });
 });
 
-test("[PB-01] vung phuc vu: go khong dau van tim ra, vung chua phuc vu bao ro", async ({ page }) => {
+test("[PB-01] vung phuc vu: 34 tinh, cham tinh moi tai xa/phuong; go khong dau van tim ra, chua phuc vu bao ro", async ({ page }) => {
   await page.getByTestId("tab-coverage").click();
+  await expect(page.getByTestId("coverage-status")).toHaveText(/^3\d{3} xã\/phường tại 34 tỉnh\/thành$/);
+  await expect(page.getByText("Phường Ba Đình")).toHaveCount(0); // chua cham tinh thi chua tai
+  await page.getByRole("button", { name: /^Hà Nội, \d+ xã\/phường$/ }).click();
+  await expect(page.getByText("Phường Ba Đình")).toBeVisible();
   const search = page.getByTestId("coverage-search");
   await search.fill("hoan kiem");
-  await expect(page.getByTestId("coverage-status")).toHaveText("1 quận/huyện tại 1 tỉnh/thành");
-  await expect(page.getByText("Hoàn Kiếm")).toBeVisible();
+  await expect(page.getByTestId("coverage-found")).toContainText("Phường Hoàn Kiếm, Hà Nội");
   await search.fill("Atlantis");
-  await expect(page.getByTestId("coverage-status")).toHaveText('Chưa phục vụ khu vực "Atlantis"');
+  await expect(page.getByTestId("coverage-found")).toContainText("Chưa phục vụ xã/phường nào khớp “Atlantis”");
 });
 
 test("[US-06] bam Tao don khi chua dang nhap -> dang nhap -> quay lai dung man hinh tao don", async ({ page }) => {
