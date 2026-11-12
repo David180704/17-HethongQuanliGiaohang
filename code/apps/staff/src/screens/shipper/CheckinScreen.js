@@ -12,6 +12,7 @@ import { colors, radius } from "../../theme";
 
 const FLUSH_INTERVAL_MS = 15_000;
 
+// Tu 12/11/2026: moi tai xe chi co MOT diem check-in hop le (admin gan) - server tu choi check-in o noi khac.
 // US-30: vi tri GIA LAP cua tai xe (chon "dang o" mot diem hoac nhap toa do; tren may ao co the dung toa do cua
 // `adb emu geo fix`). Moi lan doi vi tri, app tu gui check-in; nam trong ban kinh diem nao thi server ghi moc
 // cho cac don dang cam. Mat mang -> xep hang doi, tu gui lai moi 15 giay. Check-in tay la du phong.
@@ -120,8 +121,15 @@ export default function CheckinScreen({ accent, onBack }) {
       </View>
 
       <Text role="heading" style={styles.section}>
-        Điểm check-in ({points.length})
+        Điểm check-in đăng ký
       </Text>
+      {points.length === 0 ? (
+        <Text style={styles.muted} testID="chk-no-point">
+          Bạn chưa được đăng ký điểm check-in — liên hệ quản trị viên.
+        </Text>
+      ) : (
+        <Text style={styles.muted}>Chỉ check-in tại điểm này mới được nhận.</Text>
+      )}
       {points.map((p) => (
         <View key={p._id} style={styles.card} testID={`chk-point-${p.code}`}>
           <Text style={styles.title}>{p.name}</Text>

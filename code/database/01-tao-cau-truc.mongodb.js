@@ -1594,6 +1594,12 @@ const COLLECTIONS = [
               }
             }
           },
+          "checkinPointId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "_id": {
             "bsonType": "objectId"
           },

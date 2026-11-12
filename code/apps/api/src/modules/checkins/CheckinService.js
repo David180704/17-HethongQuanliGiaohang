@@ -13,12 +13,29 @@ const MAX_DELAY_MS = 24 * 3600 * 1000;
  * nhieu lan cung khong ghi trung (chi muc unique). Check-in tay la du phong khi GPS lech (cach diem <= 1 km).
  */
 export class CheckinService {
-  constructor({ checkinPointRepository, checkinLogRepository, orderRepository, orderEvents, clock = () => new Date() }) {
-    Object.assign(this, { checkinPointRepository, checkinLogRepository, orderRepository, orderEvents, clock });
+  constructor({ checkinPointRepository, checkinLogRepository, orderRepository, userRepository, orderEvents, clock = () => new Date() }) {
+    Object.assign(this, { checkinPointRepository, checkinLogRepository, orderRepository, userRepository, orderEvents, clock });
   }
 
   activePoints() {
     return this.checkinPointRepository.findMany({ isActive: { $ne: false } }, { select: "code name address lat lng radiusM hubId", sort: { code: 1 } });
+  }
+
+  /** Diem cho nguoi dang nhap: nguoi giao hang chi thay diem dang ky cua minh; nhan vien / admin thay tat ca. */
+  async pointsFor(user) {
+    if (user.role !== "SHIPPER") return this.activePoints();
+    const point = await this.#registeredPoint(user);
+    return point ? [point] : [];
+  }
+
+  async #registeredPoint(user) {
+    const shipper = await this.userRepository.findById(user.id);
+    if (!shipper?.checkinPointId) return null;
+    const [point] = await this.checkinPointRepository.findMany(
+      { _id: shipper.checkinPointId, isActive: { $ne: false } },
+      { select: "code name address lat lng radiusM hubId" },
+    );
+    return point || null;
   }
 
   #eventTime(input) {
@@ -37,17 +54,22 @@ export class CheckinService {
     const position = parseLocation(input);
     const at = this.#eventTime(input);
     const clientEventId = input.clientEventId ? String(input.clientEventId).slice(0, 80) : null;
-    const points = await this.activePoints();
-
+    // Moi nguoi giao hang chi co MOT diem check-in hop le (yeu cau 12/11/2026); khong dung diem thi khong nhan
+    const point = await this.#registeredPoint(user);
+    if (!point) throw ErrorCodes.VALIDATION_ERROR("Bạn chưa được đăng ký điểm check-in — liên hệ quản trị viên");
+    if (input.pointId && String(input.pointId) !== String(point._id)) {
+      throw ErrorCodes.VALIDATION_ERROR(`Chỉ check-in tại điểm đã đăng ký: ${point.name}`);
+    }
+    const d = Math.round(distanceM(position, point));
     let matched;
     if (input.pointId) {
-      const point = points.find((p) => String(p._id) === String(input.pointId));
-      if (!point) throw ErrorCodes.NOT_FOUND("Không tìm thấy điểm check-in");
-      const d = Math.round(distanceM(position, point));
       if (d > MANUAL_MAX_DISTANCE_M) throw ErrorCodes.VALIDATION_ERROR(`Bạn đang cách ${point.name} ${d} m — quá xa để check-in tay`);
       matched = [{ point, distanceM: d }];
     } else {
-      matched = pointsInRange(position, points);
+      matched = pointsInRange(position, [point]);
+      if (!matched.length) {
+        throw ErrorCodes.VALIDATION_ERROR(`Bạn đang cách ${point.name} ${d} m, ngoài bán kính ${point.radiusM ?? 150} m — chỉ check-in tại điểm đã đăng ký`);
+      }
     }
     const source = input.pointId ? "MANUAL" : "AUTO";
     const orders = matched.length

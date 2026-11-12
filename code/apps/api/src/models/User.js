@@ -37,6 +37,8 @@ const userSchema = new mongoose.Schema(
     maxDeliveryPerShift: { type: Number, default: null },
 
     bankAccount: bankAccountSchema,
+    // Diem check-in hop le duy nhat cua nguoi giao hang (yeu cau 12/11/2026): check-in o diem khac khong nhan
+    checkinPointId: { type: mongoose.Schema.Types.ObjectId, ref: "CheckinPoint", default: null },
   },
   { timestamps: true },
 );

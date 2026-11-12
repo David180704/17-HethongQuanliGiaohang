@@ -101,13 +101,21 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   const roleRepository = new BaseRepository(Role);
   const orderRepository = new OrderRepository();
   const pickupLocationRepository = new PickupLocationRepository();
+  const checkinPointRepository = new CheckinPointRepository();
 
   // ---- Service ----
   const permissionService = new PermissionService({ roleRepository, cache });
   // Dang nhap dung repository KHONG cache: vua bi khoa la phai chan ngay.
   const authService = new AuthService({ userRepository, passwordHasher, tokenService, loginThrottle, mailService });
   const services = {
-    users: new UserService({ repository: withCache(userRepository, "users"), passwordHasher, events, hubRepository }),
+    users: new UserService({
+      repository: withCache(userRepository, "users"),
+      passwordHasher,
+      events,
+      hubRepository,
+      routeRepository,
+      checkinPointRepository,
+    }),
     hubs: new HubService({
       repository: withCache(hubRepository, "hubs"),
       hubRepository,
@@ -210,7 +218,6 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     orderEvents,
   });
   // US-29, US-30: diem check-in (danh muc admin) va check-in vi tri cua tai xe
-  const checkinPointRepository = new CheckinPointRepository();
   services.checkinPoints = new CheckinPointService({
     repository: withCache(checkinPointRepository, "checkinPoints"),
     hubRepository,
@@ -220,6 +227,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     checkinPointRepository,
     checkinLogRepository: new CheckinLogRepository(),
     orderRepository,
+    userRepository,
     orderEvents,
   });
   // US-41: quy trinh tai kho (nhap kho, phan loai, xuat kho) - doc thang DB
