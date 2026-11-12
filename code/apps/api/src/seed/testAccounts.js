@@ -31,7 +31,8 @@ export function buildTestAccounts({ hubDocs, routeDocs }) {
     phone: `090000002${i + 1}`,
     fullName: `Tài Xế ${i + 1}`,
     role: "SHIPPER",
-    routeIds: [routeDocs[i % routeDocs.length]._id],
+    // Xoay vong 4 tuyen goc (HN noi, HN lien, HCM noi, DN noi); 2 tuyen lien tinh moi chua co tai xe
+    routeIds: [routeDocs[i % 4]._id],
   }));
 
   const individuals = Array.from({ length: 6 }, (_, i) => ({

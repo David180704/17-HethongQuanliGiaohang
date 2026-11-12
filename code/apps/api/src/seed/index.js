@@ -17,7 +17,8 @@ import {
   CheckinPoint,
   CheckinLog,
 } from "../models/index.js";
-import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables, checkinPoints } from "./referenceData.js";
+import { roles, hubs, routes, buildServiceAreas, sampleWards, serviceTypes, buildPriceTables, checkinPoints } from "./referenceData.js";
+import { PROVINCES } from "../modules/adminUnits/adminUnits.js";
 import { buildStatusChain, countDeliveryAttempts, isAssignedStage } from "./orderHistory.js";
 import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
@@ -25,6 +26,7 @@ import { ORDER_STATUS } from "../constants/enums.js";
 import { Counter } from "../models/Counter.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "../modules/orders/CounterRepository.js";
 import { TEST_PASSWORD, buildTestAccounts } from "./testAccounts.js";
+import { getRedis } from "../config/redis.js";
 
 // Cach chay:
 //   npm run seed              -> CSDL trong MONGO_URI (.env), co the la Atlas (cloud)
@@ -75,6 +77,26 @@ async function clearAll() {
   );
 }
 
+// Ma van don danh lai tu dau sau khi seed -> xoa hanh trinh da cache (journey:*) cua ma cu, neu khong tra
+// cuu don moi trung ma se ra hanh trinh cua don cu. Redis chua chay thi bo qua.
+async function clearJourneyCache() {
+  const redis = getRedis();
+  try {
+    let cursor = "0";
+    let removed = 0;
+    do {
+      const [next, keys] = await redis.scan(cursor, "MATCH", "journey:*", "COUNT", 500);
+      if (keys.length) removed += await redis.del(...keys);
+      cursor = next;
+    } while (cursor !== "0");
+    console.log(`Da xoa ${removed} hanh trinh cache cu`);
+    await redis.quit();
+  } catch {
+    console.log("Bo qua xoa cache hanh trinh (Redis chua chay)");
+    redis.disconnect();
+  }
+}
+
 async function seedRoles() {
   await Role.insertMany(roles);
 }
@@ -90,8 +112,8 @@ async function seedHubs() {
 // Hub tao truoc khu vuc phuc vu (tuyen can hubId) nen gan serviceAreaId sau
 async function linkHubsToServiceAreas(hubMap, serviceAreaDocs) {
   for (const hub of Object.values(hubMap)) {
-    const area = serviceAreaDocs.find((a) => a.province === hub.province && a.district === hub.district);
-    if (!area) throw new Error(`Diem ${hub.code} nam o ${hub.district}, ${hub.province} chua co trong serviceAreas`);
+    const area = serviceAreaDocs.find((a) => a.province === hub.province && a.ward === hub.ward);
+    if (!area) throw new Error(`Diem ${hub.code} nam o ${hub.ward}, ${hub.province} chua co trong serviceAreas`);
     await Hub.updateOne({ _id: hub._id }, { serviceAreaId: area._id });
   }
 }
@@ -114,10 +136,9 @@ async function seedRoutes(hubMap) {
 
 async function seedServiceAreas(routeMap) {
   const docs = await ServiceArea.insertMany(
-    serviceAreas.map((sa) => ({
+    buildServiceAreas(PROVINCES).map((sa) => ({
       province: sa.province,
-      district: sa.district,
-      wards: [],
+      ward: sa.ward,
       region: sa.region,
       routeId: routeMap[sa.routeKey]._id,
     })),
@@ -192,10 +213,10 @@ async function seedPickupLocations({ customers, serviceAreaDocs }) {
       label: "Địa chỉ mặc định",
       contactName: customer.fullName,
       contactPhone: customer.phone,
-      address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "Trần Hưng Đạo", "Nguyễn Trãi", "Hai Bà Trưng", "Võ Văn Kiệt"])}`,
+      // To dan pho thay cho "Phường N" cu (giu nguyen chuoi so ngau nhien cua faker -> du lieu mau khong doi)
+      address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "Trần Hưng Đạo", "Nguyễn Trãi", "Hai Bà Trưng", "Võ Văn Kiệt"])}, Tổ ${faker.number.int({ min: 1, max: 15 })}`,
       province: area.province,
-      district: area.district,
-      ward: `Phường ${faker.number.int({ min: 1, max: 15 })}`,
+      ward: area.ward,
       serviceAreaId: area._id,
       isDefault: true,
       isActive: true,
@@ -209,10 +230,9 @@ function randomReceiverAddress(area) {
   return {
     name: randomVnName(),
     phone: randomVnPhone(),
-    address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "CMT8", "Nguyễn Huệ", "Phạm Văn Đồng", "Lý Thường Kiệt"])}`,
+    address: `${faker.number.int({ min: 1, max: 300 })} Đường ${faker.helpers.arrayElement(["Lê Lợi", "CMT8", "Nguyễn Huệ", "Phạm Văn Đồng", "Lý Thường Kiệt"])}, Tổ ${faker.number.int({ min: 1, max: 15 })}`,
     province: area.province,
-    district: area.district,
-    ward: `Phường ${faker.number.int({ min: 1, max: 15 })}`,
+    ward: area.ward,
   };
 }
 
@@ -224,16 +244,18 @@ function buildStatusHistory(chain, createdAt) {
   });
 }
 
-async function seedOrders({ customerLocations, serviceAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers }) {
+async function seedOrders({ customerLocations, serviceAreaDocs, sampleAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers }) {
   const statusPool = buildStatusPool();
   const serviceTypeKeys = Object.keys(serviceTypeMap);
 
   const docs = statusPool.map((status, i) => {
     const { loc, customer } = faker.helpers.arrayElement(customerLocations);
     const pickupArea = serviceAreaDocs.find((a) => String(a._id) === String(loc.serviceAreaId));
-    const receiverArea = faker.helpers.arrayElement(serviceAreaDocs);
+    const receiverArea = faker.helpers.arrayElement(sampleAreaDocs);
 
-    const serviceTypeKey = faker.helpers.arrayElement(serviceTypeKeys);
+    // Giao hang nhanh chi trong cung tinh/thanh (yeu cau 12/11/2026): don lien tinh boc trung EXPRESS -> tieu chuan
+    const drawnKey = faker.helpers.arrayElement(serviceTypeKeys);
+    const serviceTypeKey = drawnKey === "EXPRESS" && pickupArea.province !== receiverArea.province ? "STANDARD" : drawnKey;
     const serviceType = serviceTypeMap[serviceTypeKey];
 
     const item = {
@@ -339,6 +361,7 @@ async function main() {
   await connectDB(TARGET_URI);
   console.log("Dang xoa du lieu cu...");
   await clearAll();
+  await clearJourneyCache();
   // Tao lai chi muc (unique, TTL...) ngay ca khi CSDL moi tinh tren cloud
   await Promise.all(
     [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, CheckinPoint, CheckinLog].map(
@@ -354,6 +377,7 @@ async function main() {
   const routeMap = await seedRoutes(hubMap);
   const serviceAreaDocs = await seedServiceAreas(routeMap);
   await linkHubsToServiceAreas(hubMap, serviceAreaDocs);
+  const sampleAreaDocs = sampleWards.map((w) => serviceAreaDocs.find((a) => a.province === w.province && a.ward === w.ward));
   // Diem check-in (US-29) - khong goi faker nen du lieu ngau nhien phia sau giu nguyen
   const pointDocs = await CheckinPoint.insertMany(checkinPoints.map(({ hubKey, ...p }) => ({ ...p, hubId: hubKey ? hubMap[hubKey]._id : null })));
 
@@ -373,10 +397,10 @@ async function main() {
   }
 
   console.log("Dang seed dia diem lay hang...");
-  const customerLocations = await seedPickupLocations({ customers, serviceAreaDocs });
+  const customerLocations = await seedPickupLocations({ customers, serviceAreaDocs: sampleAreaDocs });
 
   console.log("Dang seed 200 don hang trai 18 trang thai...");
-  await seedOrders({ customerLocations, serviceAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers });
+  await seedOrders({ customerLocations, serviceAreaDocs, sampleAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers });
 
   console.log("\nHoan tat seed du lieu.");
   console.log(`Mat khau chung cho moi tai khoan test: ${TEST_PASSWORD}`);

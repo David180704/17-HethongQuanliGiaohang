@@ -22,7 +22,7 @@ export function buildPublicJourney(order, checkins = []) {
     sender: { name: order.customerName, ward: order.pickupWard },
     receiver: {
       phone: maskPhone(order.receiver?.phone),
-      district: order.receiver?.district,
+      ward: order.receiver?.ward,
       province: order.receiver?.province,
     },
     events: (order.statusHistory || []).map((h) => ({

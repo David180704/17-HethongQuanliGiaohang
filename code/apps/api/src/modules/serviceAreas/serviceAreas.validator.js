@@ -1,20 +1,24 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { REGION } from "../../constants/enums.js";
+import { checkAddress } from "../adminUnits/adminUnits.js";
 
-// province/district khong cho sua sau khi tao (coi nhu dinh danh cua khu vuc) -
-// muon doi dia ban thi xoa roi tao lai. Chi cho doi tuyen/mien/danh sach phuong xa.
-const UPDATABLE_FIELDS = ["region", "routeId", "wards"];
+// province/ward khong cho sua sau khi tao (coi nhu dinh danh cua khu vuc) -
+// muon doi dia ban thi xoa roi tao lai. Chi cho doi tuyen/mien.
+const UPDATABLE_FIELDS = ["region", "routeId"];
 
 // Strategy kiem tra du lieu khu vuc phuc vu (US-11). Ham thuan, khong truy van DB:
-// rang buoc "mot quan chi thuoc mot tuyen" nam o ServiceAreaService.
+// xa/phuong phai co that va thuoc dung tinh (danh muc hanh chinh), luu ten chuan;
+// rang buoc "mot xa/phuong chi thuoc mot tuyen" nam o ServiceAreaService.
 export const serviceAreaValidator = {
   create(body) {
-    const { province, district, region, routeId } = body;
-    if (!province || !district || !region || !routeId) {
-      throw ErrorCodes.VALIDATION_ERROR("Thiếu province/district/region/routeId");
+    const { province, ward, region, routeId } = body;
+    if (!province || !ward || !region || !routeId) {
+      throw ErrorCodes.VALIDATION_ERROR("Thiếu province/ward/region/routeId");
     }
     if (!REGION.includes(region)) throw ErrorCodes.VALIDATION_ERROR("region không hợp lệ");
-    return { province, district, wards: body.wards || [], region, routeId };
+    const checked = checkAddress(province, ward);
+    if (!checked.ok) throw ErrorCodes.VALIDATION_ERROR(checked.message);
+    return { province: checked.province, ward: checked.ward, region, routeId };
   },
 
   update(body) {

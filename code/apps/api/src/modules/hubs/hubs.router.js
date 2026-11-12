@@ -7,7 +7,7 @@ import { CrudController } from "../../core/CrudController.js";
  *   schemas:
  *     HubInput:
  *       type: object
- *       required: [code, name, type, province, district]
+ *       required: [code, name, type, province, ward]
  *       properties:
  *         code: { type: string, example: "PO-HN-CG" }
  *         name: { type: string, example: "Bưu cục Cầu Giấy" }
@@ -15,7 +15,7 @@ import { CrudController } from "../../core/CrudController.js";
  *         parentHubId: { type: string, nullable: true, description: "Bat buoc voi POST_OFFICE, phai la mot HUB" }
  *         address: { type: string }
  *         province: { type: string, example: "Hà Nội" }
- *         district: { type: string, example: "Cầu Giấy", description: "Phai thuoc vung phuc vu; server tu gan serviceAreaId" }
+ *         ward: { type: string, example: "Phường Cầu Giấy", description: "Xa/phuong thuoc dung tinh (danh muc hanh chinh 2025) va dang phuc vu; server tu gan serviceAreaId" }
  *         isActive: { type: boolean }
  * /hubs:
  *   get:

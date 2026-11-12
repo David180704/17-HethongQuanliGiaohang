@@ -25,8 +25,7 @@ const RECEIVER_LABELS = {
   name: "tên người nhận",
   address: "địa chỉ người nhận",
   province: "tỉnh/thành người nhận",
-  district: "quận/huyện người nhận",
-  ward: "phường/xã người nhận",
+  ward: "xã/phường người nhận",
 };
 
 const isFilled = (value) => typeof value === "string" && value.trim() !== "";

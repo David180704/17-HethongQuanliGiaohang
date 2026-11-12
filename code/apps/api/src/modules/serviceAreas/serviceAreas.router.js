@@ -27,7 +27,7 @@ import { CrudController } from "../../core/CrudController.js";
  *       200: { description: Chi tiet khu vuc }
  *   put:
  *     tags: [ServiceAreas]
- *     summary: Doi tuyen/mien/danh sach phuong xa (khong doi province/district)
+ *     summary: Doi tuyen/mien (khong doi province/ward)
  *     security: [{ bearerAuth: [] }]
  *     parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
  *     responses:

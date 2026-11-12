@@ -10,8 +10,8 @@ import { OrderController } from "./OrderController.js";
  *       type: object
  *       required: [pickup, receiver, item]
  *       properties:
- *         pickup: { type: object, properties: { province: { type: string, example: "Hà Nội" }, district: { type: string, example: "Cầu Giấy" } } }
- *         receiver: { type: object, properties: { province: { type: string, example: "TP Hồ Chí Minh" }, district: { type: string, example: "Quận 1" } } }
+ *         pickup: { type: object, properties: { province: { type: string, example: "Hà Nội" }, ward: { type: string, example: "Phường Cầu Giấy" } } }
+ *         receiver: { type: object, properties: { province: { type: string, example: "TP Hồ Chí Minh" }, ward: { type: string, example: "Phường Sài Gòn" } } }
  *         item:
  *           type: object
  *           properties:
@@ -73,7 +73,6 @@ import { OrderController } from "./OrderController.js";
  *                   phone: { type: string }
  *                   address: { type: string }
  *                   province: { type: string }
- *                   district: { type: string }
  *                   ward: { type: string }
  *               item:
  *                 type: object
@@ -130,7 +129,7 @@ import { OrderController } from "./OrderController.js";
  *           schema:
  *             type: object
  *             properties:
- *               receiver: { type: object, properties: { province: { type: string }, district: { type: string } } }
+ *               receiver: { type: object, properties: { province: { type: string }, ward: { type: string } } }
  *               item: { type: object }
  *               flags: { type: object }
  *     responses:
