@@ -27,7 +27,6 @@ const EMPTY = {
   rcPhone: "",
   rcAddress: "",
   rcProvince: "",
-  rcDistrict: "",
   rcWard: "",
   itemName: "",
   weightGram: "",
@@ -57,7 +56,7 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
   const [error, setError] = useState("");
   const set = (key) => (value) => {
     setForm((current) => ({ ...current, [key]: value }));
-    if (["weightGram", "length", "width", "height", "fragile", "isVehicle", "rcProvince", "rcDistrict", "declaredValue"].includes(key)) {
+    if (["weightGram", "length", "width", "height", "fragile", "isVehicle", "rcProvince", "rcWard", "declaredValue"].includes(key)) {
       setQuote(null);
     }
   };
@@ -91,12 +90,17 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
   const requestQuote = () =>
     run("quote", async () => {
       const res = await apiClient.post("/orders/counter/quote", {
-        receiver: { province: form.rcProvince, district: form.rcDistrict },
+        receiver: { province: form.rcProvince, ward: form.rcWard },
         item: item(),
         flags: { fragile: form.fragile, isVehicle: form.isVehicle },
       });
       setQuote(res.data.data);
-      setForm((current) => ({ ...current, serviceTypeId: current.serviceTypeId || res.data.data.options[0]?.serviceTypeId }));
+      // Giu goi dang chon neu van dung duoc; giao nhanh lien tinh khong chon duoc -> lay goi dau tien dung duoc
+      const usable = res.data.data.options.filter((o) => o.available !== false);
+      setForm((current) => ({
+        ...current,
+        serviceTypeId: usable.some((o) => o.serviceTypeId === current.serviceTypeId) ? current.serviceTypeId : usable[0]?.serviceTypeId || "",
+      }));
     });
 
   const submit = () =>
@@ -109,7 +113,6 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
           phone: form.rcPhone,
           address: form.rcAddress,
           province: form.rcProvince,
-          district: form.rcDistrict,
           ward: form.rcWard,
         },
         item: item(),
@@ -193,8 +196,14 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
         <TextField testID="ci-rc-phone" label="Số điện thoại" required keyboardType="phone-pad" value={form.rcPhone} onChangeText={set("rcPhone")} />
         <TextField testID="ci-rc-address" label="Địa chỉ (số nhà, đường)" required value={form.rcAddress} onChangeText={set("rcAddress")} />
         <TextField testID="ci-rc-province" label="Tỉnh/Thành phố" required value={form.rcProvince} onChangeText={set("rcProvince")} />
-        <TextField testID="ci-rc-district" label="Quận/Huyện" required value={form.rcDistrict} onChangeText={set("rcDistrict")} />
-        <TextField testID="ci-rc-ward" label="Phường/Xã" required value={form.rcWard} onChangeText={set("rcWard")} />
+        <TextField
+          testID="ci-rc-ward"
+          label="Xã/Phường"
+          required
+          value={form.rcWard}
+          onChangeText={set("rcWard")}
+          help="Địa giới từ 01/07/2025, không còn quận/huyện. Gõ không dấu được, nhưng phải đúng xã/phường của tỉnh"
+        />
       </Section>
 
       <Section title="3. Kiểm hàng và báo giá">
@@ -218,12 +227,20 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
               Gợi ý phương tiện: {quote.vehicle.label} — {quote.vehicle.reason}
             </Text>
             <Text style={styles.muted}>
-              {quote.zoneLabel} · tính theo {quote.chargeableWeight} g
+              {quote.receiverArea.ward}, {quote.receiverArea.province} · {quote.zoneLabel} · tính theo {quote.chargeableWeight} g
+              {quote.distanceKm !== null && quote.distanceKm !== undefined ? ` · cách khoảng ${quote.distanceKm} km` : ""}
             </Text>
+            {quote.options
+              .filter((o) => o.available === false)
+              .map((o) => (
+                <Text key={o.code} style={styles.muted} testID={`ci-unavailable-${o.code}`}>
+                  {o.reason}
+                </Text>
+              ))}
             <ChipSelect
               testID="ci-service"
               label="Dịch vụ"
-              options={quote.options.map((o) => ({ value: o.serviceTypeId, label: `${o.name} · ${vnd(o.fee.total)}` }))}
+              options={quote.options.filter((o) => o.available !== false).map((o) => ({ value: o.serviceTypeId, label: `${o.name} · ${vnd(o.fee.total)}` }))}
               value={form.serviceTypeId}
               onChange={set("serviceTypeId")}
             />
