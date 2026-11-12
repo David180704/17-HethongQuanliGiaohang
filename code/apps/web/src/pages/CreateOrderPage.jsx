@@ -5,6 +5,7 @@ import { queryCache } from "../lib/queryCache.js";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { useOrderDraft } from "../lib/useOrderDraft.js";
 import { formatVnd } from "../lib/format.js";
+import { addressProblem, useAddressCheck } from "../lib/adminUnits.js";
 import { EMPTY_ORDER, fromDraft, stepError, toFlagsPayload, toItemPayload, toOrderPayload } from "../lib/orderForm.js";
 import { ConfirmStep, ParcelStep, PickupStep, ReceiverStep, StepIndicator } from "../components/order/OrderSteps.jsx";
 
@@ -18,7 +19,6 @@ export default function CreateOrderPage() {
   const { draft, error: draftError } = useOrderDraft(openedDraft);
   const { data: locationData, refresh: refreshLocations } = useCachedQuery("/pickupLocations");
   const { data: serviceTypes } = useCachedQuery("/public/service-types");
-  const { data: areas } = useCachedQuery("/public/service-areas");
   const locations = locationData || [];
 
   const [form, setForm] = useState(EMPTY_ORDER);
@@ -47,9 +47,14 @@ export default function CreateOrderPage() {
   }, [hydrated, locationData, serviceTypes, draft, draftError, openedDraft]);
 
   const location = locations.find((l) => l._id === form.pickupLocationId);
+  // Dia chi nguoi nhan go tay phai khop danh muc tinh - xa/phuong; khac tinh voi noi lay thi khong co giao nhanh
+  const receiverCheck = useAddressCheck(form.receiver.province, form.receiver.ward);
+  const expressType = (serviceTypes || []).find((type) => type.code === "EXPRESS");
+  const crossProvince = Boolean(location && receiverCheck.province && location.province !== receiverCheck.province.name);
+  const expressBlocked = crossProvince && Boolean(expressType) && form.serviceTypeId === expressType._id;
   const hint =
     form.estimatedPickup && !form.pickupLocationId
-      ? `Bạn ước tính phí gửi từ ${form.estimatedPickup.district}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`
+      ? `Bạn ước tính phí gửi từ ${form.estimatedPickup.ward}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`
       : "";
 
   async function saveDraft(next) {
@@ -71,7 +76,7 @@ export default function CreateOrderPage() {
     setQuoteError("");
     try {
       const res = await apiClient.post("/orders/estimate-fee", {
-        pickup: { province: location.province, district: location.district },
+        pickup: { province: location.province, ward: location.ward },
         receiver: current.receiver,
         item: toItemPayload(current.item),
         flags: toFlagsPayload(current.item),
@@ -84,13 +89,24 @@ export default function CreateOrderPage() {
   }
 
   async function next() {
-    const problem = stepError(form.step, form, areas || []);
+    const problem = stepError(form.step, form, {
+      receiverProblem: addressProblem(receiverCheck, form.receiver, " người nhận"),
+      expressBlocked,
+    });
     if (problem) {
       setError(problem);
       return;
     }
     setError("");
     const advanced = { ...form, step: form.step + 1 };
+    if (form.step === 2) {
+      // Luu ten chuan theo danh muc ("ba dinh" -> "Phường Ba Đình")
+      advanced.receiver = { ...form.receiver, province: receiverCheck.province.name, ward: receiverCheck.ward };
+      const toProvince = receiverCheck.province.name;
+      if (expressType && advanced.serviceTypeId === expressType._id && location && location.province !== toProvince) {
+        advanced.serviceTypeId = (serviceTypes || []).find((type) => type.code !== "EXPRESS")?._id || "";
+      }
+    }
     setForm(advanced);
     saveDraft(advanced);
     if (advanced.step === 4) loadQuote(advanced);
@@ -182,7 +198,7 @@ export default function CreateOrderPage() {
               />
             )}
             {form.step === 2 && <ReceiverStep form={form} update={update} />}
-            {form.step === 3 && <ParcelStep form={form} update={update} serviceTypes={serviceTypes || []} />}
+            {form.step === 3 && <ParcelStep form={form} update={update} serviceTypes={serviceTypes || []} crossProvince={crossProvince} />}
             {form.step === 4 && (
               <ConfirmStep form={form} location={location} quote={quote} quoteError={quoteError} serviceTypes={serviceTypes || []} />
             )}

@@ -79,7 +79,7 @@ export default function OrderDetailPage() {
               {order.receiver.name} · {order.receiver.phone}
             </p>
             <p className="text-gray-600">
-              {order.receiver.address}, {order.receiver.ward}, {order.receiver.district}, {order.receiver.province}
+              {order.receiver.address}, {order.receiver.ward}, {order.receiver.province}
             </p>
             <p className="mt-2 text-gray-500">
               Người gửi: {order.customerName} · lấy hàng tại {order.pickupWard}
