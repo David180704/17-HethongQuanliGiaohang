@@ -169,6 +169,9 @@ function Initialize-Emulator($serial) {
   }
   & $script:Adb -s $serial shell settings put secure stylus_handwriting_enabled 0 | Out-Null
   & $script:Adb -s $serial shell input keyevent KEYCODE_WAKEUP | Out-Null
+  # Thanh thong bao bi keo xuong (thong bao "Set a screen lock"...) che het man hinh -> flow dau tien
+  # khong thay app va cho het 6 phut. Thu thanh thong bao ve truoc khi chay.
+  & $script:Adb -s $serial shell cmd statusbar collapse | Out-Null
   $expoGo = & $script:Adb -s $serial shell pm list packages host.exp.exponent
   if (-not ($expoGo -match "host.exp.exponent")) {
     Write-Fail "May ao chua cai Expo Go. Cai APK Expo Go dung SDK 58:"
@@ -184,17 +187,18 @@ function Open-ExpoApp($serial, $app) {
   & $script:Adb -s $serial shell am start -a android.intent.action.VIEW -d "exp://127.0.0.1:$port" host.exp.exponent | Out-Null
 }
 
-# Don du lieu test con sot neu flow dung giua chung (khu vuc co tinh "Tinh ...E2E/Thiet Bi")
+# Don du lieu test con sot neu flow dung giua chung (khu vuc co tinh "Tinh ...E2E/Thiet Bi").
+# -TimeoutSec: PowerShell 5.1 khong co thoi han mac dinh, tung treo vo han o day (11/2026).
 function Remove-MobileTestData {
   try {
-    $login = Invoke-RestMethod -Method Post -Uri "http://localhost:4044/auth/login" -ContentType "application/json" `
+    $login = Invoke-RestMethod -TimeoutSec 15 -Method Post -Uri "http://localhost:4044/auth/login" -ContentType "application/json" `
       -Body '{"emailOrPhone":"admin@edms.vn","password":"123456"}'
     $headers = @{ Authorization = "Bearer $($login.data.accessToken)" }
     $removed = 0
     foreach ($keyword in "Tinh Maestro E2E", "Tinh Lien Thiet Bi") {
-      $list = Invoke-RestMethod -Uri "http://localhost:4044/serviceAreas?limit=100&search=$([uri]::EscapeDataString($keyword))" -Headers $headers
+      $list = Invoke-RestMethod -TimeoutSec 15 -Uri "http://localhost:4044/serviceAreas?limit=100&search=$([uri]::EscapeDataString($keyword))" -Headers $headers
       foreach ($area in $list.data) {
-        Invoke-RestMethod -Method Delete -Uri "http://localhost:4044/serviceAreas/$($area._id)" -Headers $headers | Out-Null
+        Invoke-RestMethod -TimeoutSec 15 -Method Delete -Uri "http://localhost:4044/serviceAreas/$($area._id)" -Headers $headers | Out-Null
         $removed++
       }
     }
@@ -208,4 +212,10 @@ function Remove-MobileTestData {
   $ErrorActionPreference = "Continue"
   $deleted = docker exec edms-mongo mongosh edms --quiet --eval 'db.users.deleteMany({ email: /^maestro\d+@edms\.vn$/ }).deletedCount' 2>$null
   if ("$deleted".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$deleted".Trim()) tai khoan test do flow dang ky tao" }
+  # Don do flow tao don tao ra (nguoi nhan "E2E Maestro", Sprint 3): API khong co chuc nang xoa don
+  $orders = docker exec edms-mongo mongosh edms --quiet --eval 'db.orders.deleteMany({ ''receiver.name'': /^E2E Maestro/ }).deletedCount' 2>$null
+  if ("$orders".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$orders".Trim()) don test do flow tao don tao" }
+  # Ca lam viec do flow NV 10 tao (Sprint 4)
+  $shifts = docker exec edms-mongo mongosh edms --quiet --eval 'db.shifts.deleteMany({ name: /^KT23 Maestro/ }).deletedCount' 2>$null
+  if ("$shifts".Trim() -match '^[1-9]\d*$') { Write-Step "Da xoa $("$shifts".Trim()) ca test do flow NV 10 tao" }
 }

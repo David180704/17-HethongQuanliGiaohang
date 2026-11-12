@@ -31,3 +31,8 @@ export function toSearchRegex(text) {
   }
   return pattern;
 }
+
+/** So tron ten, go khong dau / khac hoa thuong van khop: sameName("phuong 1", "Phường 1") === true. */
+export function sameName(typed, stored) {
+  return new RegExp(`^${toSearchRegex(String(typed ?? "").trim())}$`, "i").test(String(stored ?? ""));
+}

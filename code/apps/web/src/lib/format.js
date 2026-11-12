@@ -10,6 +10,11 @@ export const ZONES = [
 // Bac cuoi cung trong seed dung toGram rat lon de coi nhu "khong gioi han"
 const UNBOUNDED_GRAM = 100000000;
 
+// "Hà Nội" -> "ha noi": so sanh ten dia danh khi nguoi dung go khong dau
+export function plainText(text = "") {
+  return String(text).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().trim();
+}
+
 export function formatVnd(amount) {
   return `${Math.round(amount).toLocaleString("vi-VN")} ₫`;
 }

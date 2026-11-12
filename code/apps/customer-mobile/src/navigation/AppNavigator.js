@@ -10,13 +10,20 @@ import AccountScreen from "../screens/AccountScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import CreateOrderScreen from "../screens/CreateOrderScreen";
+import PickupLocationsScreen from "../screens/PickupLocationsScreen";
+import EstimateScreen from "../screens/EstimateScreen";
+import OrdersScreen from "../screens/OrdersScreen";
+import OrderDetailScreen from "../screens/OrderDetailScreen";
+import TrackingScreen from "../screens/TrackingScreen";
 import { colors } from "../theme";
 
 // Dieu huong tu viet (khong them thu vien, giong App Nhan vien):
 //   - 4 tab: Trang chu, Bang gia, Vung phuc vu, Tai khoan - khach vang lai xem duoc het
-//   - ngan xep man hinh con: dang nhap, dang ky, tao don
+//   - ngan xep man hinh con: dang nhap, dang ky, uoc tinh phi, tao don, dia diem lay hang,
+//     don hang cua toi va chi tiet don (US-20)
 // Quy tac giong Web Khach hang: bam "Tao don" khi chua dang nhap -> dang nhap ->
-// quay lai DUNG man hinh tao don.
+// quay lai DUNG man hinh tao don. Tu "Uoc tinh phi" bam "Gui hang" -> nhap don (draftToken)
+// di cung qua dang nhap / dang ky -> man hinh tao don dien san du lieu (US-16).
 export default function AppNavigator() {
   const { user, logout } = useAuth();
   const [tab, setTab] = useState("home");
@@ -30,10 +37,22 @@ export default function AppNavigator() {
     else push({ name: "login", next: "createOrder" });
   }, [user, push]);
 
-  // Dang nhap/dang ky xong: mo man hinh dang cho (tao don), neu khong thi ve tab Tai khoan.
+  // Uoc tinh phi -> "Gui hang": da dang nhap thi mo tao don ngay, chua thi dang nhap truoc
+  const shipFromEstimate = useCallback(
+    (draftToken) => {
+      const route = { name: "createOrder", draftToken };
+      if (user) push(route);
+      else push({ name: "login", next: route });
+    },
+    [user, push],
+  );
+
+  // Dang nhap/dang ky xong: mo man hinh dang cho (tao don, co the kem nhap don), neu khong
+  // thi ve tab Tai khoan. next la ten man hinh ("createOrder") hoac route day du.
   const handleLoggedIn = useCallback((next) => {
-    if (next === "createOrder") {
-      setStack([{ name: "createOrder" }]);
+    const route = typeof next === "string" ? { name: next } : next;
+    if (route?.name === "createOrder") {
+      setStack([route]);
     } else {
       setStack([]);
       setTab("account");
@@ -91,8 +110,41 @@ export default function AppNavigator() {
       />
     );
   }
+  if (top?.name === "estimate") {
+    return <EstimateScreen onBack={pop} onShip={shipFromEstimate} />;
+  }
   if (top?.name === "createOrder" && user) {
-    return <CreateOrderScreen onBack={pop} onGoTab={goTab} />;
+    return (
+      <CreateOrderScreen
+        key={top.draftToken || "new"}
+        draftToken={top.draftToken}
+        onBack={pop}
+        onGoTab={goTab}
+        onOpenOrder={(id) => setStack([{ name: "orders" }, { name: "orderDetail", id }])}
+      />
+    );
+  }
+  if (top?.name === "pickupLocations" && user) {
+    return <PickupLocationsScreen onBack={pop} />;
+  }
+  if (top?.name === "orders" && user) {
+    return (
+      <OrdersScreen
+        onBack={pop}
+        initialFilters={top.filters}
+        // Ghi bo loc vao muc "orders" cua ngan xep: mo chi tiet roi quay lai van giu nhom / thoi gian / tu khoa
+        onOpenOrder={(id, filters) =>
+          setStack((current) => [...current.slice(0, -1), { ...top, filters }, { name: "orderDetail", id }])
+        }
+        onCreateOrder={() => push({ name: "createOrder" })}
+      />
+    );
+  }
+  if (top?.name === "tracking") {
+    return <TrackingScreen key={top.code} initialCode={top.code} onBack={pop} />;
+  }
+  if (top?.name === "orderDetail" && user) {
+    return <OrderDetailScreen key={top.id} orderId={top.id} onBack={pop} />;
   }
 
   const tabProps = {
@@ -101,6 +153,10 @@ export default function AppNavigator() {
     onLogin: () => push({ name: "login" }),
     onRegister: () => push({ name: "register" }),
     onLogout: requestLogout,
+    onOpenPickupLocations: () => push({ name: "pickupLocations" }),
+    onOpenOrders: () => push({ name: "orders" }),
+    onTrack: (code) => push({ name: "tracking", code: (code || "").trim().toUpperCase() }),
+    onEstimate: () => push({ name: "estimate" }),
   };
 
   return (

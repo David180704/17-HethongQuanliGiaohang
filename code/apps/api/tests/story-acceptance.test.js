@@ -129,7 +129,10 @@ test("[US-02] Seed du lieu: 5 vai tro, 19 tai khoan test, 4 tuyen, 20 khu vuc, 3
 });
 
 test("[US-02] Seed 200 don hang trai du 18 trang thai, ma van don EXP + 10 chu so", async () => {
-  assert.equal(await Order.countDocuments(), 200);
+  // Chi dem don cua seed (EXP1000000000 -> EXP1000000199): test tao don (US-18) chay song
+  // song co the dang them don moi vao CSDL cung luc.
+  const seeded = { trackingCode: { $gte: "EXP1000000000", $lte: "EXP1000000199" } };
+  assert.equal(await Order.countDocuments(seeded), 200);
   const statuses = await Order.distinct("status");
   assert.equal(ORDER_STATUS.length, 18);
   for (const status of ORDER_STATUS) assert.ok(statuses.includes(status), `thieu don o trang thai ${status}`);

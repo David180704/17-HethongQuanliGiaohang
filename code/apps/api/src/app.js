@@ -9,6 +9,17 @@ import { getContainer } from "./container.js";
 import { buildAuthRouter } from "./modules/auth/auth.router.js";
 import { buildUsersRouter } from "./modules/users/users.router.js";
 import { buildRoutesRouter } from "./modules/routes/routes.router.js";
+import { buildHubsRouter } from "./modules/hubs/hubs.router.js";
+import { buildPickupLocationsRouter } from "./modules/pickupLocations/pickupLocations.router.js";
+import { buildOrdersRouter } from "./modules/orders/orders.router.js";
+import { buildOrderDraftsRouter } from "./modules/orderDrafts/orderDrafts.router.js";
+import { buildTrackingRouter } from "./modules/tracking/tracking.router.js";
+import { buildShiftsRouter } from "./modules/shifts/shifts.router.js";
+import { buildCapacityRouter } from "./modules/capacity/capacity.router.js";
+import { buildAssignmentsRouter } from "./modules/assignments/assignments.router.js";
+import { buildWarehouseRouter } from "./modules/warehouse/warehouse.router.js";
+import { buildCheckinPointsRouter, buildCheckinsRouter } from "./modules/checkins/checkins.router.js";
+import { buildProfileRouter } from "./modules/profile/profile.router.js";
 import { buildServiceAreasRouter } from "./modules/serviceAreas/serviceAreas.router.js";
 import { buildServiceTypesRouter } from "./modules/serviceTypes/serviceTypes.router.js";
 import { buildPriceTablesRouter } from "./modules/priceTables/priceTables.router.js";
@@ -38,11 +49,23 @@ export function createApp(container = getContainer()) {
 
   app.use("/auth", buildAuthRouter(container));
   app.use("/users", buildUsersRouter(container));
+  app.use("/hubs", buildHubsRouter(container));
   app.use("/routes", buildRoutesRouter(container));
   app.use("/serviceAreas", buildServiceAreasRouter(container));
   app.use("/serviceTypes", buildServiceTypesRouter(container));
   app.use("/priceTables", buildPriceTablesRouter(container));
+  app.use("/pickupLocations", buildPickupLocationsRouter(container));
+  app.use("/orders", buildOrdersRouter(container));
+  app.use("/orderDrafts", buildOrderDraftsRouter(container));
   app.use("/public", buildPublicRouter(container));
+  app.use("/tracking", buildTrackingRouter(container));
+  app.use("/shifts", buildShiftsRouter(container));
+  app.use("/capacity", buildCapacityRouter(container));
+  app.use("/assignments", buildAssignmentsRouter(container));
+  app.use("/warehouse", buildWarehouseRouter(container));
+  app.use("/checkinPoints", buildCheckinPointsRouter(container));
+  app.use("/checkins", buildCheckinsRouter(container));
+  app.use("/profile", buildProfileRouter(container));
 
   app.use((req, res, next) => {
     next(ErrorCodes.NOT_FOUND("Không tìm thấy đường dẫn"));

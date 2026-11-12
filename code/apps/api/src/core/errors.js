@@ -25,6 +25,22 @@ export const ErrorCodes = {
   EMAIL_ALREADY_EXISTS: (message = "Email đã được sử dụng") => new AppError("EMAIL_ALREADY_EXISTS", message, 409),
   PHONE_ALREADY_EXISTS: (message = "Số điện thoại đã được sử dụng") =>
     new AppError("PHONE_ALREADY_EXISTS", message, 409),
+
+  // Quan/huyen chua co trong serviceAreas: diem tap ket, dia diem lay hang (US-14, US-15)
+  OUT_OF_SERVICE_AREA: (message = "Địa chỉ nằm ngoài vùng phục vụ") =>
+    new AppError("OUT_OF_SERVICE_AREA", message, 422),
+  PICKUP_LOCATION_LIMIT: (message = "Mỗi khách hàng lưu tối đa 10 địa điểm lấy hàng — xóa bớt địa điểm cũ trước") =>
+    new AppError("PICKUP_LOCATION_LIMIT", message, 409),
+
+  // Tinh phi / tao don (US-16 -> US-19)
+  PRICE_NOT_AVAILABLE: (message = "Chưa có bảng giá áp dụng cho tuyến gửi này") =>
+    new AppError("PRICE_NOT_AVAILABLE", message, 422),
+  COD_LESS_THAN_FEE: (message = "Tiền thu hộ nhỏ hơn phí vận chuyển, không khấu trừ được") =>
+    new AppError("COD_LESS_THAN_FEE", message, 422),
+
+  // API cong khai bi goi qua nhanh (US-22: tra cuu 20 lan/phut moi IP)
+  TOO_MANY_REQUESTS: (message = "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút") =>
+    new AppError("TOO_MANY_REQUESTS", message, 429),
 };
 
 export function errorHandler(err, req, res, _next) {

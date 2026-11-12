@@ -40,6 +40,9 @@ export const roles = [
   },
 ];
 
+// HUB = diem tap ket cap tinh/vung; POST_OFFICE = buu cuc, truc thuoc mot HUB (parentKey).
+// Hub cap tren phai dung TRUOC buu cuc trong mang (seed tao lan luot). Quan/huyen cua
+// moi diem phai co trong serviceAreas ben duoi (US-14: moi diem gan mot khu vuc phuc vu).
 export const hubs = [
   { _key: "HUB_HN", code: "HUB-HN", name: "Hub Hà Nội", type: "HUB", province: "Hà Nội", district: "Hoàn Kiếm" },
   {
@@ -55,9 +58,20 @@ export const hubs = [
     code: "PO-DN",
     name: "Bưu cục Đà Nẵng",
     type: "POST_OFFICE",
+    // Mien Trung chua co hub rieng: buu cuc Da Nang gom hang ve Hub Ha Noi
+    parentKey: "HUB_HN",
     province: "Đà Nẵng",
     district: "Hải Châu",
   },
+];
+
+// Diem check-in mau (US-29): toa do that gan dung, ban kinh mac dinh 150 m; tai xe chon "dang o" diem nay tren app
+export const checkinPoints = [
+  { code: "CP-HN-HUB", name: "Hub Hà Nội", address: "Hoàn Kiếm, Hà Nội", lat: 21.0285, lng: 105.8542, hubKey: "HUB_HN" },
+  { code: "CP-HN-CG", name: "Ngã tư Xuân Thủy – Cầu Giấy", address: "Cầu Giấy, Hà Nội", lat: 21.0368, lng: 105.7826, hubKey: "HUB_HN" },
+  { code: "CP-QL1-NB", name: "Trạm QL1A Ninh Bình", address: "Ninh Bình", lat: 20.2506, lng: 105.9745, radiusM: 300 },
+  { code: "CP-DN-PO", name: "Bưu cục Đà Nẵng", address: "Hải Châu, Đà Nẵng", lat: 16.0678, lng: 108.2208, hubKey: "PO_DN" },
+  { code: "CP-HCM-HUB", name: "Hub Hồ Chí Minh", address: "Quận 1, TP Hồ Chí Minh", lat: 10.7769, lng: 106.7009, hubKey: "HUB_HCM" },
 ];
 
 export const routes = [

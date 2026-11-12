@@ -25,6 +25,33 @@ export class UserRepository extends BaseRepository {
     return this.exists({ phone });
   }
 
+  /** Tim theo so dien thoai (tiep nhan tai quay, US-40); co the chay trong transaction. */
+  findByPhone(phone, { session } = {}) {
+    return this.model.findOne({ phone }).select(this.projection).session(session ?? null).lean();
+  }
+
+  /** Nguoi giao hang dang hoat dong phu trach mot trong cac tuyen (ca lam viec, phan cong - US-23, US-25). */
+  findActiveShippers({ ids, routeIds } = {}) {
+    return this.model
+      .find({
+        role: "SHIPPER",
+        status: "ACTIVE",
+        ...(ids && { _id: { $in: ids } }),
+        ...(routeIds && { routeIds: { $in: routeIds } }),
+      })
+      .select("fullName phone routeIds maxPickupPerShift maxDeliveryPerShift")
+      .sort({ fullName: 1 })
+      .lean();
+  }
+
+  /** Tao khach le trong transaction; tra ve ban da an passwordHash. */
+  async insert(doc, { session }) {
+    const [created] = await this.model.create([doc], { session });
+    const user = created.toObject();
+    delete user.passwordHash;
+    return user;
+  }
+
   /** Ho so day du, kem ten hub/tuyen de App Nhan vien hien thi ma khong goi them API. */
   findProfile(id) {
     return this.model

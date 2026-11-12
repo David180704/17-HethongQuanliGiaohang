@@ -23,12 +23,14 @@ export default function Button({
   disabled = false,
   accessibilityLabel,
   style,
+  testID,
 }) {
   const palette = VARIANTS[variant] || VARIANTS.primary;
   const inactive = disabled || loading;
 
   return (
     <Pressable
+      testID={testID}
       role="button"
       aria-label={accessibilityLabel || title}
       aria-disabled={inactive}

@@ -1,0 +1,132 @@
+appId: host.exp.exponent
+name: "[US-40] Nhan vien kho tiep nhan hang tai quay - tim khach, kiem hang, bao gia, goi y xe may, tao don nhap kho"
+tags:
+  - sprint4
+---
+# inputText cua Maestro chi go ASCII: go khong dau (API tu khop "TP Ho Chi Minh", "quan 1" ve ten chuan).
+# Nguoi nhan "E2E Maestro ..." - code/test-mobile.ps1 xoa don thu nghiem sau khi chay (Remove-MobileTestData).
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+- tapOn: "Tiếp nhận tại quầy.*"
+- extendedWaitUntil:
+    visible:
+      id: "ci-phone"
+    timeout: 15000
+
+# 1. Khach gui: shop3 co tai khoan
+- tapOn:
+    id: "ci-phone"
+- inputText: "0900000043"
+- hideKeyboard
+- tapOn:
+    id: "ci-lookup"
+- extendedWaitUntil:
+    visible:
+      id: "ci-customer"
+    timeout: 10000
+- assertVisible: "Shop 3.*"
+
+# 2. Nguoi nhan
+- tapOn:
+    id: "ci-rc-name"
+- inputText: "E2E Maestro Quay"
+- hideKeyboard
+- tapOn:
+    id: "ci-rc-phone"
+- inputText: "0977333444"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-rc-address"
+    direction: DOWN
+- tapOn:
+    id: "ci-rc-address"
+- inputText: "12 Nguyen Hue"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-rc-province"
+    direction: DOWN
+- tapOn:
+    id: "ci-rc-province"
+- inputText: "TP Ho Chi Minh"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-rc-district"
+    direction: DOWN
+- tapOn:
+    id: "ci-rc-district"
+- inputText: "quan 1"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-rc-ward"
+    direction: DOWN
+- tapOn:
+    id: "ci-rc-ward"
+- inputText: "Ben Nghe"
+- hideKeyboard
+
+# 3. Kiem hang va bao gia
+- scrollUntilVisible:
+    element:
+      id: "ci-item-name"
+    direction: DOWN
+- tapOn:
+    id: "ci-item-name"
+- inputText: "Giay the thao"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-weight"
+    direction: DOWN
+- tapOn:
+    id: "ci-weight"
+- inputText: "1200"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-length"
+    direction: DOWN
+- tapOn:
+    id: "ci-length"
+- inputText: "30"
+- hideKeyboard
+- tapOn:
+    id: "ci-width"
+- inputText: "20"
+- hideKeyboard
+- tapOn:
+    id: "ci-height"
+- inputText: "12"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "ci-quote"
+    direction: DOWN
+- tapOn:
+    id: "ci-quote"
+- scrollUntilVisible:
+    element:
+      id: "ci-vehicle"
+    direction: DOWN
+- assertVisible: "Gợi ý phương tiện: Xe máy.*"
+- takeScreenshot: 09-kho-bao-gia-tai-quay
+
+# 4. Tao don -> nhan vao kho
+- scrollUntilVisible:
+    element:
+      id: "ci-submit"
+    direction: DOWN
+- tapOn:
+    id: "ci-submit"
+- extendedWaitUntil:
+    visible:
+      id: "ci-tracking-code"
+    timeout: 15000
+- assertVisible: "EXP\\d{10}"
+- assertVisible: "Trạng thái: Đã nhập kho.*"
+- takeScreenshot: 09-kho-da-tiep-nhan

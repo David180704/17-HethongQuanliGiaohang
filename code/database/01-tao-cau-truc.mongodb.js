@@ -21,7 +21,7 @@ const COLLECTIONS = [
   {
     // ---------------- assignments (model Assignment) ----------------
     name: "assignments",
-    indexes: [[{"shipperId":1,"shiftDate":1,"status":1},{}]],
+    indexes: [[{"shipperId":1,"shiftDate":1,"status":1},{}],[{"shiftId":1,"type":1,"status":1},{}],[{"orderId":1,"type":1,"status":1},{}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
@@ -51,6 +51,12 @@ const COLLECTIONS = [
           "shiftDate": {
             "bsonType": "date"
           },
+          "shiftId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "status": {
             "bsonType": [
               "string",
@@ -60,6 +66,7 @@ const COLLECTIONS = [
               "ASSIGNED",
               "DONE",
               "FAILED",
+              "CANCELLED",
               null
             ]
           },
@@ -85,6 +92,212 @@ const COLLECTIONS = [
           "reason": {
             "bsonType": [
               "string",
+              "null"
+            ]
+          },
+          "cancelledBy": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "cancelledAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "doneAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "location": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "lat": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "lng": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "failReason": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SHOP_UNREACHABLE",
+              "NOT_READY",
+              "WRONG_ADDRESS",
+              "NOT_AS_DESCRIBED",
+              "SHOP_CANCELLED",
+              "OTHER",
+              null
+            ]
+          },
+          "failNote": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
+    // ---------------- checkinlogs (model CheckinLog) ----------------
+    name: "checkinlogs",
+    indexes: [[{"orderId":1,"pointId":1,"at":-1},{}],[{"shipperId":1,"clientEventId":1,"orderId":1,"pointId":1},{"unique":true,"partialFilterExpression":{"clientEventId":{"$type":"string"}}}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "pointId",
+          "orderId",
+          "shipperId",
+          "at",
+          "lat",
+          "lng",
+          "_id"
+        ],
+        "properties": {
+          "pointId": {
+            "bsonType": "objectId"
+          },
+          "orderId": {
+            "bsonType": "objectId"
+          },
+          "shipperId": {
+            "bsonType": "objectId"
+          },
+          "at": {
+            "bsonType": "date"
+          },
+          "lat": {
+            "bsonType": "number"
+          },
+          "lng": {
+            "bsonType": "number"
+          },
+          "source": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "AUTO",
+              "MANUAL",
+              null
+            ]
+          },
+          "clientEventId": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
+    // ---------------- checkinpoints (model CheckinPoint) ----------------
+    name: "checkinpoints",
+    indexes: [[{"code":1},{"unique":true}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "code",
+          "name",
+          "lat",
+          "lng",
+          "_id"
+        ],
+        "properties": {
+          "code": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "address": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "lat": {
+            "bsonType": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "bsonType": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "radiusM": {
+            "bsonType": [
+              "number",
+              "null"
+            ],
+            "minimum": 20,
+            "maximum": 2000
+          },
+          "hubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "isActive": {
+            "bsonType": [
+              "bool",
               "null"
             ]
           },
@@ -136,6 +349,12 @@ const COLLECTIONS = [
               "POST_OFFICE"
             ]
           },
+          "parentHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "address": {
             "bsonType": [
               "string",
@@ -147,6 +366,12 @@ const COLLECTIONS = [
           },
           "district": {
             "bsonType": "string"
+          },
+          "serviceAreaId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
           },
           "location": {
             "bsonType": [
@@ -232,7 +457,7 @@ const COLLECTIONS = [
   {
     // ---------------- orders (model Order) ----------------
     name: "orders",
-    indexes: [[{"trackingCode":1},{"unique":true}],[{"customerId":1,"status":1,"createdAt":-1},{}]],
+    indexes: [[{"trackingCode":1},{"unique":true}],[{"customerId":1,"status":1,"createdAt":-1},{}],[{"pickupHubId":1,"status":1,"createdAt":-1},{}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
@@ -240,7 +465,6 @@ const COLLECTIONS = [
           "trackingCode",
           "customerId",
           "customerName",
-          "pickupLocationId",
           "pickupWard",
           "receiver",
           "item",
@@ -260,11 +484,83 @@ const COLLECTIONS = [
           "customerName": {
             "bsonType": "string"
           },
+          "channel": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ONLINE",
+              "COUNTER",
+              null
+            ]
+          },
+          "receivedBy": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "shopOrderCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "vehicle": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MOTORBIKE",
+              "TRUCK",
+              null
+            ]
+          },
           "pickupLocationId": {
-            "bsonType": "objectId"
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
           },
           "pickupWard": {
             "bsonType": "string"
+          },
+          "pickupHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "destHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "currentHubId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "itemCategory": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SMALL_PARCEL",
+              "BAG",
+              "CARTON",
+              "TV",
+              "LAPTOP",
+              "CPU",
+              "VEHICLE",
+              "OTHER",
+              null
+            ]
           },
           "receiver": {
             "bsonType": "object",
@@ -399,6 +695,12 @@ const COLLECTIONS = [
           "chargeableWeight": {
             "bsonType": "number"
           },
+          "priceTableId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
           "fee": {
             "bsonType": [
               "object",
@@ -432,6 +734,12 @@ const COLLECTIONS = [
               "total": {
                 "bsonType": [
                   "number",
+                  "null"
+                ]
+              },
+              "lockedAt": {
+                "bsonType": [
+                  "date",
                   "null"
                 ]
               }
@@ -634,6 +942,12 @@ const COLLECTIONS = [
           "assignedTo": {
             "bsonType": [
               "objectId",
+              "null"
+            ]
+          },
+          "unassignedReason": {
+            "bsonType": [
+              "string",
               "null"
             ]
           },
@@ -1076,7 +1390,7 @@ const COLLECTIONS = [
   {
     // ---------------- shifts (model Shift) ----------------
     name: "shifts",
-    indexes: [],
+    indexes: [[{"shiftDate":1,"routeId":1},{}],[{"code":1},{"unique":true}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
@@ -1116,6 +1430,12 @@ const COLLECTIONS = [
           },
           "shiftDate": {
             "bsonType": "date"
+          },
+          "assignSeq": {
+            "bsonType": [
+              "number",
+              "null"
+            ]
           },
           "_id": {
             "bsonType": "objectId"
@@ -1197,6 +1517,12 @@ const COLLECTIONS = [
               null
             ]
           },
+          "walkIn": {
+            "bsonType": [
+              "bool",
+              "null"
+            ]
+          },
           "shopName": {
             "bsonType": [
               "string",
@@ -1248,6 +1574,12 @@ const COLLECTIONS = [
                   "null"
                 ]
               },
+              "bankCode": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
               "accountNumber": {
                 "bsonType": [
                   "string",
@@ -1261,6 +1593,12 @@ const COLLECTIONS = [
                 ]
               }
             }
+          },
+          "checkinPointId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
           },
           "_id": {
             "bsonType": "objectId"

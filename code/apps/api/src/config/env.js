@@ -17,6 +17,19 @@ export const env = {
 
   redisUrl: required("REDIS_URL", "redis://localhost:6379"),
 
+  // Hang doi su kien doi trang thai don (US-21, BullMQ tren Redis): thu lai toi da ORDER_EVENTS_ATTEMPTS lan,
+  // gian cach tang dan tu ORDER_EVENTS_BACKOFF_MS; het luot -> <ten>-dlq
+  // Tra cuu cong khai bang ma van don (US-22): toi da TRACKING_RATE_LIMIT lan / phut cho moi IP
+  trackingRateLimit: { limit: Number(process.env.TRACKING_RATE_LIMIT || 20), windowSeconds: 60 },
+
+  orderEvents: {
+    // Test (node --test dat NODE_TEST_CONTEXT) dung hang doi rieng: API dev dang chay cung Redis khong
+    // tieu thu su kien cua don thu nghiem (vd tu phan cong US-25 giua chung mot test).
+    queueName: process.env.ORDER_EVENTS_QUEUE || (process.env.NODE_TEST_CONTEXT ? "order-events-test" : "order-events"),
+    attempts: Number(process.env.ORDER_EVENTS_ATTEMPTS || 5),
+    backoffMs: Number(process.env.ORDER_EVENTS_BACKOFF_MS || 2000),
+  },
+
   // Cache doc du lieu (xem infrastructure/cache/CacheService.js):
   //   CACHE_TTL_SECONDS: so giay giu du lieu trong cache (mac dinh 30, dat 0 = tat cache)
   //   CACHE_STORE: redis (mac dinh) | memory (khong can Redis, chi hop cho 1 tien trinh)

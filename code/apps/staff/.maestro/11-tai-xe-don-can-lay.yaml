@@ -1,0 +1,22 @@
+appId: host.exp.exponent
+name: "[US-27] Tai xe xem the Ca hom nay voi so don can lay va danh sach Don can lay"
+tags:
+  - sprint4
+---
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: taixe1@edms.vn
+- assertVisible: "Ca hôm nay"
+- assertVisible:
+    id: "shipper-to-pick"
+- scrollUntilVisible:
+    element: "Đơn cần lấy.*"
+    direction: DOWN
+- tapOn: "Đơn cần lấy.*"
+- extendedWaitUntil:
+    visible:
+      id: "pickup-counts"
+    timeout: 15000
+- assertVisible: "Cần lấy: \\d+"
+- takeScreenshot: 11-tai-xe-don-can-lay

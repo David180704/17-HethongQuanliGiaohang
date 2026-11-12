@@ -38,6 +38,8 @@ Ví dụ `POST /serviceAreas` (admin thêm quận):
 | **Proxy** (phía app) | `apps/web/src/lib/queryCache.js`, `apps/staff/src/lib/queryCache.js` | Đứng trước `apiClient`: giữ kết quả 30 giây, gộp request trùng |
 | **Chain of Responsibility** | Middleware Express: `requireAuth` → `requirePermission` → controller | Mỗi mắt xích kiểm một điều kiện, sai thì dừng chuỗi |
 | **Dependency Injection** | `container.js` (Composition Root) | Lớp nhận phụ thuộc qua constructor; test thay được bằng bản giả |
+| **Unit of Work** (qua Adapter) | `infrastructure/db/MongooseTransactionRunner.js` | Service gọi `transactions.run(session => …)` và truyền `{ session }` cho mọi lệnh ghi: tạo đơn ghi bộ đếm mã vận đơn, `orders`, `orderDrafts` cùng thành công hoặc cùng hủy; service không `import` mongoose |
+| **Hàm thuần dùng chung** | `modules/pricing/pricing.js` | Một nguồn sự thật cho công thức tính phí: seed, ước tính phí công khai và tạo đơn cùng gọi, có 10 unit test |
 
 ## SOLID
 
@@ -57,14 +59,50 @@ Ví dụ `POST /serviceAreas` (admin thêm quận):
 | App → bộ nhớ | `QueryCache` + `useCachedQuery` (web), `ResourceScreen` (App NV) | Ghi xong xóa ngay; màn hình mở thì tự làm mới mỗi 30 giây; đăng nhập/đăng xuất xóa sạch |
 
 Không cache: đăng nhập (tài khoản vừa bị khóa phải chặn ngay), kiểm tra ràng buộc
-(`exists`, `findOne`), và hồ sơ `/auth/me` phía server.
+(`exists`, `findOne`), hồ sơ `/auth/me` phía server, và dữ liệu riêng của từng người dùng (địa điểm lấy hàng,
+đơn hàng, bản nháp đơn) — phí và ràng buộc phải tính trên dữ liệu mới nhất.
 Header `X-Cache: HIT | MISS` trên API công khai cho biết dữ liệu đến từ đâu.
 
-## Thêm một danh mục mới (ví dụ: Hub, story US-14)
+## Thêm một danh mục mới (đã làm đúng các bước này cho Hub & bưu cục, US-14)
 
 1. `modules/hubs/hubs.validator.js`: `export const hubValidator = { create(body), update(body) }`.
-2. `modules/hubs/HubService.js`: `class HubService extends BaseCrudService`, ghi đè hook nếu có ràng buộc riêng.
+2. `modules/hubs/HubService.js`: `class HubService extends BaseCrudService`, ghi đè hook nếu có ràng buộc riêng
+   (bưu cục phải trực thuộc một hub, tự gắn khu vực phục vụ, chặn xóa điểm còn tuyến / nhân viên).
 3. `modules/hubs/hubs.router.js`: chú thích Swagger + `buildHubsRouter()` gọi `createCrudRouter`.
 4. `container.js`: tạo repository, bọc `withCache(..., "hubs")`, thêm vào `services`.
 5. `app.js`: `app.use("/hubs", buildHubsRouter(container))`.
-6. Test: đổi các dòng `[US-14]` trong `tests/stories-pending.test.js` thành test thật.
+6. Test: đổi các dòng `[US-14]` trong `tests/stories-pending.test.js` thành test thật (`tests/hubs.test.js`).
+
+## Tài nguyên theo chủ sở hữu và phạm vi theo vai trò (Sprint 3)
+
+Danh mục dùng chung đi qua `createCrudRouter`; dữ liệu **của từng người** thì không:
+
+| Thành phần | Cách làm |
+|---|---|
+| Địa điểm lấy hàng (`/pickupLocations`) | `PickupLocationController` lấy `req.user.id` từ token, mọi truy vấn kèm `customerId` — khách không chạm được địa điểm của người khác (trả 404) |
+| Đơn hàng (`/orders`) | `OrderService` tính phạm vi theo vai trò: khách — đơn của mình; nhân viên kho — đơn của hub mình và các bưu cục trực thuộc; tài xế — đơn được giao; quản trị — tất cả |
+| Quyền | `requirePermission` nhận một quyền hoặc **mảng quyền** (có một là đủ), ví dụ xem đơn: `order:read:own`, `order:read:hub`, `order:read:assigned` |
+| Trang công khai biết người dùng | `optionalAuth`: có token hợp lệ thì gắn `req.user`, không có thì coi là khách vãng lai — bản nháp đơn (`/orderDrafts`) thuộc về khách đăng nhập mở nó |
+| Ước tính phí (`POST /orders/estimate-fee`) | Công khai; `PricingService` tìm khu vực phục vụ hai đầu, bảng giá hiệu lực theo dịch vụ + vùng rồi gọi `pricing.calculate` |
+
+## Hàng đợi sự kiện, tra cứu công khai, phân công (Sprint 4)
+
+| Thành phần | Cách làm |
+|---|---|
+| Hàng đợi sự kiện (US-21) | `infrastructure/queue/BullEventQueue.js` bọc BullMQ (Adapter). `OrderService` ghi trạng thái + `statusHistory` xong mới phát `order.status.changed`; thử lại 5 lần giãn cách tăng dần, hết lượt chép sang `<tên>-dlq`. `server.js` chạy worker; test dùng hàng đợi riêng `order-events-test` |
+| Consumer (Observer qua hàng đợi) | `container.orderEventHandlers`: (1) `JourneyService.project` dựng lại hành trình công khai vào Redis `journey:<mã>`; (2) `AssignmentService.onOrderStatusChanged` phân công lấy hàng khi đơn sang CONFIRMED. Cả hai idempotent vì job có thể chạy lại |
+| Tra cứu công khai (US-22) | `GET /tracking/:code`, hàm thuần `orders/journey.js` (che số điện thoại, không tên/địa chỉ người nhận); `RateLimiter` đếm trên Redis (`INCR` + `EXPIRE NX`), middleware `createRateLimit` trả 429 kèm `Retry-After` |
+| Tiếp nhận tại quầy (US-40) | `/orders/counter/*` (quyền `order:approve`): tìm / tạo khách lẻ, báo giá từ điểm của nhân viên, một transaction CREATED → CONFIRMED → AT_HUB; hàm thuần `orders/vehicle.js` gợi ý xe máy / xe tải |
+| Ca làm việc (US-23) | `/shifts` (quyền `shift:manage`), phạm vi tuyến theo hub dùng chung `routes/routeScope.js`; tài xế xem ca mình ở `/shifts/mine` |
+| Năng lực 3 cấp (US-24) | Hàm thuần `capacity/capacity.js` (`effectiveCapacity`: người → tuyến → hệ thống); mặc định hệ thống ở collection kỹ thuật `settings` (như `counters`, không tính vào 12 collection nghiệp vụ); `/capacity/system` chỉ quản trị viên (quyền `capacity:system`) |
+| Phân công lấy hàng (US-25, US-27) | `AssignmentService`: ca còn mở hôm nay của tuyến lấy hàng → người ít đơn chưa lấy nhất, chưa đầy năng lực. **Khóa ca**: trong cùng transaction tăng `Shift.assignSeq` rồi mới đếm tải — hai transaction gán vào một ca xung đột ghi, `withTransaction` chạy lại bên thua. Hết chỗ: đơn giữ CONFIRMED, ghi `unassignedReason`. Điều chỉnh tay (`POST /assignments/pickup`) bắt buộc lý do, hủy phân công cũ (CANCELLED). Tài xế: `/assignments/mine/pickups` |
+
+## Lấy hàng, kho, check-in, tài khoản nhận thu hộ (Sprint 5)
+
+| Thành phần | Cách làm |
+|---|---|
+| Lấy hàng (US-28) | `POST /assignments/pickups/:orderId/picked` (mã vận đơn phải khớp kiện, tọa độ bắt buộc) và `/failed` (6 nguyên nhân cố định, hàm thuần `assignments/pickupOutcome.js`). Một transaction: đơn PICKED_UP / PICKUP_FAILED có điều kiện trạng thái cũ + phân công DONE / FAILED; phát `order.status.changed` |
+| Quy trình tại kho (US-41) | `/warehouse/*` (quyền `order:approve`): hàm thuần `warehouse/warehouse.js` (`nextWarehouseAction`) quyết định bước tiếp theo theo trạng thái và nhóm hub; đơn lưu `pickupHubId`, `destHubId`, `currentHubId`, `itemCategory`. Đơn cũ thiếu kho đích thì tính từ khu vực người nhận |
+| Điểm check-in (US-29) | `/checkinPoints` theo khuôn `createCrudRouter` (quyền `checkinPoints:manage`, chỉ ADMIN qua `*`); `GET /checkins/points` cho app tài xế |
+| Check-in (US-30) | `POST /checkins`: hàm thuần `checkins/geo.js` (haversine, bán kính); chặn trùng cùng điểm + đơn trong 30 phút; chỉ mục unique (tài xế, mã sự kiện, đơn, điểm) cho lần gửi lại khi mất mạng; phát `order.checkin.recorded` → consumer dựng lại hành trình (thêm danh sách điểm, không lộ tọa độ). App: `lib/location.js` (vị trí giả lập), `lib/checkinQueue.js` (AsyncStorage) |
+| Tài khoản nhận thu hộ (US-42) | `/profile/bank-account` (quyền `profile:update:own`, chỉ khách hàng) qua `ProfileService`; hàm thuần `profile/bankAccount.js` (danh sách ngân hàng theo mã VietQR, bỏ dấu tên chủ tài khoản) |

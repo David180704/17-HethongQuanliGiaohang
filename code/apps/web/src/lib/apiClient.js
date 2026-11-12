@@ -49,6 +49,14 @@ apiClient.interceptors.response.use(
 
     config._retried = true;
 
+    // Tab khac (cung trinh duyet, chung localStorage) vua lam moi token -> dung luon token moi, khong lam moi lai
+    const sentToken = String(config.headers?.Authorization || "").replace("Bearer ", "");
+    const { accessToken: storedAccess } = getTokens();
+    if (storedAccess && sentToken && storedAccess !== sentToken) {
+      config.headers.Authorization = `Bearer ${storedAccess}`;
+      return apiClient(config);
+    }
+
     if (!refreshPromise) {
       refreshPromise = axios
         .post(`${API_URL}/auth/refresh`, { refreshToken })
@@ -57,6 +65,10 @@ apiClient.interceptors.response.use(
           return res.data.data;
         })
         .catch((refreshErr) => {
+          // Refresh token xoay vong: hai tab cung lam moi thi tab cham bi tu choi. Neu tab kia da ghi token moi
+          // vao localStorage thi dung token do (khong dang xuat nguoi dung oan).
+          const latest = getTokens();
+          if (latest.refreshToken && latest.refreshToken !== refreshToken && latest.accessToken) return latest;
           clearTokens();
           window.dispatchEvent(new Event("edms:unauthorized"));
           throw refreshErr;

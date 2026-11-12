@@ -4,6 +4,8 @@ import { ROLES, USER_STATUS, CUSTOMER_TYPE } from "../constants/enums.js";
 const bankAccountSchema = new mongoose.Schema(
   {
     bankName: String,
+    // Ma ngan hang theo chuan VietQR (US-42)
+    bankCode: String,
     accountNumber: String,
     accountName: String,
   },
@@ -21,6 +23,8 @@ const userSchema = new mongoose.Schema(
 
     // Chi CUSTOMER
     customerType: { type: String, enum: CUSTOMER_TYPE },
+    // Khach le do nhan vien kho tao tai quay (US-40): email noi bo, chua dat mat khau -> chua dang nhap duoc
+    walkIn: { type: Boolean, default: false },
     shopName: String,
     taxCode: String,
 
@@ -33,6 +37,8 @@ const userSchema = new mongoose.Schema(
     maxDeliveryPerShift: { type: Number, default: null },
 
     bankAccount: bankAccountSchema,
+    // Diem check-in hop le duy nhat cua nguoi giao hang (yeu cau 12/11/2026): check-in o diem khac khong nhan
+    checkinPointId: { type: mongoose.Schema.Types.ObjectId, ref: "CheckinPoint", default: null },
   },
   { timestamps: true },
 );

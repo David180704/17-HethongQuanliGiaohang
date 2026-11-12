@@ -1,0 +1,86 @@
+appId: host.exp.exponent
+name: "[US-23][US-24][US-25] Kho xep ca cho tai xe, xem nang luc moi ca va bang phan cong lay hang"
+tags:
+  - sprint4
+---
+# Ca thu nghiem "KT23 Maestro ..." - code/test-mobile.ps1 xoa sau khi chay (Remove-MobileTestData).
+# Ca 00:02-00:03 (da qua gio) tuyen R-HN-LIEN: khong mo nen khong lam phan cong tu dong cua test khac chay
+# cung luc (test-song-song.ps1) gan don vao ca nay.
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+
+# 1. Ca lam viec: them ca 00:02-00:03 tuyen R-HN-LIEN cho Tai Xe 2
+- tapOn: "Ca làm việc.*"
+- extendedWaitUntil:
+    visible:
+      id: "shift-add"
+    timeout: 15000
+- tapOn:
+    id: "shift-add"
+- tapOn:
+    text: "R-HN-LIEN"
+    index: 0
+- tapOn:
+    id: "shift-name"
+- eraseText: 20
+- inputText: "KT23 Maestro ca som"
+- hideKeyboard
+- tapOn:
+    id: "shift-start"
+- eraseText: 10
+- inputText: "00:02"
+- hideKeyboard
+- tapOn:
+    id: "shift-end"
+- eraseText: 10
+- inputText: "00:03"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Tài Xế 2"
+    direction: DOWN
+- tapOn: "Tài Xế 2"
+- scrollUntilVisible:
+    element:
+      id: "shift-save"
+    direction: DOWN
+- tapOn:
+    id: "shift-save"
+- extendedWaitUntil:
+    visible: "Đã thêm KT23 Maestro ca som"
+    timeout: 15000
+- assertVisible: "KT23 Maestro ca som · 00:02–00:03"
+- takeScreenshot: 10-kho-them-ca
+- tapOn: "Quay lại"
+
+# 2. Phan cong (gop nang luc moi ca vao day, 12/11/2026): hang cho, tai theo ca hom nay (co ca vua them)
+- scrollUntilVisible:
+    element: "Phân công.*"
+    direction: DOWN
+- tapOn: "Phân công.*"
+- extendedWaitUntil:
+    visible: "Hàng chờ \\(\\d+\\)"
+    timeout: 15000
+# Cuon toi dong tai cua Tai Xe 2 (nam duoi ten ca) trong the ca vua them
+- scrollUntilVisible:
+    element: "Tài Xế 2: 0/\\d+ đơn · 0 chưa lấy"
+    direction: DOWN
+    timeout: 60000
+- assertVisible: "KT23 Maestro ca som · 00:02–00:03"
+- takeScreenshot: 10-kho-phan-cong
+
+# 3. Nang luc moi ca: nut o dau trang Phan cong
+- scrollUntilVisible:
+    element:
+      id: "assign-capacity"
+    direction: UP
+    timeout: 60000
+- tapOn:
+    id: "assign-capacity"
+- extendedWaitUntil:
+    visible: "Mặc định hệ thống"
+    timeout: 15000
+- assertVisible: "Lấy \\d+ · Giao \\d+ đơn / ca"
+- assertVisible: "R-HN-NOI · Nội thành Hà Nội"
+- takeScreenshot: 10-kho-nang-luc

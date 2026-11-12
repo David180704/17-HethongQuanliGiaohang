@@ -5,7 +5,9 @@ import { STAFF_APP_URL } from "../lib/links.js";
 const NAV = [
   { to: "/", label: "Trang chủ", end: true },
   { to: "/bang-gia", label: "Bảng giá" },
+  { to: "/uoc-tinh-phi", label: "Ước tính phí" },
   { to: "/vung-phuc-vu", label: "Vùng phục vụ" },
+  { to: "/tra-cuu", label: "Tra cứu" },
 ];
 
 const navClass = ({ isActive }) =>
@@ -48,6 +50,9 @@ export default function SiteLayout() {
             </Link>
             {user ? (
               <>
+                <NavLink to="/don-hang" className={navClass}>
+                  Đơn hàng
+                </NavLink>
                 <Link
                   to="/tai-khoan"
                   className="hidden max-w-40 truncate rounded-md px-2 py-1.5 text-sm font-medium hover:bg-white/10 sm:block"

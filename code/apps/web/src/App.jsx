@@ -5,11 +5,16 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import GuestOnlyRoute from "./components/GuestOnlyRoute.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import PricingPage from "./pages/PricingPage.jsx";
+import EstimatePage from "./pages/EstimatePage.jsx";
 import CoveragePage from "./pages/CoveragePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import CreateOrderPage from "./pages/CreateOrderPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
+import PickupLocationsPage from "./pages/PickupLocationsPage.jsx";
+import OrdersPage from "./pages/OrdersPage.jsx";
+import OrderDetailPage from "./pages/OrderDetailPage.jsx";
+import TrackingPage from "./pages/TrackingPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 
 // Web Khach hang: khach vang lai xem duoc trang chu, bang gia, vung phuc vu.
@@ -29,7 +34,9 @@ export default function App() {
           <Route element={<SiteLayout />}>
             <Route index element={<HomePage />} />
             <Route path="bang-gia" element={<PricingPage />} />
+            <Route path="uoc-tinh-phi" element={<EstimatePage />} />
             <Route path="vung-phuc-vu" element={<CoveragePage />} />
+            <Route path="tra-cuu" element={<TrackingPage />} />
             <Route
               path="tao-don"
               element={
@@ -43,6 +50,30 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="dia-diem-lay-hang"
+              element={
+                <ProtectedRoute>
+                  <PickupLocationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="don-hang"
+              element={
+                <ProtectedRoute>
+                  <OrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="don-hang/:id"
+              element={
+                <ProtectedRoute>
+                  <OrderDetailPage />
                 </ProtectedRoute>
               }
             />

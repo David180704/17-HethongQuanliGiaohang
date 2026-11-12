@@ -1,5 +1,15 @@
 import mongoose from "mongoose";
-import { ORDER_STATUS, ZONE, FEE_PAYER, FEE_PAYMENT_METHOD, COD_METHOD, PACKING_TYPE } from "../constants/enums.js";
+import {
+  ORDER_STATUS,
+  ORDER_CHANNEL,
+  VEHICLE_TYPE,
+  ZONE,
+  FEE_PAYER,
+  FEE_PAYMENT_METHOD,
+  COD_METHOD,
+  PACKING_TYPE,
+  ITEM_CATEGORY,
+} from "../constants/enums.js";
 
 const receiverSchema = new mongoose.Schema(
   {
@@ -43,6 +53,9 @@ const feeSchema = new mongoose.Schema(
     serviceSurcharge: { type: Number, default: 0 },
     specialSurcharge: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
+    // Thoi diem don chuyen CONFIRMED: tu day phi co dinh, bang gia doi ve sau khong
+    // lam doi phi don nay (US-17). null = don con cho xac nhan.
+    lockedAt: { type: Date, default: null },
   },
   { _id: false },
 );
@@ -87,9 +100,33 @@ const orderSchema = new mongoose.Schema(
     trackingCode: { type: String, required: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     customerName: { type: String, required: true },
+    // Kenh tao don (US-40): ONLINE - khach tu tao; COUNTER - nhan vien kho tiep nhan tai quay (hang da o diem,
+    // khong co dia diem lay hang, nguoi tiep nhan = receivedBy)
+    channel: { type: String, enum: ORDER_CHANNEL, default: "ONLINE" },
+    receivedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    // Ma don cua shop tren website ban hang (de 14 muc a) - tuy chon, tim kiem duoc
+    shopOrderCode: { type: String, default: null, trim: true },
+    // Phuong tien goi y luc tiep nhan (US-40): MOTORBIKE | TRUCK
+    vehicle: { type: String, enum: VEHICLE_TYPE, default: null },
 
-    pickupLocationId: { type: mongoose.Schema.Types.ObjectId, ref: "PickupLocation", required: true },
+    pickupLocationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PickupLocation",
+      required() {
+        return this.channel !== "COUNTER";
+      },
+      default: null,
+    },
     pickupWard: { type: String, required: true },
+    // Hub/buu cuc quan ly tuyen cua khu vuc lay hang: nhan vien diem nay (va hub cap
+    // tren) duyet don, phan cong lay hang (US-18). Xac dinh luc tao don.
+    pickupHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
+    // Hub phu trach tuyen cua khu vuc nguoi nhan - kho dich (US-41). Xac dinh luc tao don.
+    destHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
+    // Kho dang giu hang (nhap kho / nhan o kho dich) - nhan vien kho do moi phan loai, xuat kho duoc
+    currentHubId: { type: mongoose.Schema.Types.ObjectId, ref: "Hub", default: null },
+    // Loai hang khi phan loai tai kho (US-41)
+    itemCategory: { type: String, enum: ITEM_CATEGORY, default: null },
 
     receiver: { type: receiverSchema, required: true },
     item: { type: itemSchema, required: true },
@@ -100,6 +137,8 @@ const orderSchema = new mongoose.Schema(
 
     zone: { type: String, enum: ZONE, required: true },
     chargeableWeight: { type: Number, required: true },
+    // Bang gia da dung de tinh phi (doi chieu "phi khop bang gia dang hieu luc")
+    priceTableId: { type: mongoose.Schema.Types.ObjectId, ref: "PriceTable", default: null },
 
     fee: { type: feeSchema, default: () => ({}) },
     cod: { type: codSchema, default: () => ({}) },
@@ -109,6 +148,8 @@ const orderSchema = new mongoose.Schema(
 
     deliveryAttempts: { type: Number, default: 0 },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    // Hang cho chua phan cong (US-25): ly do phan cong tu dong khong gan duoc (khong co ca, tuyen da day)
+    unassignedReason: { type: String, default: null },
     settlementId: { type: mongoose.Schema.Types.ObjectId, ref: "Settlement", default: null },
   },
   { timestamps: true },
@@ -116,5 +157,7 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.index({ trackingCode: 1 }, { unique: true });
 orderSchema.index({ customerId: 1, status: 1, createdAt: -1 });
+// Nhan vien hub xem don cho duyet cua diem minh (US-18)
+orderSchema.index({ pickupHubId: 1, status: 1, createdAt: -1 });
 
 export const Order = mongoose.model("Order", orderSchema);

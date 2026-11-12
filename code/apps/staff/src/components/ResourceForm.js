@@ -31,7 +31,12 @@ function initialState(fields, initialValues) {
   return state;
 }
 
+// Danh sach co populate (vd parentHubId: { _id, code, name }) -> o chon can _id
+const toId = (value) => (value && typeof value === "object" ? value._id : value);
+
 function toFormValue(field, raw) {
+  if (field.type === "select") return toId(raw);
+  if (field.type === "multiselect") return raw.map(toId);
   if (field.type === "number") return String(raw);
   if (field.type === "date") return String(raw).slice(0, 10); // ISO -> YYYY-MM-DD
   if (field.type === "tiers") return raw.map((tier) => Object.fromEntries(Object.entries(tier).map(([k, v]) => [k, String(v)])));
@@ -108,7 +113,7 @@ export function buildPayload(fields, values) {
 }
 
 // fields: [{ name, label, type: text|email|phone|password|number|date|tiers|checkbox|select|multiselect,
-//   required, options: [{ value, label }], optionsFrom: { endpoint, label(item) },
+//   required, options: [{ value, label }], optionsFrom: { endpoint, params?, label(item) },
 //   showIf(values), help, placeholder, defaultValue, autoCapitalize }]
 export default function ResourceForm({ fields, initialValues, onSubmit, onCancel, submitLabel = "Lưu" }) {
   const [values, setValues] = useState(() => initialState(fields, initialValues));
@@ -120,7 +125,7 @@ export default function ResourceForm({ fields, initialValues, onSubmit, onCancel
     let cancelled = false;
     for (const field of fields.filter((f) => f.optionsFrom)) {
       apiClient
-        .get(field.optionsFrom.endpoint, { params: { limit: 100 } })
+        .get(field.optionsFrom.endpoint, { params: { limit: 100, ...field.optionsFrom.params } })
         .then((res) => {
           if (cancelled) return;
           const options = res.data.data.map((item) => ({ value: item._id, label: field.optionsFrom.label(item) }));

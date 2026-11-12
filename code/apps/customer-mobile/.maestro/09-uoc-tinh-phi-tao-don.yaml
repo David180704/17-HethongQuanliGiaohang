@@ -1,0 +1,148 @@
+appId: host.exp.exponent
+name: "[US-16][US-18] Khach vang lai uoc tinh phi, Gui hang, dang nhap roi tao don voi du lieu da dien san"
+tags:
+  - sprint3
+---
+# inputText cua Maestro khong go duoc Unicode tren Android: go khong dau roi cham goi y
+# quan/huyen de lay ten chuan co dau. Nguoi nhan ten "E2E Maestro" - code/test-mobile.ps1
+# xoa don thu nghiem nay sau khi chay (Remove-MobileTestData).
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-estimate"
+- extendedWaitUntil:
+    visible: "Ước tính phí"
+    timeout: 15000
+- tapOn:
+    id: "from-district"
+- inputText: "cau giay"
+- tapOn: "Chọn Cầu Giấy, Hà Nội"
+- tapOn:
+    id: "to-district"
+- inputText: "quan 1"
+- tapOn: "Chọn Quận 1, TP Hồ Chí Minh"
+# Man hinh may ao thap: o khoi luong nam duoi, phai cuon toi
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-weightGram"
+    direction: DOWN
+- tapOn:
+    id: "est-weightGram"
+- inputText: "1000"
+# Ban phim ao che cac o ben duoi -> an ban phim va cuon toi tung o
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-length"
+    direction: DOWN
+- tapOn:
+    id: "est-length"
+- inputText: "40"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-width"
+    direction: DOWN
+- tapOn:
+    id: "est-width"
+- inputText: "30"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "est-height"
+    direction: DOWN
+- tapOn:
+    id: "est-height"
+- inputText: "20"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "estimate-submit"
+    direction: DOWN
+- tapOn:
+    id: "estimate-submit"
+- scrollUntilVisible:
+    element:
+      id: "estimate-ship-STANDARD"
+    direction: DOWN
+- assertVisible: "115.000 ₫"
+- takeScreenshot: c09-uoc-tinh-phi
+- tapOn:
+    id: "estimate-ship-STANDARD"
+
+# Chua dang nhap -> dang nhap; nhap don di cung, vao thang man hinh tao don
+- extendedWaitUntil:
+    visible: "Đăng nhập để tạo đơn và thanh toán."
+    timeout: 15000
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: shop1@edms.vn
+- extendedWaitUntil:
+    visible: "Bước 1/4 · Lấy hàng"
+    timeout: 20000
+- tapOn:
+    id: "order-next"
+
+# Buoc 2: tinh/quan nguoi nhan da dien san tu luc uoc tinh
+- assertVisible: "Quận 1"
+- tapOn:
+    id: "rc-name"
+- inputText: "E2E Maestro"
+- tapOn:
+    id: "rc-phone"
+- inputText: "0977123456"
+- tapOn:
+    id: "rc-address"
+- inputText: "12 Nguyen Hue"
+- scrollUntilVisible:
+    element:
+      id: "rc-ward"
+    direction: DOWN
+- tapOn:
+    id: "rc-ward"
+- inputText: "Ben Nghe"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "order-next"
+    direction: DOWN
+- tapOn:
+    id: "order-next"
+
+# Buoc 3: khoi luong, kich thuoc da dien san; chi nhap ten hang
+- extendedWaitUntil:
+    visible: "Bước 3/4 · Hàng hóa & thanh toán"
+    timeout: 10000
+- assertVisible: "1000"
+- tapOn:
+    id: "it-name"
+- inputText: "Do gia dung"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "order-next"
+    direction: DOWN
+- tapOn:
+    id: "order-next"
+
+# Buoc 4: phi du kien dung bang luc uoc tinh -> xac nhan
+- extendedWaitUntil:
+    visible:
+      id: "order-quote"
+    timeout: 15000
+- assertVisible: "115.000 ₫"
+- takeScreenshot: c10-tao-don-xac-nhan
+- scrollUntilVisible:
+    element:
+      id: "order-submit"
+    direction: DOWN
+- tapOn:
+    id: "order-submit"
+- extendedWaitUntil:
+    visible:
+      id: "order-tracking-code"
+    timeout: 15000
+- assertVisible: "EXP\\d{10}"
+- assertVisible: "Trạng thái: chờ bưu cục xác nhận"
+- takeScreenshot: c11-da-tao-don

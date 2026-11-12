@@ -10,14 +10,15 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "seed": "node src/seed/index.js",
-    "test": "node --test",
+    "test": "node --test --test-concurrency=1",
     "lint": "eslint src scripts tests",
     "seed:local": "node src/seed/index.js --local",
     "atlas:setup": "node scripts/setup-atlas.js",
     "db:export": "node scripts/export-mongosh.js",
     "test:story": "node scripts/run-story.js",
     "report:stories": "node scripts/story-report.js",
-    "unlock": "node scripts/unlock-accounts.js"
+    "unlock": "node scripts/unlock-accounts.js",
+    "accounts:demo": "node scripts/demo-accounts.mjs"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,7 @@
   "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bullmq": "6.4.2",
     "cors": "^2.8.6",
     "dotenv": "^18.0.6",
     "express": "^5.2.1",

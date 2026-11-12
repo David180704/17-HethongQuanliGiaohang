@@ -46,7 +46,7 @@ export default function LoginScreen({ next, onBack, onLoggedIn, onRegister }) {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.root}>
       <Screen
         title="Đăng nhập"
-        subtitle={next === "createOrder" ? "Đăng nhập để tạo đơn và thanh toán." : "Chào mừng bạn quay lại."}
+        subtitle={(next?.name || next) === "createOrder" ? "Đăng nhập để tạo đơn và thanh toán." : "Chào mừng bạn quay lại."}
         onBack={onBack}
       >
         <Card>

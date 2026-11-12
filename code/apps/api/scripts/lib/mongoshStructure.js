@@ -58,7 +58,10 @@ export function schemaToJson(schema) {
       node = node.properties[part];
     }
     const leaf = parts.at(-1);
-    const required = path === "_id" || schemaType.isRequired === true;
+    // required la HAM (bat buoc co dieu kien, vd pickupLocationId chi bat buoc voi don truc tuyen - US-40):
+    // CSDL khong biet dieu kien nen cho phep null, Mongoose kiem dieu kien.
+    const conditional = typeof schemaType.options?.required === "function";
+    const required = path === "_id" || (schemaType.isRequired === true && !conditional);
     const json = scalarSchema(schemaType);
     node.properties[leaf] = required ? json : allowNull(json);
     if (required) node.required.push(leaf);
