@@ -266,7 +266,7 @@ export class DeliveryService {
       ),
       this.orderRepository.findMany(
         { ...ret, status: "RETURNING", assignedTo: null, returnHandedAt: null },
-        { select: "trackingCode customerName pickupWard serviceTypeId status returnReason unassignedReason updatedAt", sort: { updatedAt: 1 } },
+        { select: "trackingCode customerName pickupWard pickupLocationId pickupHubId serviceTypeId status returnReason unassignedReason updatedAt", sort: { updatedAt: 1 } },
       ),
     ]);
     return { toDeliver, toReturn };
@@ -656,7 +656,7 @@ export class DeliveryService {
       this.#queueOrders(user),
       this.orderRepository.findMany(
         { $or: [{ ...delivery, status: { $in: ["DELIVERY_ASSIGNED", "OUT_FOR_DELIVERY"] } }, { ...ret, status: "RETURNING", assignedTo: { $ne: null }, returnHandedAt: null }] },
-        { select: "trackingCode customerName receiver status assignedTo deliveryAttempts serviceTypeId updatedAt", sort: { updatedAt: -1 } },
+        { select: "trackingCode customerName receiver pickupWard pickupLocationId pickupHubId status assignedTo deliveryAttempts serviceTypeId updatedAt", sort: { updatedAt: -1 } },
       ),
       this.orderRepository.findMany(
         { ...ret, status: "RETURNING", returnHandedAt: { $ne: null } },
@@ -691,8 +691,16 @@ export class DeliveryService {
         })),
       });
     }
+    // Tuyen cua tung don (giao: theo nguoi nhan; hoan: theo dia diem lay) - kho chon nguoi cung tuyen khi dieu chinh
+    const routeOf = new Map();
+    for (const o of [...toDeliver, ...toReturn, ...assigned]) {
+      const kind = o.status === "RETURNING" ? "RETURN" : "DELIVERY";
+      const route = await this.#routeFor(o, kind);
+      routeOf.set(String(o._id), route ? { _id: route._id, code: route.code } : null);
+    }
     const brief = (o) => ({
       _id: o._id,
+      route: routeOf.get(String(o._id)) ?? null,
       trackingCode: o.trackingCode,
       customerName: o.customerName,
       status: o.status,
