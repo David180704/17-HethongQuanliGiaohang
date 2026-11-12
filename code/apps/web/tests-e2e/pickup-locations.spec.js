@@ -46,17 +46,17 @@ test("[US-15] khach them dia diem lay hang: ngoai vung phuc vu bi chan, dat mac 
   await form.getByLabel("Số điện thoại liên hệ").fill("0909 555 000");
   await form.getByLabel("Địa chỉ (số nhà, đường)").fill("12 Trần Thái Tông");
   await form.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
-  await form.getByLabel("Quận/Huyện").fill("Sóc Sơn");
-  await form.getByLabel("Phường/Xã").fill("Phù Linh");
+  // Phuong cua tinh khac -> bao loi ngay tren o nhap, form khong gui duoc
+  await form.getByLabel("Xã/Phường").fill("Phường Bến Thành");
+  await expect(form.locator("#pl-ward-error")).toContainText('"Phường Bến Thành" không phải xã/phường của Hà Nội');
   await form.getByRole("button", { name: "Lưu địa điểm" }).click();
-  await expect(form.getByRole("alert")).toContainText("Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ");
+  await expect(page.getByText(`Đã thêm "${LABEL}"`)).toHaveCount(0);
 
-  // Go khong dau: server tu khop "Cầu Giấy" va gan khu vuc phuc vu
-  await form.getByLabel("Quận/Huyện").fill("cau giay");
-  await form.getByLabel("Phường/Xã").fill("Dịch Vọng");
+  // Go khong dau, thieu chu "Phường": tu khop ten chuan "Phường Cầu Giấy"
+  await form.getByLabel("Xã/Phường").fill("cau giay");
   await form.getByRole("button", { name: "Lưu địa điểm" }).click();
   await expect(page.getByText(`Đã thêm "${LABEL}"`)).toBeVisible();
-  await expect(page.getByText("12 Trần Thái Tông, Dịch Vọng, Cầu Giấy, Hà Nội")).toBeVisible();
+  await expect(page.getByText("12 Trần Thái Tông, Phường Cầu Giấy, Hà Nội")).toBeVisible();
   await expect(page.getByText("2/10 địa điểm · shipper đến đây lấy hàng")).toBeVisible();
 
   await page.getByRole("button", { name: `Đặt ${LABEL} làm mặc định` }).click();

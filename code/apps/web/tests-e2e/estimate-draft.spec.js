@@ -36,9 +36,9 @@ test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> tao don 
   const from = page.getByRole("group", { name: "Gửi từ" });
   const to = page.getByRole("group", { name: "Gửi đến" });
   await from.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
-  await from.getByLabel("Quận/Huyện").fill("Cầu Giấy");
+  await from.getByLabel("Xã/Phường").fill("Phường Cầu Giấy");
   await to.getByLabel("Tỉnh/Thành phố").fill("TP Hồ Chí Minh");
-  await to.getByLabel("Quận/Huyện").fill("Quận 1");
+  await to.getByLabel("Xã/Phường").fill("sai gon");
   await page.getByLabel("Khối lượng (g)").fill("1000");
   await page.getByLabel("Dài (cm)").fill("40");
   await page.getByLabel("Rộng (cm)").fill("30");
@@ -49,7 +49,9 @@ test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> tao don 
   await expect(page.getByText("tuyến liên miền · tính theo 4.800 g (khối lượng quy đổi theo kích thước)")).toBeVisible();
   const standard = page.getByRole("article", { name: "Giao hàng tiêu chuẩn" });
   await expect(standard.getByText("115.000 ₫").first()).toBeVisible();
-  await expect(page.getByRole("article", { name: "Giao hàng nhanh" }).getByText("155.000 ₫").first()).toBeVisible();
+  // Giao nhanh chi trong cung tinh/thanh: Ha Noi -> TP HCM khong co gia, ghi ro ly do
+  await expect(page.getByRole("article", { name: "Giao hàng nhanh" })).toContainText("chỉ áp dụng trong cùng tỉnh/thành");
+  await expect(page.getByText(/khoảng 1\.1\d\d,?\d* km \(đường chim bay/)).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/11-estimate-fee.png`, fullPage: true });
 
   await standard.getByRole("button", { name: "Gửi hàng gói Giao hàng tiêu chuẩn" }).click();
@@ -66,26 +68,24 @@ test("[US-16] khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> tao don 
 
   // Ve dung man hinh tao don; tai khoan moi chua co dia diem -> goi y them o Cau Giay
   await expect(page).toHaveURL(/\/tao-don\?draft=/);
-  await expect(page.getByText("Bạn ước tính phí gửi từ Cầu Giấy, Hà Nội")).toBeVisible();
+  await expect(page.getByText("Bạn ước tính phí gửi từ Phường Cầu Giấy, Hà Nội")).toBeVisible();
   const pickupForm = page.getByRole("form", { name: "Thêm địa điểm lấy hàng" });
   await pickupForm.getByLabel("Tên gợi nhớ").fill("Nhà riêng");
   await pickupForm.getByLabel("Người liên hệ").fill("Khách Ước Tính");
   await pickupForm.getByLabel("Số điện thoại liên hệ").fill(`09${stamp}`);
   await pickupForm.getByLabel("Địa chỉ (số nhà, đường)").fill("1 Xuân Thủy");
   await pickupForm.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
-  await pickupForm.getByLabel("Quận/Huyện").fill("Cầu Giấy");
-  await pickupForm.getByLabel("Phường/Xã").fill("Dịch Vọng Hậu");
+  await pickupForm.getByLabel("Xã/Phường").fill("Phường Cầu Giấy");
   await pickupForm.getByRole("button", { name: "Lưu và dùng địa điểm này" }).click();
   await expect(page.getByRole("radio", { name: "Nhà riêng" })).toBeChecked();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   // Buoc 2: tinh/quan nguoi nhan da dien san tu luc uoc tinh
   await expect(page.getByLabel("Tỉnh/Thành phố")).toHaveValue("TP Hồ Chí Minh");
-  await expect(page.getByLabel("Quận/Huyện")).toHaveValue("Quận 1");
+  await expect(page.getByLabel("Xã/Phường")).toHaveValue("Phường Sài Gòn");
   await page.getByLabel("Tên người nhận").fill("Lê Nhận");
   await page.getByLabel("Số điện thoại người nhận").fill("0912345678");
   await page.getByLabel("Địa chỉ nhận (số nhà, đường)").fill("5 Lý Tự Trọng");
-  await page.getByLabel("Phường/Xã").fill("Bến Nghé");
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   // Buoc 3: kich thuoc va goi dich vu da dien san

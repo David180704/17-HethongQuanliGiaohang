@@ -15,14 +15,14 @@ test("khach vang lai xem trang chu khong can dang nhap, du lieu tu API cong khai
   await expect(page.getByRole("heading", { name: "Gửi hàng toàn quốc, theo dõi từng chặng" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Giao hàng tiêu chuẩn" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Giao hàng nhanh" })).toBeVisible();
-  await expect(page.getByText("quận/huyện đang phục vụ")).toBeVisible();
+  await expect(page.getByText("xã/phường đang phục vụ")).toBeVisible();
   await expect(page.getByRole("link", { name: "Đăng nhập" })).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/01-home-guest.png`, fullPage: true });
 });
 
 test("bang gia: doi dich vu thi gia doi theo he so phu phi", async ({ page }) => {
   await page.goto("/bang-gia");
-  const innerDistrict = page.locator("section", { has: page.getByRole("heading", { name: "Nội quận" }) });
+  const innerDistrict = page.locator("section", { has: page.getByRole("heading", { name: "Nội xã/phường" }) });
   // Seed: noi quan bac dau 15.000 d; gui nhanh he so 0.5 -> 22.500 d
   await expect(innerDistrict.getByText("15.000 ₫").first()).toBeVisible();
   await page.getByRole("button", { name: "Giao hàng nhanh" }).click();
@@ -31,15 +31,20 @@ test("bang gia: doi dich vu thi gia doi theo he so phu phi", async ({ page }) =>
   await page.screenshot({ path: `${SHOT_DIR}/02-pricing-express.png`, fullPage: true });
 });
 
-test("vung phuc vu: tim thay Hoan Kiem, bao ro khi khong phuc vu", async ({ page }) => {
+test("vung phuc vu: 34 tinh, bam tinh moi tai xa/phuong; tim thay Hoan Kiem, bao ro khi khong phuc vu", async ({ page }) => {
   await page.goto("/vung-phuc-vu");
+  await expect(page.getByRole("status")).toHaveText(/^3\.3\d\d xã\/phường tại 34 tỉnh\/thành$/); // test khac co the dang tam go 1 xa/phuong
+  // Chua bam thi khong tai danh sach xa/phuong (khong in ra ca nghin phan tu)
+  await expect(page.getByRole("list", { name: "Xã/phường của Hà Nội" })).toHaveCount(0);
+  await page.getByRole("region", { name: "Hà Nội" }).getByRole("button").click();
+  await expect(page.getByRole("list", { name: "Xã/phường của Hà Nội" }).getByRole("listitem")).toHaveCount(126);
   const search = page.getByLabel("Tìm vùng phục vụ");
-  await search.fill("Hoàn Kiếm");
-  await expect(page.getByRole("heading", { name: "Hà Nội" })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("1 quận/huyện tại 1 tỉnh/thành");
+  const found = page.getByRole("region", { name: "Xã/phường tìm thấy" });
+  await search.fill("hoan kiem");
+  await expect(found).toContainText("Phường Hoàn Kiếm, Hà Nội");
   await page.screenshot({ path: `${SHOT_DIR}/03-coverage-search.png`, fullPage: true });
   await search.fill("Atlantis");
-  await expect(page.getByRole("status")).toHaveText('Chưa phục vụ khu vực "Atlantis"');
+  await expect(found).toContainText("Chưa phục vụ xã/phường nào khớp “Atlantis”");
 });
 
 test("bam Tao don khi chua dang nhap -> dang nhap -> quay lai dung trang tao don", async ({ page }) => {
@@ -136,11 +141,11 @@ test.describe("cache 30 giay phia web", () => {
       if (req.url().includes("/public/price-tables")) calls.push(req.url());
     });
     await page.goto("/bang-gia");
-    await expect(page.getByRole("heading", { name: "Nội quận" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nội xã/phường" })).toBeVisible();
     // Dieu huong trong SPA (khong tai lai trang) -> cache trong bo nho van con
     await page.getByRole("link", { name: "Trang chủ" }).first().click();
     await page.getByRole("link", { name: "Bảng giá" }).first().click();
-    await expect(page.getByRole("heading", { name: "Nội quận" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nội xã/phường" })).toBeVisible();
     await page.getByRole("link", { name: "Vùng phục vụ" }).first().click();
     await page.getByRole("link", { name: "Bảng giá" }).first().click();
     await expect(page.getByTestId("updated-at")).toContainText("tự làm mới mỗi 30 giây");

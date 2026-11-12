@@ -141,7 +141,7 @@ test("may ao: kho duyet don tren App Nhan vien -> nguoi nhan tra cuu tren web th
     data: {
       pickupLocationId: location._id,
       serviceTypeId: serviceType._id,
-      receiver: { name: "KT4 Người Nhận Thiết Bị", phone: "0977111222", address: "3 Tây Sơn", province: "Hà Nội", district: "Đống Đa", ward: "Quang Trung" },
+      receiver: { name: "KT4 Người Nhận Thiết Bị", phone: "0977111222", address: "3 Tây Sơn", province: "Hà Nội", ward: "Phường Đống Đa" },
       item: { name: "Sách", weightGram: 700, length: 20, width: 15, height: 5 },
     },
   });

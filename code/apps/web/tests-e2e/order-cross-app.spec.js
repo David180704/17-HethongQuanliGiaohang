@@ -62,8 +62,7 @@ test("[US-18][US-20][US-22] quy trinh: shop tao don tren Web -> kho duyet tren A
   await customer.getByLabel("Số điện thoại người nhận").fill("0966555444");
   await customer.getByLabel("Địa chỉ nhận (số nhà, đường)").fill("3 Tây Sơn");
   await customer.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
-  await customer.getByLabel("Quận/Huyện").fill("Đống Đa");
-  await customer.getByLabel("Phường/Xã").fill("Quang Trung");
+  await customer.getByLabel("Xã/Phường").fill("Phường Đống Đa");
   await customer.getByRole("button", { name: "Tiếp tục" }).click();
   await customer.getByLabel("Tên hàng hóa").fill("Bình giữ nhiệt");
   await customer.getByLabel("Khối lượng (g)").fill("900");

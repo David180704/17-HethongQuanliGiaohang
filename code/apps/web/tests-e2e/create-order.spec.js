@@ -29,13 +29,12 @@ async function login(page) {
   await expect(page.getByRole("heading", { name: "Tạo đơn hàng" })).toBeVisible();
 }
 
-async function fillReceiverAndParcel(page, { district = "Đống Đa" } = {}) {
+async function fillReceiverAndParcel(page, { ward = "Phường Láng" } = {}) {
   await page.getByLabel("Tên người nhận").fill("E2E Người Mua");
   await page.getByLabel("Số điện thoại người nhận").fill("0987 654 321");
   await page.getByLabel("Địa chỉ nhận (số nhà, đường)").fill("20 Láng Hạ");
   await page.getByLabel("Tỉnh/Thành phố").fill("Hà Nội");
-  await page.getByLabel("Quận/Huyện").fill(district);
-  await page.getByLabel("Phường/Xã").fill("Láng Hạ");
+  await page.getByLabel("Xã/Phường").fill(ward);
 }
 
 test("[US-18] tao don 4 buoc: buoc sai bi chan ngay, buoc 4 xem phi tung khoan, xac nhan nhan ma van don", async ({ page }) => {
@@ -44,11 +43,15 @@ test("[US-18] tao don 4 buoc: buoc sai bi chan ngay, buoc 4 xem phi tung khoan, 
   await expect(page.getByRole("radiogroup", { name: "Địa điểm lấy hàng" }).getByRole("radio").first()).toBeChecked();
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
-  // Buoc 2: quan/huyen ngoai vung phuc vu bi chan truoc khi sang buoc sau
-  await fillReceiverAndParcel(page, { district: "Sóc Sơn" });
+  // Buoc 2: dia gioi 2025 khong con quan/huyen; go ten quan cu hoac phuong cua tinh khac bi chan ngay
+  await expect(page.getByLabel("Quận/Huyện")).toHaveCount(0);
+  await fillReceiverAndParcel(page, { ward: "Quận Đống Đa" });
+  await expect(page.locator("#rc-ward-error")).toContainText('"Quận Đống Đa" không phải xã/phường của Hà Nội');
   await page.getByRole("button", { name: "Tiếp tục" }).click();
-  await expect(page.getByRole("alert")).toContainText("Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ");
-  await page.getByLabel("Quận/Huyện").fill("Đống Đa");
+  await expect(page.getByRole("alert").last()).toContainText("không phải xã/phường của Hà Nội");
+  await page.getByLabel("Xã/Phường").fill("lang"); // go khong dau, thieu chu "Phường"
+  await page.getByLabel("Tên người nhận").click();
+  await expect(page.getByLabel("Xã/Phường")).toHaveValue("Phường Láng");
   await page.getByRole("button", { name: "Tiếp tục" }).click();
 
   // Buoc 3: kien hang + thu ho 500.000 d, nguoi nhan tra phi
