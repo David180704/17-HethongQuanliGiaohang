@@ -55,7 +55,7 @@ export default function AdminHome({ user, theme, onLogout, onOpenCatalog, onOpen
         { title: "Danh mục", tiles: catalogTiles },
         {
           title: "Vận hành",
-          tiles: [{ key: "capacity", title: "Năng lực mỗi ca", description: "Mặc định hệ thống, tuyến, người giao hàng", onPress: onOpenCapacity }],
+          tiles: [{ key: "capacity", title: "Phân công", description: "Năng lực mặc định hệ thống, tuyến, người giao hàng", onPress: onOpenCapacity }],
         },
         { title: "Sắp có", tiles: UPCOMING_TILES },
       ]}
