@@ -57,7 +57,17 @@ export class SettlementService {
       if (!byShop.has(key)) byShop.set(key, { customerId: o.customerId, customerName: o.customerName, lines: [] });
       byShop.get(key).lines.push(orderLine(o));
     }
-    return [...byShop.values()].map((s) => ({ customerId: s.customerId, customerName: s.customerName, totals: totals(s.lines) }));
+    // Kem boi thuong su co chua tinh (giong luc lap ky that)
+    const result = [];
+    for (const s of byShop.values()) {
+      const incidents = await this.incidentRepository.findMany(
+        { customerId: s.customerId, status: "RESOLVED", "resolution.compensation": { $gt: 0 }, settlementId: null },
+        { select: "resolution" },
+      );
+      const adjustments = incidents.map((i) => ({ amount: i.resolution.compensation }));
+      result.push({ customerId: s.customerId, customerName: s.customerName, totals: totals(s.lines, adjustments) });
+    }
+    return result;
   }
 
   /** US-34: lap ky doi soat cho tung shop co don trong khoang [from, to]. */

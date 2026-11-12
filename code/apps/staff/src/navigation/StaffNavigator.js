@@ -16,6 +16,9 @@ import WarehouseScreen from "../screens/hub/WarehouseScreen";
 import PickupListScreen from "../screens/shipper/PickupListScreen";
 import DeliveryListScreen from "../screens/shipper/DeliveryListScreen";
 import AssignDeliveryScreen from "../screens/hub/AssignDeliveryScreen";
+import IncidentsScreen from "../screens/hub/IncidentsScreen";
+import SettlementsScreen from "../screens/admin/SettlementsScreen";
+import StatsScreen from "../screens/admin/StatsScreen";
 import CheckinScreen from "../screens/shipper/CheckinScreen";
 import ShipperHome from "../screens/shipper/ShipperHome";
 
@@ -58,6 +61,15 @@ export default function StaffNavigator({ user }) {
   if (top?.name === "assignPickup") {
     return <AssignPickupScreen accent={theme.color} onBack={pop} onOpenCapacity={() => push({ name: "capacity" })} />;
   }
+  if (top?.name === "incidents") {
+    return <IncidentsScreen accent={theme.color} onBack={pop} />;
+  }
+  if (top?.name === "settlements") {
+    return <SettlementsScreen accent={theme.color} onBack={pop} />;
+  }
+  if (top?.name === "stats") {
+    return <StatsScreen accent={theme.color} onBack={pop} />;
+  }
   if (top?.name === "assignDelivery") {
     return <AssignDeliveryScreen accent={theme.color} onBack={pop} />;
   }
@@ -87,6 +99,9 @@ export default function StaffNavigator({ user }) {
         {...homeProps}
         onOpenCatalog={(key) => push({ name: "catalog", key })}
         onOpenCapacity={() => push({ name: "capacity" })}
+        onOpenIncidents={() => push({ name: "incidents" })}
+        onOpenSettlements={() => push({ name: "settlements" })}
+        onOpenStats={() => push({ name: "stats" })}
       />
     );
   }
@@ -99,6 +114,8 @@ export default function StaffNavigator({ user }) {
         onOpenAssign={() => push({ name: "assignPickup" })}
         onOpenWarehouse={() => push({ name: "warehouse" })}
         onOpenDelivery={() => push({ name: "assignDelivery" })}
+        onOpenIncidents={() => push({ name: "incidents" })}
+        onOpenStats={() => push({ name: "stats" })}
       />;
   }
   return (

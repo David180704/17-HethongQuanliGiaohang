@@ -14,6 +14,7 @@ import {
 import FeeBreakdown from "../components/FeeBreakdown.jsx";
 import StatusBadge from "../components/order/StatusBadge.jsx";
 import UpdatedAt from "../components/UpdatedAt.jsx";
+import IncidentSection from "../components/order/IncidentSection.jsx";
 
 // US-20: chi tiet don cua khach kem toan bo hanh trinh (statusHistory nhung trong don, moi nhat o tren).
 export default function OrderDetailPage() {
@@ -178,6 +179,7 @@ export default function OrderDetailPage() {
           </section>
         </div>
       </div>
+      <IncidentSection orderId={id} onChanged={refresh} />
     </div>
   );
 }
