@@ -82,7 +82,10 @@ export default function WarehouseScreen({ accent, onBack }) {
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.grow}>
-        <Text style={styles.code}>{o.trackingCode}</Text>
+        <Text style={styles.code}>
+          {o.trackingCode}
+          {o.express ? <Text style={styles.express}>  Gửi nhanh · ưu tiên</Text> : null}
+        </Text>
         <Text style={styles.muted}>
           {o.statusLabel}
           {o.itemCategoryLabel ? ` · ${o.itemCategoryLabel}` : ""} · đi {o.destHub?.name || o.receiver.province}
@@ -115,7 +118,10 @@ export default function WarehouseScreen({ accent, onBack }) {
       {order ? (
         <View style={styles.card} testID="wh-result">
           <View style={styles.head}>
-            <Text style={styles.title}>{order.trackingCode}</Text>
+            <Text style={styles.title}>
+              {order.trackingCode}
+              {order.express ? <Text style={styles.express}>  Gửi nhanh · ưu tiên</Text> : null}
+            </Text>
             <Text style={styles.badge}>{order.statusLabel}</Text>
           </View>
           <Text style={styles.text}>
@@ -185,6 +191,7 @@ const styles = StyleSheet.create({
   text: { fontSize: 14, color: colors.text },
   muted: { fontSize: 13, color: colors.muted },
   reason: { fontSize: 13, color: "#92400E" },
+  express: { fontSize: 12, fontWeight: "800", color: "#B91C1C" },
   counts: { fontSize: 14, fontWeight: "700", color: colors.text },
   section: { fontSize: 16, fontWeight: "800", color: colors.text, marginTop: 6 },
   row: {

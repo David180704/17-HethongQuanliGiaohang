@@ -153,7 +153,10 @@ export default function AssignPickupScreen({ accent, onBack, onOpenCapacity }) {
           {board.queue.map((order) => (
             <View key={order._id} style={styles.card} testID={`assign-queue-${order.trackingCode}`}>
               <View style={styles.head}>
-                <Text style={styles.title}>{order.trackingCode}</Text>
+                <Text style={styles.title}>
+                  {order.trackingCode}
+                  {order.express ? <Text style={styles.express}>  Gửi nhanh · ưu tiên</Text> : null}
+                </Text>
                 <Text style={styles.badge}>{order.route?.code || "?"}</Text>
               </View>
               <Text style={styles.muted}>
@@ -261,6 +264,7 @@ const styles = StyleSheet.create({
   badge: { fontSize: 12, fontWeight: "700", color: colors.primary },
   muted: { fontSize: 13, color: colors.muted },
   reason: { fontSize: 13, color: "#92400E" },
+  express: { fontSize: 12, fontWeight: "800", color: "#B91C1C" },
   load: { fontSize: 14, color: colors.text },
   full: { color: colors.danger, fontWeight: "700" },
   row: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
