@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Button from "../components/Button";
+import IncidentCard from "../components/IncidentCard";
 import Screen from "../components/Screen";
 import Card from "../components/Card";
 import Banner from "../components/Banner";
@@ -124,6 +125,7 @@ export default function OrderDetailScreen({ orderId, onBack }) {
         />
         <Row label="Thu hộ" value={order.cod?.enabled ? formatVnd(order.cod.amount) : "Không thu hộ"} />
       </Card>
+      <IncidentCard orderId={orderId} onChanged={refresh} />
     </Screen>
   );
 }

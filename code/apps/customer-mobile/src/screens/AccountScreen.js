@@ -10,7 +10,7 @@ import { CUSTOMER_TYPE_LABELS, avatarLetter } from "../lib/format";
 import { colors } from "../theme";
 import BankAccountCard from "../components/BankAccountCard";
 
-export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders }) {
+export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders, onOpenSettlements }) {
   const { user } = useAuth();
 
   if (!user) {
@@ -33,11 +33,12 @@ export default function AccountScreen({ onLogin, onRegister, onLogout, onCreateO
       onCreateOrder={onCreateOrder}
       onOpenPickupLocations={onOpenPickupLocations}
       onOpenOrders={onOpenOrders}
+      onOpenSettlements={onOpenSettlements}
     />
   );
 }
 
-function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders }) {
+function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations, onOpenOrders, onOpenSettlements }) {
   // /auth/me qua cache 30 giay; dang nhap/dang xuat da clear() cache.
   const { data, error } = useCachedQuery("/auth/me");
   const profile = data || user;
@@ -81,6 +82,11 @@ function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations, onOpenO
         <Text style={styles.muted}>Lọc theo trạng thái, thời gian; xem hành trình từng đơn.</Text>
         <Button testID="account-orders" title="Xem đơn hàng" onPress={onOpenOrders} />
         <Button title="Tạo đơn mới" variant="secondary" onPress={onCreateOrder} />
+      </Card>
+
+      <Card title="Đối soát">
+        <Text style={styles.muted}>Tiền thu hộ, phí bị trừ, điều chỉnh và số tiền Express chuyển cho bạn mỗi kỳ.</Text>
+        <Button testID="account-settlements" title="Xem đối soát" variant="secondary" onPress={onOpenSettlements} />
       </Card>
 
       <BankAccountCard />
