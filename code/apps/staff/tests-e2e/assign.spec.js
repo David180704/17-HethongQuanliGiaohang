@@ -120,7 +120,7 @@ test("[US-25][US-27] quy trinh: shop tao don -> kho duyet -> tu phan cong theo c
   // 2. Kho mo bang phan cong: don 1 da co nguoi, don 2 trong hang cho vi ca da day
   page.on("dialog", (dialog) => dialog.accept());
   await login(page, "kho1@edms.vn");
-  await page.getByRole("button", { name: /^Phân công/ }).click();
+  await page.getByRole("button", { name: /^Phân công(?! giao)/ }).click();
   await expect(page.getByRole("heading", { name: "Phân công" })).toBeVisible();
   const queued = page.getByTestId(`assign-queue-${o2}`);
   await expect(queued).toContainText("Tuyến R-DN-NOI: người trực ca đã đủ năng lực");
