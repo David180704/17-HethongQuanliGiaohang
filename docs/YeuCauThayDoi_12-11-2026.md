@@ -15,6 +15,17 @@ liệu mẫu).
 | 4 | Mỗi người chỉ một điểm check-in hợp lệ, không đúng thì không nhận | Admin gán **một điểm check-in đăng ký** cho mỗi tài xế; check-in ngoài bán kính điểm đó hoặc check-in tay ở điểm khác đều bị từ chối, có thông báo; app tài xế chỉ hiện điểm của mình. Dữ liệu mẫu: tài xế Hà Nội → Hub Hà Nội, liên tỉnh phía Bắc → Trạm QL1A Ninh Bình, HCM → Hub HCM, Đà Nẵng → Bưu cục Đà Nẵng | Test API `checkins.test.js` (7), Playwright `checkin.spec.js`, Maestro NV 13 |
 | 5 | Giao hàng nhanh thêm 50% và **ưu tiên đi trước** | Phụ phí 50% đã có (US-17). Thêm ưu tiên: hàng sắp tới, tồn kho và hàng chờ phân công xếp đơn gửi nhanh lên đầu, có nhãn "Gửi nhanh · ưu tiên"; chạy lại phân công tự động thì đơn nhanh được gán trước | Test API `[US-41] gui nhanh uu tien` |
 
+### Làm thêm theo yêu cầu trực tiếp của Product Owner (chiều 12/11/2026, nhánh `sprint-6`)
+
+| # | Yêu cầu | Đã làm | Kiểm chứng |
+|---|---|---|---|
+| 6 | (mục A) Bỏ quận/huyện, chỉ còn xã/phường phù hợp tỉnh, lấy dữ liệu đúng | Danh mục hành chính thật sau sắp xếp 01/07/2025: **34 tỉnh/thành, 3.321 xã/phường** (`src/data/donViHanhChinh.json`); toàn bộ xã/phường là vùng phục vụ (thêm tuyến liên tỉnh phía Nam, miền Trung) | Test `adminUnits.test.js`, Playwright 3 app |
+| 7 | Tỉnh, xã/phường gõ tay phải khớp địa chỉ có sẵn, không thì không nhận | Gõ không dấu / thiếu "Phường", "Xã" vẫn nhận và lưu tên chuẩn; xã/phường của tỉnh khác, tên cũ (Bến Nghé), "Quận …" bị chặn ngay trên form (không gửi được) và ở server (400) | Playwright `create-order`, `pickup-locations` |
+| 8 | Vùng phục vụ không in hết 3.000 phần tử | Chỉ tải 34 tỉnh; bấm tỉnh mới tải xã/phường; tìm kiếm tối đa 50 dòng | Playwright `smoke`, `customer` |
+| 9 | Tạo đơn tính khoảng cách; gửi sang tỉnh khác không có giao hàng nhanh | Khoảng cách đường chim bay giữa tâm hai xã/phường (tọa độ OpenStreetMap), lưu vào đơn; giao nhanh chỉ trong cùng tỉnh (server chặn, form khóa lựa chọn kèm lý do) | Test `estimateFee`, `adminUnits`; Playwright `estimate-draft` |
+
+Mục B (bỏ tuyến) **không làm**: đề 02 yêu cầu tổ chức theo "tuyến hoặc khu vực".
+
 ## 2. Đổi cấu trúc nghiệp vụ — đưa vào kế hoạch
 
 Các góp ý dưới đây thay đổi **mô hình tổ chức** (địa giới, kho, vai trò), không phải sửa một màn hình. Đề xuất
