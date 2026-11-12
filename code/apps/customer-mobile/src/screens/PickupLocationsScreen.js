@@ -84,7 +84,7 @@ export default function PickupLocationsScreen({ onBack }) {
             {location.contactName} · {location.contactPhone}
           </Text>
           <Text style={styles.muted}>
-            {location.address}, {location.ward}, {location.district}, {location.province}
+            {location.address}, {location.ward}, {location.province}
           </Text>
           <View style={styles.actions}>
             <Button

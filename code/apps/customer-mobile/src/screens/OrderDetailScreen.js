@@ -60,7 +60,7 @@ export default function OrderDetailScreen({ orderId, onBack }) {
           {order.receiver.name} · {order.receiver.phone}
         </Text>
         <Text style={styles.muted}>
-          {order.receiver.address}, {order.receiver.ward}, {order.receiver.district}, {order.receiver.province}
+          {order.receiver.address}, {order.receiver.ward}, {order.receiver.province}
         </Text>
         <Text style={styles.small}>
           Người gửi: {order.customerName} · lấy hàng tại {order.pickupWard}
