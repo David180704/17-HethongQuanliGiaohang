@@ -34,6 +34,8 @@ async function cleanup() {
   await Order.deleteMany({ customerId: { $in: ids } });
   await PickupLocation.deleteMany({ customerId: { $in: ids } });
   await User.deleteMany({ _id: { $in: ids } });
+  // Khach le dang nhap sai co chu y -> chay test lien tiep de bi khoa (5 lan / 15 phut); xoa dem khoa
+  await getRedis().del(...WALK_IN_PHONES.flatMap((p) => [`login:fail:${p}`, `login:lock:${p}`]));
 }
 
 const as = (who, req) => req.set("Authorization", `Bearer ${token[who]}`);
