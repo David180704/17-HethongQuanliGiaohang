@@ -62,6 +62,12 @@ export const PICKUP_FAIL_REASON = ["SHOP_UNREACHABLE", "NOT_READY", "WRONG_ADDRE
 // Nguyen nhan giao khong thanh cong (US-32, PB#40) - de 02: khong lien he duoc, hen giao lai, tu choi, sai dia chi
 export const DELIVERY_FAIL_REASON = ["RECIPIENT_UNREACHABLE", "RESCHEDULE_REQUESTED", "REFUSED", "WRONG_ADDRESS", "RECIPIENT_ABSENT", "OTHER"];
 
+// Su co, khieu nai (US-38, de 02): that lac, hu hong, sai thong tin giao nhan, khieu nai cua shop / nguoi nhan
+export const INCIDENT_TYPE = ["LOST", "DAMAGED", "WRONG_INFO", "SHOP_COMPLAINT", "RECIPIENT_COMPLAINT", "OTHER"];
+export const INCIDENT_STATUS = ["OPEN", "IN_PROGRESS", "RESOLVED"];
+// Ai bao: shop (khach tu bao tren app), nguoi nhan (bao qua tong dai, nhan vien ghi), nhan vien (kho, tai xe)
+export const INCIDENT_SOURCE = ["SHOP", "RECIPIENT", "STAFF"];
+
 // Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
 export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];
 

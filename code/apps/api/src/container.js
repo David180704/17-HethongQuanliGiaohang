@@ -36,6 +36,12 @@ import { SettingRepository } from "./modules/capacity/SettingRepository.js";
 import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
 import { AssignmentService } from "./modules/assignments/AssignmentService.js";
 import { DeliveryService } from "./modules/delivery/DeliveryService.js";
+import { IncidentRepository } from "./modules/incidents/IncidentRepository.js";
+import { IncidentService } from "./modules/incidents/IncidentService.js";
+import { SettlementRepository } from "./modules/settlements/SettlementRepository.js";
+import { SettlementService } from "./modules/settlements/SettlementService.js";
+import { StatsService } from "./modules/stats/StatsService.js";
+import { Order as OrderModel, Assignment as AssignmentModel, Settlement as SettlementModel } from "./models/index.js";
 import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
 import { CheckinPointRepository, CheckinLogRepository } from "./modules/checkins/CheckinRepositories.js";
 import { CheckinPointService } from "./modules/checkins/CheckinPointService.js";
@@ -238,6 +244,34 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     transactions: new MongooseTransactionRunner(),
     orderEvents,
   });
+  // US-38 (de 02): su co, khieu nai - ma SC tang trong transaction
+  const incidentRepository = new IncidentRepository();
+  const incidentService = new IncidentService({
+    incidentRepository,
+    orderRepository,
+    userRepository,
+    hubRepository,
+    counterRepository: new CounterRepository(),
+    transactions: new MongooseTransactionRunner(),
+    orderEvents,
+  });
+  // US-34, US-43 (de 02): doi soat dinh ky voi shop
+  const settlementService = new SettlementService({
+    settlementRepository: new SettlementRepository(),
+    orderRepository,
+    incidentRepository,
+    userRepository,
+    counterRepository: new CounterRepository(),
+    transactions: new MongooseTransactionRunner(),
+  });
+  // US-39 (de 02): thong ke bang aggregation pipeline (doc thang model, khong qua cache)
+  const statsService = new StatsService({
+    orderModel: OrderModel,
+    assignmentModel: AssignmentModel,
+    settlementModel: SettlementModel,
+    userRepository,
+    hubRepository,
+  });
   // US-29, US-30: diem check-in (danh muc admin) va check-in vi tri cua tai xe
   services.checkinPoints = new CheckinPointService({
     repository: withCache(checkinPointRepository, "checkinPoints"),
@@ -291,6 +325,9 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     capacityService,
     assignmentService,
     deliveryService,
+    incidentService,
+    settlementService,
+    statsService,
     warehouseService,
     checkinService,
     profileService: new ProfileService({ userRepository, cache }),
