@@ -8,11 +8,11 @@
 
 | | Số story |
 |---|---|
-| 🟢 Đạt (mọi tiêu chí có test và pass) | 33 |
+| 🟢 Đạt (mọi tiêu chí có test và pass) | 43 |
 | 🔴 Lỗi (có test fail) | 0 |
-| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 11 |
+| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 1 |
 
-Điểm story đạt: **116/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
+Điểm story đạt: **166/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
@@ -21,8 +21,8 @@
 | Sprint 3 | 6/6 | 21/21 |
 | Sprint 4 | 9/9 | 35/35 |
 | Sprint 5 | 5/5 | 20/20 |
-| Sprint 6 | 0/6 | 0/27 |
-| Sprint 7 | 0/5 | 0/27 |
+| Sprint 6 | 6/6 | 27/27 |
+| Sprint 7 | 4/5 | 23/27 |
 
 ## Chi tiết từng story
 
@@ -46,9 +46,9 @@ server nên không nằm trong lệnh này.
 | 2 | US-11 | Quản lý danh mục tuyến và khu vực phục vụ | 3 | 🟢 Đạt | 3/3 | App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều) |
 | 2 | US-12 | Quản lý danh mục loại dịch vụ vận chuyển | 2 | 🟢 Đạt | 3/3 | App NV: chặn trùng mã dịch vụ |
 | 2 | US-13 | Quản lý bảng giá vận chuyển theo khu vực và khối lượng | 5 | 🟢 Đạt | 12/12 | App NV: lưới bậc khối lượng, báo chồng lấn và trùng khoảng hiệu lực ngay trên form |
-| 3 | US-14 | Quản lý danh mục điểm tập kết và bưu cục | 2 | 🟢 Đạt | 8/8 | App NV: mở hub và bưu cục trực thuộc, chặn quận/huyện ngoài vùng phục vụ, tuyến chọn hub từ danh mục · Maestro NV 03 |
-| 3 | US-15 | Quản lý danh sách địa điểm lấy hàng | 3 | 🟢 Đạt | 9/9 | Web + App KH: thêm địa điểm (gợi ý quận/huyện), chặn ngoài vùng phục vụ, đặt mặc định, xóa |
-| 3 | US-16 | Ước tính phí vận chuyển trước khi gửi hàng | 3 | 🟢 Đạt | 7/7 | Web + App KH: ước tính phí → Gửi hàng → đăng ký tài khoản mới → tạo đơn điền sẵn dữ liệu · Maestro KH 09* |
+| 3 | US-14 | Quản lý danh mục điểm tập kết và bưu cục | 2 | 🟢 Đạt | 8/8 | App NV: mở hub và bưu cục trực thuộc, chặn xã/phường ngoài vùng phục vụ, tuyến chọn hub từ danh mục · Maestro NV 03 |
+| 3 | US-15 | Quản lý danh sách địa điểm lấy hàng | 3 | 🟢 Đạt | 12/12 | Web + App KH: thêm địa điểm (gợi ý xã/phường), chặn ngoài vùng phục vụ, đặt mặc định, xóa |
+| 3 | US-16 | Ước tính phí vận chuyển trước khi gửi hàng | 3 | 🟢 Đạt | 10/10 | Web + App KH: ước tính phí → Gửi hàng → đăng ký tài khoản mới → tạo đơn điền sẵn dữ liệu · Maestro KH 09* |
 | 3 | US-17 | Xem phí vận chuyển dự kiến trước khi xác nhận đơn | 5 | 🟢 Đạt | 11/11 | Web + App KH: bước xác nhận tách từng khoản phí, phí tạo đơn bằng phí đã ước tính · Liên app: phí khóa khi kho duyệt |
 | 3 | US-18 | Tạo đơn hàng giao mới | 5 | 🟢 Đạt | 7/7 | Web + App KH: tạo đơn 4 bước, chặn bước sai · App NV: kho duyệt đơn, hub khác không thấy · Liên app Web → App NV · Maestro KH 09*, NV 08* |
 | 3 | US-19 | Khai báo tiền thu hộ COD và hình thức thanh toán phí | 3 | 🟢 Đạt | 6/6 | Web + App KH: thu hộ, 3 hình thức trả phí, khấu trừ chỉ khi bật thu hộ, thu hộ nhỏ hơn phí thì không cho xác nhận |
@@ -66,17 +66,17 @@ server nên không nằm trong lệnh này.
 | 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | 🟢 Đạt | 1/1 | App NV: admin thêm điểm check-in (tọa độ sai bị chặn, bán kính mặc định 150 m) |
 | 5 | US-30 | Tự động check-in vị trí khi đi qua điểm đã cài đặt | 5 | 🟢 Đạt | 5/5 | App NV: tài xế tự check-in, cắt mạng xếp hàng rồi gửi lại, không ghi trùng → người nhận thấy điểm đã qua trên Web · Maestro NV 13 |
 | 5 | US-42 | Khai báo tài khoản ngân hàng nhận tiền thu hộ | 2 | 🟢 Đạt | 3/3 | Liên app: khai báo trên Web, đổi trên App KH, Web thấy tài khoản mới · Maestro KH 12 |
-| 6 | US-35 | Phân công tự động đơn giao hàng cho người giao hàng | 6 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 6 | US-31 | Xem danh sách đơn cần giao và phiếu giao hàng có mã QR | 6 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 6 | US-32 | Xác nhận giao hàng thành công hoặc ghi nhận giao thất bại | 5 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 6 | US-33 | Ghi nhận đã thu tiền COD từ người nhận | 3 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 6 | US-36 | Cấu hình chính sách giao lại, giới hạn số lần giao | 2 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 6 | US-37 | Quy trình hoàn hàng — phân công theo tuyến, theo dõi đến khi shop xác nhận | 5 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
+| 6 | US-35 | Phân công tự động đơn giao hàng cho người giao hàng | 6 | 🟢 Đạt | 3/3 |  |
+| 6 | US-31 | Xem danh sách đơn cần giao và phiếu giao hàng có mã QR | 6 | 🟢 Đạt | 2/2 |  |
+| 6 | US-32 | Xác nhận giao hàng thành công hoặc ghi nhận giao thất bại | 5 | 🟢 Đạt | 2/2 |  |
+| 6 | US-33 | Ghi nhận đã thu tiền COD từ người nhận | 3 | 🟢 Đạt | 1/1 |  |
+| 6 | US-36 | Cấu hình chính sách giao lại, giới hạn số lần giao | 2 | 🟢 Đạt | 2/2 |  |
+| 6 | US-37 | Quy trình hoàn hàng — phân công theo tuyến, theo dõi đến khi shop xác nhận | 5 | 🟢 Đạt | 1/1 |  |
 | 7 | US-44 | Thanh toán phí vận chuyển bằng mã VietQR | 4 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 7 | US-34 | Tạo đối soát và tổng hợp số liệu cho khách hàng | 5 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 7 | US-43 | Shop xem kỳ đối soát, khoản điều chỉnh; ghi nhận đã chi trả | 5 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
-| 7 | US-38 | Ghi nhận sự cố/khiếu nại, theo dõi xử lý và kết quả | 5 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
-| 7 | US-39 | Thống kê tổng hợp và dashboard quản trị | 8 | ⚪ Chưa làm | 0/0 · còn 1 tiêu chí |  |
+| 7 | US-34 | Tạo đối soát và tổng hợp số liệu cho khách hàng | 5 | 🟢 Đạt | 3/3 |  |
+| 7 | US-43 | Shop xem kỳ đối soát, khoản điều chỉnh; ghi nhận đã chi trả | 5 | 🟢 Đạt | 2/2 |  |
+| 7 | US-38 | Ghi nhận sự cố/khiếu nại, theo dõi xử lý và kết quả | 5 | 🟢 Đạt | 4/4 |  |
+| 7 | US-39 | Thống kê tổng hợp và dashboard quản trị | 8 | 🟢 Đạt | 2/2 |  |
 
 ## Ngoài Sprint Backlog
 

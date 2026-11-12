@@ -48,7 +48,7 @@ test("[US-24] quy trinh: admin dat mac dinh he thong -> kho dat nang luc rieng c
   // 1. Quan tri vien doi mac dinh he thong
   await login(page, "admin@edms.vn");
   // Admin: o "Phan cong" trong muc Van hanh
-  await page.getByRole("button", { name: /^Phân công/ }).click();
+  await page.getByRole("button", { name: /^Phân công(?! giao)/ }).click();
   await expect(page.getByRole("heading", { name: "Năng lực phân công" })).toBeVisible();
   await page.getByTestId("cap-system-edit").click();
   await page.getByTestId("cap-pickup").fill("0");
@@ -64,7 +64,7 @@ test("[US-24] quy trinh: admin dat mac dinh he thong -> kho dat nang luc rieng c
   const kho = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
   await login(kho, "kho1@edms.vn");
   // Kho: Phan cong -> nut Nang luc moi ca (gop vao muc Phan cong 12/11/2026)
-  await kho.getByRole("button", { name: /^Phân công/ }).click();
+  await kho.getByRole("button", { name: /^Phân công(?! giao)/ }).click();
   await kho.getByTestId("assign-capacity").click();
   await expect(kho.getByTestId("cap-system")).toContainText("Lấy 21 · Giao 31 đơn / ca");
   await expect(kho.getByTestId("cap-system-edit")).toHaveCount(0);

@@ -79,8 +79,11 @@ test("ADMIN vao trang quan tri, so ban ghi that, phien con sau khi tai lai trang
     await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
   }
   await expect(page.getByText(/\d+ bản ghi/).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Đối soát", exact: true })).toBeDisabled();
-  await expect(page.getByText("Sắp có · #34 · Sprint 7")).toBeVisible();
+  // Sprint 7 da co: su co, doi soat, thong ke (khong con muc "Sap co")
+  for (const name of ["Sự cố, khiếu nại", "Đối soát", "Thống kê"]) {
+    await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
+  }
+  await expect(page.getByText(/Sắp có/)).toHaveCount(0);
   await page.screenshot({ path: `${SHOT_DIR}/03-admin-home-desktop.png`, fullPage: true });
 
   await page.reload();
