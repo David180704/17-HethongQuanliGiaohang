@@ -54,7 +54,7 @@ export default function StaffNavigator({ user }) {
     return <WarehouseScreen accent={theme.color} onBack={pop} />;
   }
   if (top?.name === "assignPickup") {
-    return <AssignPickupScreen accent={theme.color} onBack={pop} />;
+    return <AssignPickupScreen accent={theme.color} onBack={pop} onOpenCapacity={() => push({ name: "capacity" })} />;
   }
   if (top?.name === "checkin") {
     return <CheckinScreen accent={theme.color} onBack={pop} />;
@@ -88,7 +88,6 @@ export default function StaffNavigator({ user }) {
         onOpenApprove={() => push({ name: "approveOrders" })}
         onOpenCounter={() => push({ name: "counterIntake" })}
         onOpenShifts={() => push({ name: "shifts" })}
-        onOpenCapacity={() => push({ name: "capacity" })}
         onOpenAssign={() => push({ name: "assignPickup" })}
         onOpenWarehouse={() => push({ name: "warehouse" })}
       />;

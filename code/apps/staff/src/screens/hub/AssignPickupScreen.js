@@ -11,7 +11,8 @@ import { colors, radius } from "../../theme";
 // US-25: bang phan cong lay hang hom nay cua hub (va buu cuc truc thuoc). Don duoc phan cong tu dong ngay khi
 // duyet; o day kho xem hang cho (khong co ca / tuyen da day), tai tung nguoi theo ca, chay lai tu dong va
 // dieu chinh tay (bat buoc ly do - nghi, doi ca, qua tai, don uu tien).
-export default function AssignPickupScreen({ accent, onBack }) {
+// Nang luc moi ca (US-24) nam trong muc Phan cong: nut "Nang luc moi ca" o dau trang (yeu cau 12/11/2026).
+export default function AssignPickupScreen({ accent, onBack, onOpenCapacity }) {
   const [board, setBoard] = useState(null);
   const [form, setForm] = useState(null); // { orderId, trackingCode, routeId, currentId, shipperId, reason }
   const [error, setError] = useState("");
@@ -123,7 +124,10 @@ export default function AssignPickupScreen({ accent, onBack }) {
     ) : null;
 
   return (
-    <Screen title="Phân công lấy hàng" subtitle="Tự động theo ca và năng lực, điều chỉnh có lý do" accent={accent} onBack={onBack}>
+    <Screen title="Phân công" subtitle="Lấy hàng tự động theo ca và năng lực, điều chỉnh có lý do" accent={accent} onBack={onBack}>
+      {onOpenCapacity ? (
+        <Button testID="assign-capacity" title="Năng lực mỗi ca (số đơn tối đa từng người)" variant="secondary" onPress={onOpenCapacity} />
+      ) : null}
       <Banner testID="assign-error">{error}</Banner>
       <Banner tone="success" testID="assign-notice">
         {notice}
