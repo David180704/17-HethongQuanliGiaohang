@@ -53,7 +53,7 @@ test.beforeAll(async () => {
     data: {
       pickupLocationId: location._id,
       serviceTypeId: service._id,
-      receiver: { name: "E2E CI Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+      receiver: { name: "E2E CI Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
       item: { name: "Sách", weightGram: 500, length: 20, width: 15, height: 5 },
     },
   });

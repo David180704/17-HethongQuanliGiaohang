@@ -43,8 +43,7 @@ async function fillReceiver(page, name) {
   await page.getByTestId("ci-rc-phone").fill("0977 333 444");
   await page.getByTestId("ci-rc-address").fill("12 Nguyễn Huệ");
   await page.getByTestId("ci-rc-province").fill("TP Hồ Chí Minh");
-  await page.getByTestId("ci-rc-district").fill("quan 1");
-  await page.getByTestId("ci-rc-ward").fill("Bến Nghé");
+  await page.getByTestId("ci-rc-ward").fill("sai gon"); // dia gioi 2025: khong con quan/huyen, go khong dau duoc
 }
 
 async function fillParcel(page, { name, weight, length, width, height }) {
