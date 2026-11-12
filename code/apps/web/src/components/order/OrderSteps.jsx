@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { inputClass } from "../../lib/ui.js";
-import { formatVnd } from "../../lib/format.js";
+import { distanceText, formatVnd } from "../../lib/format.js";
 import { FEE_PAYERS, PACKING_TYPES, codSummary } from "../../lib/orderForm.js";
 import { Field } from "../AuthShell.jsx";
 import AddressFields from "../AddressFields.jsx";
@@ -65,7 +65,7 @@ export function PickupStep({ form, update, locations, onLocationAdded, hint }) {
                 {location.contactName} · {location.contactPhone}
               </span>
               <span className="block text-gray-600">
-                {location.address}, {location.ward}, {location.district}, {location.province}
+                {location.address}, {location.ward}, {location.province}
               </span>
             </span>
           </label>
@@ -120,7 +120,7 @@ export function ReceiverStep({ form, update }) {
 }
 
 // Buoc 3: kien hang, goi dich vu, thu ho va ai tra phi (US-19)
-export function ParcelStep({ form, update, serviceTypes }) {
+export function ParcelStep({ form, update, serviceTypes, crossProvince = false }) {
   const { item, cod } = form;
   const setItem = (patch) => update({ item: { ...item, ...patch } });
   const setCod = (patch) => update({ cod: { ...cod, ...patch } });
@@ -149,15 +149,31 @@ export function ParcelStep({ form, update, serviceTypes }) {
       <fieldset>
         <legend className="mb-2 font-semibold">Gói dịch vụ</legend>
         <div className="grid gap-2 sm:grid-cols-2">
-          {serviceTypes.map((type) => (
-            <label key={type._id} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${form.serviceTypeId === type._id ? "border-brand-600 bg-brand-50" : "border-gray-200 bg-white"}`}>
-              <input type="radio" name="serviceTypeId" checked={form.serviceTypeId === type._id} onChange={() => update({ serviceTypeId: type._id })} aria-label={type.name} />
-              <span className="text-sm">
-                <span className="font-semibold">{type.name}</span>
-                <span className="block text-gray-500">Dự kiến {type.estimatedDays} ngày</span>
-              </span>
-            </label>
-          ))}
+          {serviceTypes.map((type) => {
+            // Giao nhanh chi trong cung tinh/thanh
+            const blocked = crossProvince && type.code === "EXPRESS";
+            return (
+              <label
+                key={type._id}
+                className={`flex items-center gap-3 rounded-xl border p-3 ${blocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${form.serviceTypeId === type._id ? "border-brand-600 bg-brand-50" : "border-gray-200 bg-white"}`}
+              >
+                <input
+                  type="radio"
+                  name="serviceTypeId"
+                  disabled={blocked}
+                  checked={form.serviceTypeId === type._id}
+                  onChange={() => update({ serviceTypeId: type._id })}
+                  aria-label={type.name}
+                />
+                <span className="text-sm">
+                  <span className="font-semibold">{type.name}</span>
+                  <span className="block text-gray-500">
+                    {blocked ? "Chỉ giao trong cùng tỉnh/thành — đơn này gửi sang tỉnh khác" : `Dự kiến ${type.estimatedDays} ngày`}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
         </div>
       </fieldset>
 
@@ -218,8 +234,8 @@ export function ConfirmStep({ form, location, quote, quoteError, serviceTypes })
     <section aria-label="Bước 4: Xác nhận" className="space-y-4">
       <h2 className="text-lg font-semibold">Kiểm tra và xác nhận đơn</h2>
       <dl className="grid gap-3 rounded-xl border border-gray-200 bg-white p-5 text-sm sm:grid-cols-2">
-        <Info label="Lấy hàng tại" value={location ? `${location.label} — ${location.address}, ${location.district}, ${location.province}` : "—"} />
-        <Info label="Giao đến" value={`${receiver.name} · ${receiver.phone} — ${receiver.address}, ${receiver.ward}, ${receiver.district}, ${receiver.province}`} />
+        <Info label="Lấy hàng tại" value={location ? `${location.label} — ${location.address}, ${location.ward}, ${location.province}` : "—"} />
+        <Info label="Giao đến" value={`${receiver.name} · ${receiver.phone} — ${receiver.address}, ${receiver.ward}, ${receiver.province}`} />
         <Info label="Hàng hóa" value={`${item.name} · ${item.weightGram} g · ${item.length}×${item.width}×${item.height} cm`} />
         <Info label="Gói dịch vụ" value={service?.name || "—"} />
         <Info label="Thu hộ" value={cod.enabled ? formatVnd(Number(cod.amount) || 0) : "Không thu hộ"} />
@@ -236,6 +252,11 @@ export function ConfirmStep({ form, location, quote, quoteError, serviceTypes })
           <p className="mb-2 text-sm text-gray-600">
             Tuyến {quote.zoneLabel} · tính theo {quote.chargeableWeight.toLocaleString("vi-VN")} g
           </p>
+          {quote.distanceKm !== null && quote.distanceKm !== undefined && (
+            <p className="mb-2 text-sm text-gray-600" aria-label="Khoảng cách">
+              Khoảng cách: <span className="font-semibold">{distanceText(quote)}</span>
+            </p>
+          )}
           <FeeBreakdown fee={option.fee} label="Chi tiết phí dự kiến" />
           {summary && (
             <dl className="mt-3 space-y-1 border-t border-gray-200 pt-3 text-sm">

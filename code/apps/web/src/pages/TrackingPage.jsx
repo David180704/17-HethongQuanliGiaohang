@@ -107,7 +107,7 @@ export default function TrackingPage() {
             </p>
             <p>
               <span className="text-gray-500">Giao đến: </span>
-              {data.receiver.district}, {data.receiver.province} · {data.receiver.phone}
+              {data.receiver.ward}, {data.receiver.province} · {data.receiver.phone}
             </p>
           </div>
 
