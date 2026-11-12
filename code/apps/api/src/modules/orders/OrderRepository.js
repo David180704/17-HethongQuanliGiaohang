@@ -28,6 +28,12 @@ export class OrderRepository extends BaseRepository {
     return this.model.findOneAndUpdate(filter, update, { new: true, session: session ?? null }).lean();
   }
 
+  /** Gan don vao ky doi soat (US-34): chi don chua thuoc ky nao; tra so don da gan. */
+  async markSettled(ids, settlementId, { session } = {}) {
+    const result = await this.model.updateMany({ _id: { $in: ids }, settlementId: null }, { $set: { settlementId } }, { session: session ?? null });
+    return result.modifiedCount;
+  }
+
   /** Doi trang thai CO DIEU KIEN: hai nguoi cung bam thi chi mot nguoi thanh cong. */
   transition(id, fromStatus, update) {
     return this.model.findOneAndUpdate({ _id: id, status: fromStatus }, update, { new: true }).lean();
