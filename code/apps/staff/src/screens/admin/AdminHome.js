@@ -7,7 +7,7 @@ const CATALOG_TILES = [
   { key: "users", description: "Tài khoản, vai trò, khóa/mở" },
   { key: "hubs", description: "Điểm tập kết, bưu cục trực thuộc" },
   { key: "routes", description: "Tuyến giao nhận, năng lực mỗi ca" },
-  { key: "serviceAreas", description: "Quận/huyện thuộc từng tuyến" },
+  { key: "serviceAreas", description: "Xã/phường thuộc từng tuyến" },
   { key: "serviceTypes", description: "Gửi thường, gửi nhanh, phụ phí" },
   { key: "priceTables", description: "Giá theo vùng và bậc khối lượng" },
   { key: "checkinPoints", description: "Tọa độ, bán kính tự check-in" },
