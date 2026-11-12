@@ -355,7 +355,7 @@ async function main() {
   const serviceAreaDocs = await seedServiceAreas(routeMap);
   await linkHubsToServiceAreas(hubMap, serviceAreaDocs);
   // Diem check-in (US-29) - khong goi faker nen du lieu ngau nhien phia sau giu nguyen
-  await CheckinPoint.insertMany(checkinPoints.map(({ hubKey, ...p }) => ({ ...p, hubId: hubKey ? hubMap[hubKey]._id : null })));
+  const pointDocs = await CheckinPoint.insertMany(checkinPoints.map(({ hubKey, ...p }) => ({ ...p, hubId: hubKey ? hubMap[hubKey]._id : null })));
 
   console.log("Dang seed loai dich vu va bang gia...");
   const serviceTypeMap = await seedServiceTypes();
@@ -365,6 +365,12 @@ async function main() {
   const hubDocs = Object.values(hubMap);
   const routeDocs = Object.values(routeMap);
   const { hubStaff, shippers, customers } = await seedUsers({ hubDocs, routeDocs });
+
+  // Moi tai xe mot diem check-in hop le, cung vung voi tuyen (yeu cau 12/11/2026)
+  const pointByCode = Object.fromEntries(pointDocs.map((p) => [p.code, p._id]));
+  for (const [routeKey, pointCode] of [["R_HN_NOI", "CP-HN-HUB"], ["R_HN_LIEN", "CP-QL1-NB"], ["R_HCM_NOI", "CP-HCM-HUB"], ["R_DN_NOI", "CP-DN-PO"]]) {
+    await User.updateMany({ role: "SHIPPER", routeIds: routeMap[routeKey]._id }, { $set: { checkinPointId: pointByCode[pointCode] } });
+  }
 
   console.log("Dang seed dia diem lay hang...");
   const customerLocations = await seedPickupLocations({ customers, serviceAreaDocs });

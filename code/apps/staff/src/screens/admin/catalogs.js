@@ -48,7 +48,17 @@ const shipperRoutesField = {
   type: "multiselect",
   optionsFrom: { endpoint: "/routes", label: routeLabel },
   showIf: isShipper,
-  help: "Tài xế chỉ được phân công đơn thuộc các tuyến này.",
+  help: "Tài xế chỉ được phân công đơn thuộc các tuyến này; mọi tuyến phải cùng một hub (cùng vùng).",
+};
+
+// Moi tai xe mot diem check-in hop le duy nhat, cung vung voi tuyen (yeu cau 12/11/2026)
+const shipperPointField = {
+  name: "checkinPointId",
+  label: "Điểm check-in đăng ký",
+  type: "select",
+  optionsFrom: { endpoint: "/checkinPoints", label: (p) => `${p.code} · ${p.name}` },
+  showIf: isShipper,
+  help: "Chỉ check-in ở điểm này mới được nhận; phải cùng vùng với tuyến phụ trách.",
 };
 
 const users = {
@@ -86,6 +96,7 @@ const users = {
     { name: "taxCode", label: "Mã số thuế", required: true, showIf: isBusiness },
     hubSelect({ label: "Hub phụ trách", required: true, showIf: isHubStaff }),
     shipperRoutesField,
+    shipperPointField,
   ],
   updateFields: [
     { name: "fullName", label: "Họ tên", required: true, autoCapitalize: "words" },
@@ -96,6 +107,7 @@ const users = {
     { name: "taxCode", label: "Mã số thuế", showIf: isBusiness },
     hubSelect({ label: "Hub phụ trách", showIf: isHubStaff }),
     shipperRoutesField,
+    shipperPointField,
     { name: "password", label: "Mật khẩu mới", type: "password", help: "Để trống nếu không đổi" },
   ],
 };
