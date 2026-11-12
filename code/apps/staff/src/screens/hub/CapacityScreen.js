@@ -89,7 +89,7 @@ export default function CapacityScreen({ user, accent, onBack }) {
     ) : null;
 
   return (
-    <Screen title="Năng lực mỗi ca" subtitle="Số đơn tối đa một người nhận trong một ca" accent={accent} onBack={onBack}>
+    <Screen title="Năng lực phân công" subtitle="Số đơn tối đa một người nhận trong một ca" accent={accent} onBack={onBack}>
       <Banner testID="cap-error">{error}</Banner>
       <Banner tone="success" testID="cap-notice">
         {notice}
