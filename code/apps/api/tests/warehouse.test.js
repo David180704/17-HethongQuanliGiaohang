@@ -11,6 +11,7 @@ import { getContainer } from "../src/container.js";
 import { removeLeftovers } from "./helpers/fixtures.js";
 import { User, Hub, ServiceType, PickupLocation, Order } from "../src/models/index.js";
 import { nextWarehouseAction, currentHubOf, parseCategory } from "../src/modules/warehouse/warehouse.js";
+import { expressChecker, expressFirst } from "../src/modules/orders/priority.js";
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
@@ -35,10 +36,10 @@ async function cleanup() {
 const as = (who, req) => req.set("Authorization", `Bearer ${token[who]}`);
 
 /** Don da duoc tai xe lay (PICKED_UP) - buoc lay hang da kiem o US-28, o day ghi thang trang thai. */
-async function pickedUpOrder(name) {
+async function pickedUpOrder(name, serviceType = standard) {
   const created = await as("khach", request(app).post("/orders")).send({
     pickupLocationId: location._id,
-    serviceTypeId: standard._id,
+    serviceTypeId: serviceType._id,
     receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
     item: { name: "Tivi 32 inch", weightGram: 6000, length: 80, width: 15, height: 50 },
   });
@@ -184,4 +185,23 @@ test("[US-41] luong nghiep vu: lay hang -> kho HN nhap, phan loai, xuat -> kho H
   assert.equal(journey.statusLabel, "Đã đến kho giao");
   assert.equal(journey.groupLabel, "Đã nhận – Chưa giao");
   assert.equal(journey.events.length, 7);
+});
+
+test("[US-41] gui nhanh uu tien: hang sap toi va ton kho xep don gui nhanh len dau, co nhan uu tien", async () => {
+  const isExpress = expressChecker(["e1"]);
+  const list = [{ id: 1, serviceTypeId: "s" }, { id: 2, serviceTypeId: "e1" }, { id: 3, serviceTypeId: "s" }, { id: 4, serviceTypeId: "e1" }];
+  assert.deepEqual(expressFirst(list, isExpress).map((o) => o.id), [2, 4, 1, 3], "on dinh trong tung nhom");
+
+  const express = await ServiceType.findOne({ code: "EXPRESS" }).lean();
+  const slow = await pickedUpOrder("E2E Kho thường");
+  const fast = await pickedUpOrder("E2E Kho nhanh", express);
+  const hn = (await as("hn", request(app).get("/warehouse/stock")).expect(200)).body.data;
+  const codes = hn.incoming.map((o) => o.trackingCode);
+  assert.ok(codes.indexOf(fast.trackingCode) < codes.indexOf(slow.trackingCode), "don nhanh truoc don thuong");
+  const firstNormal = hn.incoming.findIndex((o) => !o.express);
+  const lastExpress = hn.incoming.map((o) => o.express).lastIndexOf(true);
+  assert.ok(firstNormal === -1 || lastExpress < firstNormal, "moi don nhanh dung truoc moi don thuong");
+  assert.equal(hn.incoming.find((o) => o.trackingCode === fast.trackingCode).express, true);
+  const look = (await as("hn", request(app).get(`/warehouse/orders/${fast.trackingCode}`)).expect(200)).body.data;
+  assert.equal(look.express, true);
 });
