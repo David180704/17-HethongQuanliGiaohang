@@ -24,6 +24,8 @@ const removeTestData = () =>
   mongo(
     'const ids = db.orders.find({ "receiver.name": /^E2E CI / }).toArray().map((o) => o._id);' +
       "db.checkinlogs.deleteMany({ orderId: { $in: ids } }); db.orders.deleteMany({ _id: { $in: ids } });" +
+      // Tra Tai Xe 1 ve diem check-in cua seed truoc khi xoa diem thu nghiem
+      'db.users.updateOne({ email: "taixe1@edms.vn" }, { $set: { checkinPointId: db.checkinpoints.findOne({ code: "CP-HN-HUB" })._id } });' +
       "db.checkinpoints.deleteMany({ code: /^KT29-/ });",
   );
 
@@ -73,7 +75,7 @@ async function login(page, email) {
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
 }
 
-test("[US-29][US-30] quy trinh: admin them diem -> tai xe di qua tu check-in, mat mang xep hang roi gui lai -> nguoi nhan thay diem da qua", async ({
+test("[US-29][US-30] quy trinh: admin them diem va gan cho tai xe -> tai xe chi check-in duoc o diem do, mat mang xep hang roi gui lai -> nguoi nhan thay diem da qua", async ({
   page,
   browser,
 }) => {
@@ -95,19 +97,30 @@ test("[US-29][US-30] quy trinh: admin them diem -> tai xe di qua tu check-in, ma
   await expect(page.getByText("150 m").first()).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/29-diem-check-in.png`, fullPage: true });
 
-  // 2. Tai Xe 1 tren dien thoai: di toi diem moi -> tu check-in, ghi moc cho don dang cho
+  // Admin gan diem nay lam diem check-in hop le duy nhat cua Tai Xe 1 (yeu cau 12/11/2026)
+  await page.getByRole("button", { name: /Quay lại/ }).click();
+  await page.getByRole("button", { name: "Người dùng", exact: true }).click();
+  await page.getByPlaceholder("Tìm theo email, số điện thoại, họ tên...").fill("taixe1@edms.vn");
+  await expect(page.getByText(/Tổng 1 bản ghi/)).toBeVisible();
+  await page.getByRole("button", { name: "Sửa Tài Xế 1" }).click();
+  await page.getByRole("radio", { name: `${POINT.code} · ${POINT.name}` }).click();
+  await page.getByRole("button", { name: "Lưu", exact: true }).click();
+  await expect(page.getByText("Đã lưu thay đổi")).toBeVisible();
+
+  // 2. Tai Xe 1 tren dien thoai: chi thay diem da dang ky; di toi diem do -> tu check-in, ghi moc cho don dang cho
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const phone = await context.newPage();
   await login(phone, "taixe1@edms.vn");
   await phone.getByRole("button", { name: /Vị trí & check-in/ }).click();
   await expect(phone.getByTestId(`chk-point-${POINT.code}`)).toContainText("bán kính 150 m");
+  await expect(phone.getByTestId("chk-point-CP-HN-HUB")).toHaveCount(0);
   await phone.getByRole("button", { name: `Đang ở ${POINT.code}` }).click();
   await expect(phone.getByTestId("chk-position")).toContainText(POINT.name);
   await expect(phone.getByTestId("chk-last")).toContainText(`${POINT.name} (0 m) — ghi`);
 
-  // 3. Mat mang khi qua Hub Ha Noi -> xep hang doi; co mang -> gui lai, server giu thoi diem goc
+  // 3. Mat mang khi bam check-in tay -> xep hang doi; co mang -> gui lai (trong 30 phut nen khong ghi trung)
   await context.setOffline(true);
-  await phone.getByRole("button", { name: "Đang ở CP-HN-HUB" }).click();
+  await phone.getByRole("button", { name: `Check-in tay ${POINT.code}` }).click();
   await expect(phone.getByTestId("chk-last")).toContainText("mất mạng — đã xếp hàng chờ gửi");
   await expect(phone.getByTestId("chk-pending")).toContainText("Đang chờ gửi: 1 check-in");
   await phone.screenshot({ path: `${SHOT_DIR}/30-mat-mang-xep-hang.png`, fullPage: true });
@@ -119,9 +132,15 @@ test("[US-29][US-30] quy trinh: admin them diem -> tai xe di qua tu check-in, ma
   // Quay lai diem cu trong 30 phut -> khong ghi trung
   await phone.getByRole("button", { name: `Đang ở ${POINT.code}` }).click();
   await expect(phone.getByTestId("chk-last")).toContainText("ghi 0 mốc");
+
+  // O Hub Ha Noi (khong phai diem dang ky) -> server khong nhan
+  await phone.getByTestId("chk-lat").fill("21.0285");
+  await phone.getByTestId("chk-lng").fill("105.8542");
+  await phone.getByTestId("chk-set").click();
+  await expect(phone.getByTestId("chk-error")).toContainText("chỉ check-in tại điểm đã đăng ký");
   await context.close();
 
-  // 4. Nguoi nhan tra cuu tren Web Khach hang: hai diem da qua, moi nhat truoc
+  // 4. Nguoi nhan tra cuu tren Web Khach hang: diem da qua (chi diem hop le)
   resetTrackingLimit();
   const recipient = await browser.newPage();
   await expect
@@ -132,10 +151,9 @@ test("[US-29][US-30] quy trinh: admin them diem -> tai xe di qua tu check-in, ma
       },
       { timeout: 30_000, intervals: [2_000, 3_000] },
     )
-    .toBe(2);
+    .toBe(1);
   const items = recipient.getByRole("list", { name: "Điểm check-in đã qua" }).getByRole("listitem");
-  await expect(items.first()).toContainText("Hub Hà Nội");
-  await expect(items.last()).toContainText(POINT.name);
+  await expect(items.first()).toContainText(POINT.name);
   await recipient.screenshot({ path: `${SHOT_DIR}/30-nguoi-nhan-thay-diem.png`, fullPage: true });
   await recipient.close();
 });

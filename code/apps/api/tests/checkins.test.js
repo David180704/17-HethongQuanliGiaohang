@@ -9,13 +9,13 @@ import request from "supertest";
 import { createApp } from "../src/app.js";
 import { getContainer } from "../src/container.js";
 import { removeLeftovers } from "./helpers/fixtures.js";
-import { User, Hub, ServiceType, PickupLocation, Order, CheckinPoint, CheckinLog } from "../src/models/index.js";
+import { User, Hub, Route, ServiceType, PickupLocation, Order, CheckinPoint, CheckinLog } from "../src/models/index.js";
 import { distanceM, pointsInRange } from "../src/modules/checkins/geo.js";
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
-const EMAILS = ["ci-admin@edms.vn", "ci-kho@edms.vn", "ci-khach@edms.vn", "ci-tx-a@edms.vn", "ci-tx-b@edms.vn"];
+const EMAILS = ["ci-admin@edms.vn", "ci-kho@edms.vn", "ci-khach@edms.vn", "ci-tx-a@edms.vn", "ci-tx-b@edms.vn", "ci-tx-sai@edms.vn"];
 const P1 = { lat: 22.0, lng: 104.0 };
 const P2 = { lat: 22.0, lng: 104.02 }; // cach P1 khoang 2 km
 const near = (p, metersNorth) => ({ lat: p.lat + metersNorth / 111_320, lng: p.lng });
@@ -121,10 +121,35 @@ test("[US-29] quan tri diem check-in: ban kinh mac dinh 150 m, kiem toa do, trun
 
   const off = (await as("admin", request(app).post("/checkinPoints")).send({ code: "KT29-OFF", name: "KT29 Ngừng", ...P1 }).expect(201)).body.data;
   await as("admin", request(app).put(`/checkinPoints/${off._id}`)).send({ isActive: false }).expect(200);
-  const visible = (await as("a", request(app).get("/checkins/points")).expect(200)).body.data.map((p) => p.code);
+  const visible = (await as("kho", request(app).get("/checkins/points")).expect(200)).body.data.map((p) => p.code);
   assert.ok(visible.includes("KT29-P1") && visible.includes("CP-HN-HUB"), visible.join(","));
   assert.ok(!visible.includes("KT29-OFF"));
   await as("khach", request(app).get("/checkins/points")).expect(403);
+
+  // Moi tai xe mot diem hop le duy nhat: A dang ky KT29-P1 thi chi thay diem do; B chua dang ky thi khong thay diem nao
+  await as("admin", request(app).put(`/users/${tx.a._id}`)).send({ checkinPointId: points.p1._id }).expect(200);
+  const mine = (await as("a", request(app).get("/checkins/points")).expect(200)).body.data.map((p) => p.code);
+  assert.deepEqual(mine, ["KT29-P1"]);
+  assert.deepEqual((await as("b", request(app).get("/checkins/points")).expect(200)).body.data, []);
+});
+
+test("[US-25] khop vung: tai xe chi phu trach tuyen cung mot hub; diem check-in phai cung vung voi tuyen", async () => {
+  const routes = Object.fromEntries((await Route.find({}).lean()).map((r) => [r.code, r._id]));
+  const cpHn = await CheckinPoint.findOne({ code: "CP-HN-HUB" }).lean();
+  const hn = await as("admin", request(app).put(`/users/${tx.b._id}`)).send({ routeIds: [routes["R-HN-NOI"], routes["R-HCM-NOI"]] }).expect(400);
+  assert.match(hn.body.error.message, /cùng một hub/);
+  // Bưu cục Đà Nẵng truc thuoc Hub Hà Nội -> cung vung
+  await as("admin", request(app).put(`/users/${tx.b._id}`)).send({ routeIds: [routes["R-HN-NOI"], routes["R-DN-NOI"]] }).expect(200);
+  await as("admin", request(app).put(`/users/${tx.b._id}`)).send({ routeIds: [routes["R-HCM-NOI"]] }).expect(200);
+  const wrongPoint = await as("admin", request(app).put(`/users/${tx.b._id}`)).send({ checkinPointId: cpHn._id }).expect(400);
+  assert.match(wrongPoint.body.error.message, /không cùng vùng/);
+  // Tao moi cung bi chan
+  const created = await as("admin", request(app).post("/users")).send({
+    email: "ci-tx-sai@edms.vn", phone: "0909982909", password: "Test@12345", fullName: "Tài xế sai vùng", role: "SHIPPER",
+    routeIds: [routes["R-HCM-NOI"]], checkinPointId: cpHn._id,
+  });
+  assert.equal(created.status, 400, JSON.stringify(created.body));
+  await as("admin", request(app).put(`/users/${tx.b._id}`)).send({ routeIds: [] }).expect(200);
 });
 
 test("[US-30] tu dong check-in khi di qua diem: ghi moc cho don dang cam; cung diem + cung don chan trung 30 phut", async () => {
@@ -140,17 +165,20 @@ test("[US-30] tu dong check-in khi di qua diem: ghi moc cho don dang cam; cung d
   const later = (await checkin("a", { ...P1, at: minutes(20) }).expect(201)).body.data;
   assert.deepEqual([later.recorded, later.duplicates], [2, 0], "40 phut sau: ghi moc moi");
 
-  const far = (await checkin("a", { lat: 22.5, lng: 104.5 }).expect(201)).body.data;
-  assert.deepEqual([far.matched.length, far.recorded], [0, 0]);
-  const other = (await checkin("b", { ...P1 }).expect(201)).body.data;
-  assert.deepEqual([other.orders, other.recorded], [0, 0], "tai xe khac khong cam don nao");
+  // Ngoai ban kinh diem dang ky, hoac o diem khac (P2) -> khong nhan
+  const far = await checkin("a", { lat: 22.5, lng: 104.5 }).expect(400);
+  assert.match(far.body.error.message, /ngoài bán kính 150 m — chỉ check-in tại điểm đã đăng ký/);
+  await checkin("a", { ...P2 }).expect(400);
+  // Tai xe chua dang ky diem check-in -> khong nhan
+  const other = await checkin("b", { ...P1 }).expect(400);
+  assert.match(other.body.error.message, /chưa được đăng ký điểm check-in/);
   await as("kho", request(app).post("/checkins")).send({ ...P1 }).expect(403);
   await checkin("a", { lat: 22 }).expect(400);
 });
 
 test("[US-30] mat mang: app gui lai su kien cu (thoi gian goc + ma su kien) khong ghi trung; qua 24 gio hoac tuong lai bi tu choi", async () => {
   await CheckinLog.deleteMany({ shipperId: tx.a._id });
-  const queued = { ...P2, at: minutes(120), clientEventId: "evt-offline-1" };
+  const queued = { ...near(P1, 30), at: minutes(120), clientEventId: "evt-offline-1" };
   const sent = (await checkin("a", queued).expect(201)).body.data;
   assert.equal(sent.recorded, 2);
   const replay = (await checkin("a", queued).expect(201)).body.data;
@@ -158,8 +186,8 @@ test("[US-30] mat mang: app gui lai su kien cu (thoi gian goc + ma su kien) khon
   const logs = await CheckinLog.find({ shipperId: tx.a._id }).lean();
   assert.equal(logs.length, 2);
   assert.equal(new Date(logs[0].at).toISOString(), queued.at, "giu thoi diem goc luc mat mang");
-  await checkin("a", { ...P2, at: minutes(25 * 60) }).expect(400);
-  await checkin("a", { ...P2, at: new Date(Date.now() + 5 * 60_000).toISOString() }).expect(400);
+  await checkin("a", { ...P1, at: minutes(25 * 60) }).expect(400);
+  await checkin("a", { ...P1, at: new Date(Date.now() + 5 * 60_000).toISOString() }).expect(400);
 });
 
 test("[US-30] check-in tay du phong: chon diem khi GPS lech (cach toi da 1 km)", async () => {
@@ -167,19 +195,24 @@ test("[US-30] check-in tay du phong: chon diem khi GPS lech (cach toi da 1 km)",
   const manual = (await checkin("a", { ...near(P1, 600), pointId: points.p1._id }).expect(201)).body.data;
   assert.deepEqual([manual.source, manual.recorded], ["MANUAL", 2]);
   assert.ok(Math.abs(manual.matched[0].distanceM - 600) <= 2, String(manual.matched[0].distanceM));
-  const tooFar = await checkin("a", { ...near(P1, 1500), pointId: points.p2._id }).expect(400);
+  const tooFar = await checkin("a", { ...near(P1, 1500), pointId: points.p1._id }).expect(400);
   assert.match(tooFar.body.error.message, /quá xa/);
-  await checkin("a", { ...P1, pointId: new mongoose.Types.ObjectId() }).expect(404);
+  // Check-in tay tai diem khac diem dang ky -> khong nhan
+  const other = await checkin("a", { ...P2, pointId: points.p2._id }).expect(400);
+  assert.match(other.body.error.message, /Chỉ check-in tại điểm đã đăng ký: KT29 Điểm một/);
+  await checkin("a", { ...P1, pointId: new mongoose.Types.ObjectId() }).expect(400);
 });
 
-test("[US-30] luong nghiep vu: tai xe cho hang qua 2 diem -> nguoi nhan tra cuu thay cac diem da qua (moi nhat truoc)", async () => {
+test("[US-30] luong nghiep vu: tai xe check-in 2 lan o diem dang ky (cach 1 gio), lan o diem khac bi tu choi -> nguoi nhan thay cac lan da qua", async () => {
   await CheckinLog.deleteMany({ shipperId: tx.a._id });
   await checkin("a", { ...P1, at: minutes(90), clientEventId: "evt-flow-1" }).expect(201);
-  await checkin("a", { ...near(P2, 50), at: minutes(30), clientEventId: "evt-flow-2" }).expect(201);
+  await checkin("a", { ...near(P1, 50), at: minutes(30), clientEventId: "evt-flow-2" }).expect(201);
+  await checkin("a", { ...near(P2, 50), at: minutes(20), clientEventId: "evt-flow-3" }).expect(400);
   // Consumer cua su kien order.status.changed / order.checkin.recorded dung lai hanh trinh
   const container = getContainer();
   await container.orderEventHandlers["order.checkin.recorded"]({ orderId: orders.carry._id, trackingCode: orders.carry.trackingCode });
   const journey = (await request(app).get(`/tracking/${orders.carry.trackingCode}`).expect(200)).body.data;
-  assert.deepEqual(journey.checkins.map((c) => c.point), ["KT29 Điểm hai", "KT29 Điểm một"]);
+  assert.deepEqual(journey.checkins.map((c) => c.point), ["KT29 Điểm một", "KT29 Điểm một"]);
+  assert.ok(new Date(journey.checkins[0].at) > new Date(journey.checkins[1].at), "moi nhat truoc");
   assert.deepEqual(Object.keys(journey.checkins[0]).sort(), ["at", "point"], "chi ten diem va thoi gian, khong lo toa do");
 });
