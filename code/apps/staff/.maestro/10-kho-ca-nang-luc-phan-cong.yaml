@@ -54,24 +54,11 @@ tags:
 - takeScreenshot: 10-kho-them-ca
 - tapOn: "Quay lại"
 
-# 2. Nang luc moi ca: mac dinh he thong + tuyen cua hub
+# 2. Phan cong (gop nang luc moi ca vao day, 12/11/2026): hang cho, tai theo ca hom nay (co ca vua them)
 - scrollUntilVisible:
-    element: "Năng lực mỗi ca.*"
+    element: "Phân công.*"
     direction: DOWN
-- tapOn: "Năng lực mỗi ca.*"
-- extendedWaitUntil:
-    visible: "Mặc định hệ thống"
-    timeout: 15000
-- assertVisible: "Lấy \\d+ · Giao \\d+ đơn / ca"
-- assertVisible: "R-HN-NOI · Nội thành Hà Nội"
-- takeScreenshot: 10-kho-nang-luc
-- tapOn: "Quay lại"
-
-# 3. Bang phan cong: hang cho, tai theo ca hom nay (co ca vua them)
-- scrollUntilVisible:
-    element: "Phân công lấy hàng.*"
-    direction: UP
-- tapOn: "Phân công lấy hàng.*"
+- tapOn: "Phân công.*"
 - extendedWaitUntil:
     visible: "Hàng chờ \\(\\d+\\)"
     timeout: 15000
@@ -82,3 +69,18 @@ tags:
     timeout: 60000
 - assertVisible: "KT23 Maestro ca som · 00:02–00:03"
 - takeScreenshot: 10-kho-phan-cong
+
+# 3. Nang luc moi ca: nut o dau trang Phan cong
+- scrollUntilVisible:
+    element:
+      id: "assign-capacity"
+    direction: UP
+    timeout: 60000
+- tapOn:
+    id: "assign-capacity"
+- extendedWaitUntil:
+    visible: "Mặc định hệ thống"
+    timeout: 15000
+- assertVisible: "Lấy \\d+ · Giao \\d+ đơn / ca"
+- assertVisible: "R-HN-NOI · Nội thành Hà Nội"
+- takeScreenshot: 10-kho-nang-luc
