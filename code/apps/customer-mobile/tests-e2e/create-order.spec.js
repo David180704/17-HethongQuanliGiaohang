@@ -29,13 +29,12 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByText("Gửi hàng toàn quốc, theo dõi từng chặng")).toBeVisible({ timeout: 60_000 });
 });
 
-async function fillReceiver(page, district) {
+async function fillReceiver(page, ward) {
   await page.getByTestId("rc-name").fill("E2E Người Nhận Mobile");
   await page.getByTestId("rc-phone").fill("0977123456");
   await page.getByTestId("rc-address").fill("12 Nguyễn Huệ");
-  await page.getByTestId("rc-district").fill(district);
   await page.getByTestId("rc-province").fill("TP Hồ Chí Minh");
-  await page.getByTestId("rc-ward").fill("Bến Nghé");
+  await page.getByTestId("rc-ward").fill(ward);
 }
 
 test("[US-18] mobile: tao don 4 buoc voi thu ho, buoc 4 xem phi va so shipper thu, nhan ma van don", async ({ page }) => {
@@ -46,11 +45,16 @@ test("[US-18] mobile: tao don 4 buoc voi thu ho, buoc 4 xem phi va so shipper th
   await expect(page.getByText("Bước 1/4 · Lấy hàng")).toBeVisible();
   await page.getByTestId("order-next").click();
 
-  // Buoc 2: quan/huyen ngoai vung phuc vu bi chan ngay
-  await fillReceiver(page, "Cần Giờ");
+  // Buoc 2: dia gioi 2025 khong con quan/huyen; go ten quan cu bi chan ngay
+  await expect(page.getByTestId("rc-district")).toHaveCount(0);
+  await fillReceiver(page, "Quận 1");
+  await expect(page.getByText('"Quận 1" không phải xã/phường của TP Hồ Chí Minh — chọn trong gợi ý')).toBeVisible();
   await page.getByTestId("order-next").click();
-  await expect(page.getByTestId("order-error")).toContainText("Cần Giờ, TP Hồ Chí Minh chưa thuộc vùng phục vụ");
-  await page.getByTestId("rc-district").fill("Quận 1");
+  await expect(page.getByTestId("order-error")).toContainText("không phải xã/phường của TP Hồ Chí Minh");
+  // Go vai chu khong dau -> cham goi y
+  await page.getByTestId("rc-ward").fill("ben thanh");
+  await page.getByRole("button", { name: "Chọn Phường Bến Thành" }).click();
+  await expect(page.getByTestId("rc-ward")).toHaveValue("Phường Bến Thành");
   await page.getByTestId("order-next").click();
 
   // Buoc 3: hang + thu ho 300.000 d, nguoi gui tra truoc bang tien mat
@@ -82,7 +86,7 @@ test("[US-19] mobile: khau tru phi chi chon khi bat thu ho; thu ho nho hon phi t
   await page.getByTestId("login-password").fill(PASSWORD);
   await page.getByTestId("login-submit").click();
   await page.getByTestId("order-next").click();
-  await fillReceiver(page, "Quận 3");
+  await fillReceiver(page, "Phường Xuân Hòa");
   await page.getByTestId("order-next").click();
   await page.getByTestId("it-name").fill("Thẻ cào");
   await page.getByTestId("it-weightGram").fill("100");
@@ -102,10 +106,14 @@ test("[US-16] mobile: khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> 
   test.setTimeout(120_000);
   const stamp = Date.now().toString().slice(-8);
   await page.getByTestId("home-estimate").click();
-  await page.getByTestId("from-district").fill("cau giay");
-  await page.getByRole("button", { name: "Chọn Cầu Giấy, Hà Nội" }).click();
-  await page.getByTestId("to-district").fill("quan 1");
-  await page.getByRole("button", { name: "Chọn Quận 1, TP Hồ Chí Minh" }).click();
+  // Go vai chu khong dau -> cham goi y tinh, roi xa/phuong cua tinh do
+  await page.getByTestId("from-province").fill("ha no");
+  await page.getByRole("button", { name: "Chọn Hà Nội" }).click();
+  await page.getByTestId("from-ward").fill("cau giay");
+  await page.getByRole("button", { name: "Chọn Phường Cầu Giấy" }).click();
+  await page.getByTestId("to-province").fill("ho chi minh");
+  await page.getByTestId("to-ward").fill("sai gon");
+  await page.getByRole("button", { name: "Chọn Phường Sài Gòn" }).click();
   await page.getByTestId("est-weightGram").fill("1000");
   await page.getByTestId("est-length").fill("40");
   await page.getByTestId("est-width").fill("30");
@@ -113,6 +121,9 @@ test("[US-16] mobile: khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> 
   await page.getByTestId("estimate-submit").click();
   await expect(page.getByTestId("estimate-summary")).toContainText("tuyến liên miền · tính theo 4.800 g");
   await expect(page.getByTestId("estimate-option-STANDARD")).toContainText("115.000 ₫");
+  // Giao nhanh chi trong cung tinh/thanh
+  await expect(page.getByTestId("estimate-unavailable-EXPRESS")).toContainText("chỉ áp dụng trong cùng tỉnh/thành");
+  await expect(page.getByTestId("estimate-summary")).toContainText("km (đường chim bay");
   await page.screenshot({ path: `${SHOT_DIR}/m12-uoc-tinh-phi.png` });
   await page.getByTestId("estimate-ship-STANDARD").click();
 
@@ -126,24 +137,22 @@ test("[US-16] mobile: khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> 
   await page.getByTestId("reg-submit").click();
 
   // Tai khoan moi: goi y them dia diem o Cau Giay; nguoi nhan + kien hang da dien san
-  await expect(page.getByTestId("order-pickup-hint")).toContainText("Bạn ước tính phí gửi từ Cầu Giấy, Hà Nội");
+  await expect(page.getByTestId("order-pickup-hint")).toContainText("Bạn ước tính phí gửi từ Phường Cầu Giấy, Hà Nội");
   await page.getByTestId("pl-label").fill("Nhà riêng");
   await page.getByTestId("pl-contactName").fill("Khách Mobile Mới");
   await page.getByTestId("pl-contactPhone").fill(`08${stamp}`);
   await page.getByTestId("pl-address").fill("1 Xuân Thủy");
-  await page.getByTestId("pl-district").fill("Cầu Giấy");
   await page.getByTestId("pl-province").fill("Hà Nội");
-  await page.getByTestId("pl-ward").fill("Dịch Vọng Hậu");
+  await page.getByTestId("pl-ward").fill("Phường Cầu Giấy");
   await page.getByTestId("pl-save").click();
   await expect(page.getByRole("radio", { name: "Nhà riêng" })).toHaveAttribute("aria-checked", "true");
   await page.getByTestId("order-next").click();
 
-  await expect(page.getByTestId("rc-district")).toHaveValue("Quận 1");
+  await expect(page.getByTestId("rc-ward")).toHaveValue("Phường Sài Gòn");
   await expect(page.getByTestId("rc-province")).toHaveValue("TP Hồ Chí Minh");
   await page.getByTestId("rc-name").fill("E2E Người Nhận Mobile");
   await page.getByTestId("rc-phone").fill("0977123456");
   await page.getByTestId("rc-address").fill("5 Lý Tự Trọng");
-  await page.getByTestId("rc-ward").fill("Bến Nghé");
   await page.getByTestId("order-next").click();
 
   await expect(page.getByTestId("it-weightGram")).toHaveValue("1000");

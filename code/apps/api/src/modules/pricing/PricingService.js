@@ -1,5 +1,7 @@
 import { ErrorCodes } from "../../core/errors.js";
-import { calcZone, calculate, ZONE_LABELS } from "./pricing.js";
+import { locateArea } from "../serviceAreas/locateArea.js";
+import { calcZone, calculate, unavailableReason, ZONE_LABELS } from "./pricing.js";
+import { distanceBetween } from "../adminUnits/distance.js";
 import { estimateValidator } from "./pricing.validator.js";
 
 /**
@@ -21,12 +23,13 @@ export class PricingService {
   }
 
   /** Khu vuc phuc vu cua dia chi; side = "gửi" | "nhận" de bao loi ro dau nao ngoai vung. */
-  async locate({ province, district }, side, { session } = {}) {
-    const area = await this.serviceAreaRepository.findByLocation(province, district, { session });
-    if (!area) {
-      throw ErrorCodes.OUT_OF_SERVICE_AREA(`Nơi ${side} (${district}, ${province}) chưa thuộc vùng phục vụ`);
-    }
-    return area;
+  async locate({ province, ward }, side, { session } = {}) {
+    return locateArea(
+      this.serviceAreaRepository,
+      { province, ward },
+      (place) => `Nơi ${side} (${place.ward}, ${place.province}) chưa thuộc vùng phục vụ`,
+      { session },
+    );
   }
 
   async activeServiceType(serviceTypeId) {
@@ -40,12 +43,15 @@ export class PricingService {
    * @returns {{ zone, priceTableId, chargeableWeight, volumetricWeight, flags, fee }}
    */
   async quote({ pickupArea, receiverArea, item, flags, serviceType, at = new Date(), session }) {
+    const reason = unavailableReason(serviceType, pickupArea, receiverArea);
+    if (reason) throw ErrorCodes.SERVICE_NOT_AVAILABLE(reason);
     const zone = calcZone(pickupArea, receiverArea);
     const priceTable = await this.priceTableRepository.findEffective(serviceType._id, zone, at, { session });
     if (!priceTable) {
       throw ErrorCodes.PRICE_NOT_AVAILABLE(`Chưa có bảng giá ${serviceType.name} cho tuyến ${ZONE_LABELS[zone]}`);
     }
-    return { zone, priceTableId: priceTable._id, ...calculate({ item, flags, serviceType, priceTable }) };
+    const distance = distanceBetween(pickupArea, receiverArea);
+    return { zone, priceTableId: priceTable._id, distanceKm: distance?.km ?? null, ...calculate({ item, flags, serviceType, priceTable }) };
   }
 
   /**
@@ -62,28 +68,38 @@ export class PricingService {
       ? [await this.activeServiceType(data.serviceTypeId)]
       : await this.serviceTypeRepository.findActivePublic();
 
+    // Dich vu khong ap dung (giao nhanh lien tinh) van liet ke, kem ly do, de khach biet vi sao khong chon duoc
     const quotes = await Promise.all(
-      serviceTypes.map(async (serviceType) => ({
-        serviceType,
-        quote: await this.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType }),
-      })),
+      serviceTypes.map(async (serviceType) => {
+        const reason = unavailableReason(serviceType, pickupArea, receiverArea);
+        if (reason) return { serviceType, reason };
+        return { serviceType, quote: await this.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType }) };
+      }),
     );
-    const [first] = quotes;
-    const place = ({ province, district, region }) => ({ province, district, region });
+    const available = quotes.filter((q) => q.quote);
+    if (!available.length) throw ErrorCodes.SERVICE_NOT_AVAILABLE(quotes[0]?.reason);
+    const [first] = available;
+    const distance = distanceBetween(pickupArea, receiverArea);
+    const place = ({ province, ward, region }) => ({ province, ward, region });
     return {
       zone: first.quote.zone,
       zoneLabel: ZONE_LABELS[first.quote.zone],
+      // Duong chim bay giua tam hai xa/phuong; approx = co dau chua co toa do, tinh theo tam tinh
+      distanceKm: distance?.km ?? null,
+      distanceApprox: distance?.approx ?? false,
       pickupArea: place(pickupArea),
       receiverArea: place(receiverArea),
       chargeableWeight: first.quote.chargeableWeight,
       volumetricWeight: first.quote.volumetricWeight,
       flags: first.quote.flags,
-      options: quotes.map(({ serviceType, quote }) => ({
+      options: quotes.map(({ serviceType, quote, reason }) => ({
         serviceTypeId: serviceType._id,
         code: serviceType.code,
         name: serviceType.name,
         estimatedDays: serviceType.estimatedDays,
-        fee: quote.fee,
+        available: !reason,
+        reason: reason ?? null,
+        fee: quote?.fee ?? null,
       })),
     };
   }

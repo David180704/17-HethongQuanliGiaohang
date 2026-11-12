@@ -6,8 +6,9 @@ const PASSWORD = "123456";
 const SHOT_DIR = "tests-e2e/screenshots";
 const PHONE = { width: 390, height: 844 };
 
-// Du lieu do test tao ra deu mang tien to nay de don sach sau khi chay.
-const E2E_PROVINCE = "Tỉnh E2E";
+// Du lieu do test tao ra deu mang tien to nay de don sach sau khi chay. Khu vuc phuc vu: ca 3.321 xa/phuong
+// deu dang phuc vu -> tam go mot xa/phuong co that de admin them lai, xong tra lai dung tuyen cua tinh.
+const E2E_AREA = { province: "Điện Biên", ward: "Xã Sín Thầu" };
 const E2E_HUB_SEARCH = "-E2E-"; // ma HUB-E2E-xxxx, PO-E2E-xxxx
 
 async function login(page, email) {
@@ -26,11 +27,19 @@ async function cleanupE2EData() {
   const hubs = (await (await api.get("/hubs", { params: { search: E2E_HUB_SEARCH, limit: 100 }, headers })).json()).data;
   const postOfficesFirst = [...hubs].sort((a, b) => Number(a.type === "HUB") - Number(b.type === "HUB"));
   for (const hub of postOfficesFirst) await api.delete(`/hubs/${hub._id}`, { headers });
-  const list = await api.get("/serviceAreas", { params: { search: E2E_PROVINCE, limit: 100 }, headers });
-  for (const area of (await list.json()).data) {
-    await api.delete(`/serviceAreas/${area._id}`, { headers });
-  }
   await api.dispose();
+  restoreArea();
+}
+
+function mongo(script) {
+  execFileSync("docker", ["exec", "edms-mongo", "mongosh", "edms", "--quiet", "--eval", script], { stdio: "pipe" });
+}
+const removeArea = () => mongo(`db.serviceareas.deleteMany({ province: "${E2E_AREA.province}", ward: "${E2E_AREA.ward}" })`);
+function restoreArea() {
+  mongo(
+    `const s = db.serviceareas.findOne({ province: "${E2E_AREA.province}", ward: { $ne: "${E2E_AREA.ward}" } });` +
+      `db.serviceareas.updateOne({ province: "${E2E_AREA.province}", ward: "${E2E_AREA.ward}" }, { $set: { region: s.region, routeId: s.routeId, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } }, { upsert: true })`,
+  );
 }
 
 test.beforeEach(async ({ page }) => {
@@ -70,8 +79,11 @@ test("ADMIN vao trang quan tri, so ban ghi that, phien con sau khi tai lai trang
     await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
   }
   await expect(page.getByText(/\d+ bản ghi/).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Đối soát", exact: true })).toBeDisabled();
-  await expect(page.getByText("Sắp có · #34 · Sprint 7")).toBeVisible();
+  // Sprint 7 da co: su co, doi soat, thong ke (khong con muc "Sap co")
+  for (const name of ["Sự cố, khiếu nại", "Đối soát", "Thống kê"]) {
+    await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
+  }
+  await expect(page.getByText(/Sắp có/)).toHaveCount(0);
   await page.screenshot({ path: `${SHOT_DIR}/03-admin-home-desktop.png`, fullPage: true });
 
   await page.reload();
@@ -93,29 +105,34 @@ test("ADMIN: danh sach tuyen tu seed, form them moi bat loi bo trong", async ({ 
 });
 
 test("ADMIN: them, sua, xoa khu vuc phuc vu tren du lieu that", async ({ page }) => {
-  const district = `Quận E2E ${Date.now()}`;
+  const district = E2E_AREA.ward;
+  removeArea();
   await login(page, "admin@edms.vn");
   await page.getByRole("button", { name: "Khu vực phục vụ", exact: true }).click();
 
   await page.getByRole("button", { name: "+ Thêm mới" }).click();
-  await page.getByLabel("Tỉnh/Thành phố", { exact: true }).fill(E2E_PROVINCE);
-  await page.getByLabel("Quận/Huyện", { exact: true }).fill(district);
-  await page.getByRole("radio", { name: "Miền Bắc" }).click();
+  // Xa/phuong phai co that va thuoc dung tinh: go phuong cua tinh khac bi tu choi
+  await page.getByLabel("Tỉnh/Thành phố", { exact: true }).fill("dien bien");
+  await page.getByLabel("Xã/Phường", { exact: true }).fill("Phường Ba Đình");
+  await page.getByRole("radio", { name: "Miền Bắc", exact: true }).click();
   // Lua chon tuyen tai dong tu GET /routes
   await page.getByRole("radio", { name: /R-HN-NOI/ }).click();
   await page.screenshot({ path: `${SHOT_DIR}/06-area-create-form.png`, fullPage: true });
   await page.getByRole("button", { name: "Lưu", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText('"Phường Ba Đình" không thuộc Điện Biên');
+  await page.getByLabel("Xã/Phường", { exact: true }).fill("sin thau"); // go khong dau, luu ten chuan
+  await page.getByRole("button", { name: "Lưu", exact: true }).click();
   await expect(page.getByText("Đã thêm mới")).toBeVisible();
+  await page.getByPlaceholder("Tìm theo tỉnh, xã/phường...").fill("Sín Thầu");
   await expect(page.getByText(district)).toBeVisible();
 
   await page.getByRole("button", { name: `Sửa ${district}` }).click();
-  await page.getByRole("radio", { name: "Miền Trung" }).click();
+  await page.getByRole("radio", { name: "Miền Trung", exact: true }).click();
   await page.getByRole("button", { name: "Lưu", exact: true }).click();
   await expect(page.getByText("Đã lưu thay đổi")).toBeVisible();
 
-  await page.getByPlaceholder("Tìm theo tỉnh, quận/huyện...").fill(district);
   await expect(page.getByText(/Tổng 1 bản ghi/)).toBeVisible();
-  await expect(page.getByText("Miền Trung")).toBeVisible();
+  await expect(page.getByText("Miền Trung", { exact: true })).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/07-area-after-edit.png`, fullPage: true });
 
   await page.getByRole("button", { name: `Xóa ${district}` }).click();
@@ -186,17 +203,17 @@ test("[US-14] ADMIN: mo hub va buu cuc truc thuoc, ngoai vung phuc vu bi chan, t
   // Buu cuc Da Nang (seed) truc thuoc Hub Ha Noi
   await expect(page.getByText("HUB-HN — Hub Hà Nội")).toBeVisible();
 
-  // 1. Hub: khong co o "Truc thuoc"; quan/huyen ngoai vung phuc vu bi server chan
+  // 1. Hub: khong co o "Truc thuoc"; xa/phuong khong thuoc tinh bi server chan
   await page.getByRole("button", { name: "+ Thêm mới" }).click();
   await field("Mã điểm").fill(hubCode);
   await field("Tên điểm").fill(hubName);
   await page.getByRole("radio", { name: "Hub — điểm tập kết", exact: true }).click();
   await expect(page.getByRole("radiogroup", { name: "Trực thuộc hub" })).toHaveCount(0);
   await field("Tỉnh/Thành phố").fill("Hà Nội");
-  await field("Quận/Huyện").fill("Sóc Sơn");
+  await field("Xã/Phường").fill("Quận Cầu Giấy"); // cap quan/huyen da bo tu 01/07/2025
   await save();
-  await expect(page.getByRole("alert")).toContainText("Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ");
-  await field("Quận/Huyện").fill("cau giay"); // go khong dau, server luu ten chuan
+  await expect(page.getByRole("alert")).toContainText('"Quận Cầu Giấy" không thuộc Hà Nội');
+  await field("Xã/Phường").fill("cau giay"); // go khong dau, server luu ten chuan
   await save();
   await expect(page.getByText("Đã thêm mới")).toBeVisible();
 
@@ -208,18 +225,18 @@ test("[US-14] ADMIN: mo hub va buu cuc truc thuoc, ngoai vung phuc vu bi chan, t
   await expect(page.getByRole("radio", { name: new RegExp(hubCode) })).toBeVisible();
   await expect(page.getByRole("radio", { name: /PO-DN/ })).toHaveCount(0);
   await field("Tỉnh/Thành phố").fill("Hà Nội");
-  await field("Quận/Huyện").fill("Đống Đa");
+  await field("Xã/Phường").fill("Phường Đống Đa");
   await save();
   await expect(page.getByRole("alert")).toContainText("Vui lòng chọn trực thuộc hub");
   await page.getByRole("radio", { name: new RegExp(hubCode) }).click();
   await save();
   await expect(page.getByText("Đã thêm mới")).toBeVisible();
 
-  const search = page.getByPlaceholder("Tìm theo mã, tên, tỉnh, quận/huyện...");
+  const search = page.getByPlaceholder("Tìm theo mã, tên, tỉnh, xã/phường...");
   await search.fill(poCode);
   await expect(page.getByText(/Tổng 1 bản ghi/)).toBeVisible();
   await expect(page.getByText(`${hubCode} — ${hubName}`)).toBeVisible();
-  await expect(page.getByText("Đống Đa, Hà Nội")).toBeVisible();
+  await expect(page.getByText("Phường Đống Đa, Hà Nội")).toBeVisible();
   await page.screenshot({ path: `${SHOT_DIR}/15-hub-post-office.png`, fullPage: true });
 
   // 3. Hub con buu cuc truc thuoc -> khong xoa duoc
@@ -261,8 +278,7 @@ async function createOrderForHubHn() {
       contactPhone: "0900000043",
       address: "1 Trần Thái Tông",
       province: "Hà Nội",
-      district: "Cầu Giấy",
-      ward: "Dịch Vọng",
+      ward: "Phường Cầu Giấy",
     },
   });
   const serviceTypes = (await (await api.get("/public/service-types")).json()).data;
@@ -271,7 +287,7 @@ async function createOrderForHubHn() {
     data: {
       pickupLocationId: (await location.json()).data._id,
       serviceTypeId: serviceTypes[0]._id,
-      receiver: { name: "E2E Người Nhận Duyệt", phone: "0911222333", address: "8 Lê Lợi", province: "Hà Nội", district: "Đống Đa", ward: "Láng Hạ" },
+      receiver: { name: "E2E Người Nhận Duyệt", phone: "0911222333", address: "8 Lê Lợi", province: "Hà Nội", ward: "Phường Láng" },
       item: { name: "Sách giáo khoa", weightGram: 700, length: 20, width: 15, height: 5 },
       cod: { enabled: true, amount: 250000, feePayer: "RECIPIENT_PAID" },
     },
@@ -314,8 +330,8 @@ test("[US-18] HUB_STAFF duyet don moi: thay don cua hub minh, xac nhan -> phi kh
   await page.getByTestId("approve-search").fill(order.trackingCode);
   await expect(page.getByTestId("approve-count")).toHaveText("1 đơn chờ xác nhận");
   const card = page.getByTestId(`approve-${order.trackingCode}`);
-  await expect(card).toContainText("Shop 3 · Dịch Vọng"); // khach doanh nghiep: hien ten shop
-  await expect(card).toContainText("Đống Đa, Hà Nội");
+  await expect(card).toContainText("Shop 3 · Phường Cầu Giấy"); // khach doanh nghiep: hien ten shop
+  await expect(card).toContainText("Phường Láng, Hà Nội");
   await expect(card).toContainText("250.000 ₫");
   await page.screenshot({ path: `${SHOT_DIR}/16-hub-approve-orders.png`, fullPage: true });
 

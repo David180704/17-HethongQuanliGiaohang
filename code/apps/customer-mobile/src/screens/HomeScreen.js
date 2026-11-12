@@ -7,7 +7,7 @@ import Banner from "../components/Banner";
 import UpdatedAt from "../components/UpdatedAt";
 import { useAuth } from "../auth/AuthContext";
 import { useCachedQuery } from "../lib/useCachedQuery";
-import { formatSurcharge } from "../lib/format";
+import { formatSurcharge, groupThousands } from "../lib/format";
 import { colors, radius } from "../theme";
 
 const STEPS = [
@@ -22,10 +22,11 @@ export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate
   const [trackCode, setTrackCode] = useState("");
   const { user } = useAuth();
   const typesQuery = useCachedQuery("/public/service-types");
-  const areasQuery = useCachedQuery("/public/service-areas");
+  const areasQuery = useCachedQuery("/public/provinces");
   const serviceTypes = typesQuery.data || [];
-  const areas = areasQuery.data || [];
-  const provinceCount = new Set(areas.map((a) => a.province)).size;
+  const provinces = areasQuery.data || [];
+  const servedWards = provinces.reduce((sum, p) => sum + (p.servedCount || 0), 0);
+  const provinceCount = provinces.filter((p) => p.servedCount > 0).length;
   const error = typesQuery.error || areasQuery.error ? "Không tải được dữ liệu từ máy chủ. Vui lòng thử lại sau." : "";
 
   const brand = (
@@ -111,7 +112,7 @@ export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate
       ))}
 
       <View style={styles.stats}>
-        <Stat value={areas.length || "—"} label="quận/huyện đang phục vụ" />
+        <Stat value={servedWards ? groupThousands(servedWards) : "—"} label="xã/phường đang phục vụ" />
         <Stat value={provinceCount || "—"} label="tỉnh/thành phố" />
         <Stat value="20 triệu ₫" label="thu hộ COD tối đa mỗi đơn" />
         <Stat value="3 cách" label="trả phí: shop trả, người nhận trả, trừ vào COD" />
@@ -136,7 +137,7 @@ export default function HomeScreen({ onCreateOrder, onGoTab, onLogin, onEstimate
         <Text role="heading" style={styles.ctaTitle}>
           Không chắc địa chỉ có được giao?
         </Text>
-        <Text style={styles.muted}>Tra cứu quận/huyện trong vùng phục vụ trước khi gửi.</Text>
+        <Text style={styles.muted}>Tra cứu xã/phường trong vùng phục vụ trước khi gửi.</Text>
         <Button title="Kiểm tra vùng phục vụ" onPress={() => onGoTab("coverage")} />
       </View>
 

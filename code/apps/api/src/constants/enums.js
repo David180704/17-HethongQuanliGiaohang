@@ -17,7 +17,7 @@ export const REGION = ["BAC", "TRUNG", "NAM"];
 
 export const SERVICE_TYPE_CODE = ["STANDARD", "EXPRESS"];
 
-export const ZONE = ["INNER_DISTRICT", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_REGION"];
+export const ZONE = ["INNER_WARD", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_REGION"];
 
 export const FEE_PAYER = ["SHOP_PREPAID", "RECIPIENT_PAID", "DEDUCT_FROM_COD"];
 
@@ -58,6 +58,15 @@ export const ITEM_CATEGORY = ["SMALL_PARCEL", "BAG", "CARTON", "TV", "LAPTOP", "
 
 // Nguyen nhan khong lay duoc hang (US-28, PB#34)
 export const PICKUP_FAIL_REASON = ["SHOP_UNREACHABLE", "NOT_READY", "WRONG_ADDRESS", "NOT_AS_DESCRIBED", "SHOP_CANCELLED", "OTHER"];
+
+// Nguyen nhan giao khong thanh cong (US-32, PB#40) - de 02: khong lien he duoc, hen giao lai, tu choi, sai dia chi
+export const DELIVERY_FAIL_REASON = ["RECIPIENT_UNREACHABLE", "RESCHEDULE_REQUESTED", "REFUSED", "WRONG_ADDRESS", "RECIPIENT_ABSENT", "OTHER"];
+
+// Su co, khieu nai (US-38, de 02): that lac, hu hong, sai thong tin giao nhan, khieu nai cua shop / nguoi nhan
+export const INCIDENT_TYPE = ["LOST", "DAMAGED", "WRONG_INFO", "SHOP_COMPLAINT", "RECIPIENT_COMPLAINT", "OTHER"];
+export const INCIDENT_STATUS = ["OPEN", "IN_PROGRESS", "RESOLVED"];
+// Ai bao: shop (khach tu bao tren app), nguoi nhan (bao qua tong dai, nhan vien ghi), nhan vien (kho, tai xe)
+export const INCIDENT_SOURCE = ["SHOP", "RECIPIENT", "STAFF"];
 
 // Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
 export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];

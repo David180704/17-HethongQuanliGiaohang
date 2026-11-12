@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { Hub } from "../src/models/Hub.js";
 import { Route } from "../src/models/Route.js";
@@ -51,7 +51,7 @@ before(async () => {
     name: "Hub Test Catalog",
     type: "HUB",
     province: "Ha Noi",
-    district: "Hoan Kiem",
+    ward: "hoan kiem",
     isActive: true,
   });
 
@@ -104,21 +104,31 @@ test("[US-11] ADMIN CRUD tuyen (routes)", async () => {
   assert.equal(updateRes.body.data.maxPickupPerShift, 20);
 });
 
-test("[US-11] mot quan/huyen chi thuoc mot tuyen - tao trung bi CONFLICT", async () => {
+test("[US-11] mot xa/phuong chi thuoc mot tuyen - tao trung bi CONFLICT; xa/phuong phai co that va thuoc dung tinh", async () => {
+  const place = { province: "Tuyên Quang", ward: "Xã Phú Linh" };
+  const restore = await suspendAreas([place]);
   const first = await request(app)
     .post("/serviceAreas")
     .set("Authorization", `Bearer ${adminToken}`)
-    .send({ province: "TestProvince", district: "TestDistrict", region: "BAC", routeId });
-  assert.equal(first.status, 201);
+    .send({ province: "tuyen quang", ward: "phu linh", region: "BAC", routeId });
+  assert.equal(first.status, 201, JSON.stringify(first.body));
+  // Go khong dau, thieu "Xã" van luu ten chuan
+  assert.deepEqual([first.body.data.province, first.body.data.ward], ["Tuyên Quang", "Xã Phú Linh"]);
 
   const dup = await request(app)
     .post("/serviceAreas")
     .set("Authorization", `Bearer ${adminToken}`)
-    .send({ province: "TestProvince", district: "TestDistrict", region: "BAC", routeId });
+    .send({ ...place, region: "BAC", routeId });
   assert.equal(dup.status, 409);
   assert.equal(dup.body.error.code, "CONFLICT");
 
-  await ServiceArea.deleteMany({ province: "TestProvince", district: "TestDistrict" });
+  for (const bad of [{ province: "TestProvince", ward: "Xã Phú Linh" }, { province: "Hà Nội", ward: "Xã Phú Linh" }]) {
+    const res = await request(app).post("/serviceAreas").set("Authorization", `Bearer ${adminToken}`).send({ ...bad, region: "BAC", routeId });
+    assert.equal(res.status, 400, JSON.stringify(bad));
+  }
+
+  await ServiceArea.deleteMany(place);
+  await restore();
   await Route.deleteOne({ _id: routeId });
 });
 
@@ -175,7 +185,7 @@ test("[US-12] serviceTypes: khong xoa duoc khi da dung trong bang gia", async ()
 
   const priceTable = await PriceTable.create({
     serviceTypeId: serviceType._id,
-    zone: "INNER_DISTRICT",
+    zone: "INNER_WARD",
     weightTiers: [{ fromGram: 0, toGram: 999999999, basePrice: 10000, pricePer500g: 1000 }],
     effectiveFrom: new Date(),
     isActive: true,

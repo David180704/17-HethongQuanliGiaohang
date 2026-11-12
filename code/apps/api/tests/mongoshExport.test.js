@@ -12,10 +12,10 @@ test("[US-02] 01-tao-cau-truc.mongodb.js khop voi model (sua model thi chay npm 
   assert.equal(committed, renderStructureScript(), "File cu: chay `npm run db:export` trong code/apps/api");
 });
 
-// 12 collection nghiep vu ban dau + checkinPoints, checkinLogs (Sprint 5, US-29, US-30)
-test("[US-02] Cau truc sinh ra co du 14 collection va 4 chi muc bat buoc", () => {
+// 12 collection nghiep vu ban dau + checkinPoints, checkinLogs (Sprint 5, US-29, US-30) + incidents, settlements (Sprint 7, US-38, US-34)
+test("[US-02] Cau truc sinh ra co du 16 collection va 4 chi muc bat buoc", () => {
   const byName = Object.fromEntries(buildStructure().map((c) => [c.name, c]));
-  assert.equal(Object.keys(byName).length, 14);
+  assert.equal(Object.keys(byName).length, 16);
   const has = (name, keys, opts = {}) =>
     byName[name].indexes.some(
       ([k, o]) => JSON.stringify(k) === JSON.stringify(keys) && Object.entries(opts).every(([key, v]) => o[key] === v),

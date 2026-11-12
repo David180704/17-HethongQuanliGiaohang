@@ -67,7 +67,7 @@ test.beforeAll(async () => {
       headers: auth("shop3"),
       data: {
         label: "E2E PC Kho Đà Nẵng", contactName: "Chủ Shop 3", contactPhone: "0900000043", address: "10 Bạch Đằng",
-        province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang",
+        province: "Đà Nẵng", ward: "Phường Hải Châu",
       },
     }),
   );
@@ -100,7 +100,7 @@ test("[US-25][US-27] quy trinh: shop tao don -> kho duyet -> tu phan cong theo c
         data: {
           pickupLocationId: location._id,
           serviceTypeId: service._id,
-          receiver: { name: `E2E PC Nhận ${i}`, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+          receiver: { name: `E2E PC Nhận ${i}`, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
           item: { name: `Hàng phân công ${i}`, weightGram: 600, length: 20, width: 15, height: 10 },
         },
       }),
@@ -120,7 +120,7 @@ test("[US-25][US-27] quy trinh: shop tao don -> kho duyet -> tu phan cong theo c
   // 2. Kho mo bang phan cong: don 1 da co nguoi, don 2 trong hang cho vi ca da day
   page.on("dialog", (dialog) => dialog.accept());
   await login(page, "kho1@edms.vn");
-  await page.getByRole("button", { name: /^Phân công/ }).click();
+  await page.getByRole("button", { name: /^Phân công(?! giao)/ }).click();
   await expect(page.getByRole("heading", { name: "Phân công" })).toBeVisible();
   const queued = page.getByTestId(`assign-queue-${o2}`);
   await expect(queued).toContainText("Tuyến R-DN-NOI: người trực ca đã đủ năng lực");
@@ -147,7 +147,7 @@ test("[US-25][US-27] quy trinh: shop tao don -> kho duyet -> tu phan cong theo c
   await expect(phone.getByTestId("shipper-to-pick")).toHaveText("2");
   await phone.getByRole("button", { name: /Đơn cần lấy/ }).click();
   await expect(phone.getByTestId("pickup-counts")).toContainText("Cần lấy: 2");
-  await expect(phone.getByTestId(`pickup-${o1}`)).toContainText("10 Bạch Đằng, Thạch Thang, Hải Châu, Đà Nẵng");
+  await expect(phone.getByTestId(`pickup-${o1}`)).toContainText("10 Bạch Đằng, Phường Hải Châu, Đà Nẵng");
   await expect(phone.getByTestId(`pickup-${o1}`)).toContainText("Liên hệ: Chủ Shop 3 · 0900000043");
   await expect(phone.getByTestId(`pickup-${o2}`)).toContainText("Kho điều chỉnh");
   await phone.screenshot({ path: `${SHOT_DIR}/27-don-can-lay.png`, fullPage: true });

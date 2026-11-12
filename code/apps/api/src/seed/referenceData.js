@@ -41,17 +41,17 @@ export const roles = [
 ];
 
 // HUB = diem tap ket cap tinh/vung; POST_OFFICE = buu cuc, truc thuoc mot HUB (parentKey).
-// Hub cap tren phai dung TRUOC buu cuc trong mang (seed tao lan luot). Quan/huyen cua
+// Hub cap tren phai dung TRUOC buu cuc trong mang (seed tao lan luot). Xa/phuong cua
 // moi diem phai co trong serviceAreas ben duoi (US-14: moi diem gan mot khu vuc phuc vu).
 export const hubs = [
-  { _key: "HUB_HN", code: "HUB-HN", name: "Hub Hà Nội", type: "HUB", province: "Hà Nội", district: "Hoàn Kiếm" },
+  { _key: "HUB_HN", code: "HUB-HN", name: "Hub Hà Nội", type: "HUB", province: "Hà Nội", ward: "Phường Hoàn Kiếm" },
   {
     _key: "HUB_HCM",
     code: "HUB-HCM",
     name: "Hub Hồ Chí Minh",
     type: "HUB",
     province: "TP Hồ Chí Minh",
-    district: "Quận 1",
+    ward: "Phường Sài Gòn",
   },
   {
     _key: "PO_DN",
@@ -61,17 +61,17 @@ export const hubs = [
     // Mien Trung chua co hub rieng: buu cuc Da Nang gom hang ve Hub Ha Noi
     parentKey: "HUB_HN",
     province: "Đà Nẵng",
-    district: "Hải Châu",
+    ward: "Phường Hải Châu",
   },
 ];
 
 // Diem check-in mau (US-29): toa do that gan dung, ban kinh mac dinh 150 m; tai xe chon "dang o" diem nay tren app
 export const checkinPoints = [
-  { code: "CP-HN-HUB", name: "Hub Hà Nội", address: "Hoàn Kiếm, Hà Nội", lat: 21.0285, lng: 105.8542, hubKey: "HUB_HN" },
-  { code: "CP-HN-CG", name: "Ngã tư Xuân Thủy – Cầu Giấy", address: "Cầu Giấy, Hà Nội", lat: 21.0368, lng: 105.7826, hubKey: "HUB_HN" },
+  { code: "CP-HN-HUB", name: "Hub Hà Nội", address: "Phường Hoàn Kiếm, Hà Nội", lat: 21.0285, lng: 105.8542, hubKey: "HUB_HN" },
+  { code: "CP-HN-CG", name: "Ngã tư Xuân Thủy – Cầu Giấy", address: "Phường Cầu Giấy, Hà Nội", lat: 21.0368, lng: 105.7826, hubKey: "HUB_HN" },
   { code: "CP-QL1-NB", name: "Trạm QL1A Ninh Bình", address: "Ninh Bình", lat: 20.2506, lng: 105.9745, radiusM: 300 },
-  { code: "CP-DN-PO", name: "Bưu cục Đà Nẵng", address: "Hải Châu, Đà Nẵng", lat: 16.0678, lng: 108.2208, hubKey: "PO_DN" },
-  { code: "CP-HCM-HUB", name: "Hub Hồ Chí Minh", address: "Quận 1, TP Hồ Chí Minh", lat: 10.7769, lng: 106.7009, hubKey: "HUB_HCM" },
+  { code: "CP-DN-PO", name: "Bưu cục Đà Nẵng", address: "Phường Hải Châu, Đà Nẵng", lat: 16.0678, lng: 108.2208, hubKey: "PO_DN" },
+  { code: "CP-HCM-HUB", name: "Hub Hồ Chí Minh", address: "Phường Sài Gòn, TP Hồ Chí Minh", lat: 10.7769, lng: 106.7009, hubKey: "HUB_HCM" },
 ];
 
 export const routes = [
@@ -79,34 +79,57 @@ export const routes = [
   { _key: "R_HN_LIEN", code: "R-HN-LIEN", name: "Liên tỉnh phía Bắc", hubKey: "HUB_HN", maxPickupPerShift: 20, maxDeliveryPerShift: 20 },
   { _key: "R_HCM_NOI", code: "R-HCM-NOI", name: "Nội thành Hồ Chí Minh", hubKey: "HUB_HCM", maxPickupPerShift: 25, maxDeliveryPerShift: 25 },
   { _key: "R_DN_NOI", code: "R-DN-NOI", name: "Nội thành Đà Nẵng", hubKey: "PO_DN", maxPickupPerShift: 15, maxDeliveryPerShift: 15 },
+  { _key: "R_HCM_LIEN", code: "R-HCM-LIEN", name: "Liên tỉnh phía Nam", hubKey: "HUB_HCM", maxPickupPerShift: 20, maxDeliveryPerShift: 20 },
+  { _key: "R_DN_LIEN", code: "R-DN-LIEN", name: "Liên tỉnh miền Trung", hubKey: "PO_DN", maxPickupPerShift: 15, maxDeliveryPerShift: 15 },
 ];
 
-// Moi quan/huyen chi thuoc dung mot tuyen. region: BAC | TRUNG | NAM.
-export const serviceAreas = [
-  // BAC - noi thanh Ha Noi (R_HN_NOI)
-  { province: "Hà Nội", district: "Hoàn Kiếm", region: "BAC", routeKey: "R_HN_NOI" },
-  { province: "Hà Nội", district: "Đống Đa", region: "BAC", routeKey: "R_HN_NOI" },
-  { province: "Hà Nội", district: "Cầu Giấy", region: "BAC", routeKey: "R_HN_NOI" },
-  { province: "Hà Nội", district: "Hai Bà Trưng", region: "BAC", routeKey: "R_HN_NOI" },
-  { province: "Hà Nội", district: "Hoàng Mai", region: "BAC", routeKey: "R_HN_NOI" },
-  // BAC - lien tinh phia Bac (R_HN_LIEN)
-  { province: "Bắc Ninh", district: "TP Bắc Ninh", region: "BAC", routeKey: "R_HN_LIEN" },
-  { province: "Bắc Ninh", district: "Tiên Du", region: "BAC", routeKey: "R_HN_LIEN" },
-  { province: "Hưng Yên", district: "TP Hưng Yên", region: "BAC", routeKey: "R_HN_LIEN" },
-  { province: "Hưng Yên", district: "Văn Giang", region: "BAC", routeKey: "R_HN_LIEN" },
-  { province: "Hải Phòng", district: "Hồng Bàng", region: "BAC", routeKey: "R_HN_LIEN" },
-  { province: "Hải Phòng", district: "Lê Chân", region: "BAC", routeKey: "R_HN_LIEN" },
-  // NAM - noi thanh Ho Chi Minh (R_HCM_NOI)
-  { province: "TP Hồ Chí Minh", district: "Quận 1", region: "NAM", routeKey: "R_HCM_NOI" },
-  { province: "TP Hồ Chí Minh", district: "Quận 3", region: "NAM", routeKey: "R_HCM_NOI" },
-  { province: "TP Hồ Chí Minh", district: "Quận 7", region: "NAM", routeKey: "R_HCM_NOI" },
-  { province: "TP Hồ Chí Minh", district: "Bình Thạnh", region: "NAM", routeKey: "R_HCM_NOI" },
-  { province: "TP Hồ Chí Minh", district: "Tân Bình", region: "NAM", routeKey: "R_HCM_NOI" },
-  { province: "Cần Thơ", district: "Ninh Kiều", region: "NAM", routeKey: "R_HCM_NOI" },
-  // TRUNG - noi thanh Da Nang (R_DN_NOI)
-  { province: "Đà Nẵng", district: "Hải Châu", region: "TRUNG", routeKey: "R_DN_NOI" },
-  { province: "Đà Nẵng", district: "Thanh Khê", region: "TRUNG", routeKey: "R_DN_NOI" },
-  { province: "Đà Nẵng", district: "Sơn Trà", region: "TRUNG", routeKey: "R_DN_NOI" },
+// Mien cua 34 tinh/thanh (dia gioi tu 01/07/2025) - dung tinh gia lien tinh / lien mien.
+export const PROVINCE_REGION = {
+  BAC: ["Hà Nội", "Cao Bằng", "Tuyên Quang", "Điện Biên", "Lai Châu", "Sơn La", "Lào Cai", "Thái Nguyên", "Lạng Sơn",
+    "Quảng Ninh", "Bắc Ninh", "Phú Thọ", "Hải Phòng", "Hưng Yên", "Ninh Bình"],
+  TRUNG: ["Thanh Hóa", "Nghệ An", "Hà Tĩnh", "Quảng Trị", "Huế", "Đà Nẵng", "Quảng Ngãi", "Gia Lai", "Khánh Hòa",
+    "Đắk Lắk", "Lâm Đồng"],
+  NAM: ["Đồng Nai", "TP Hồ Chí Minh", "Tây Ninh", "Đồng Tháp", "Vĩnh Long", "An Giang", "Cần Thơ", "Cà Mau"],
+};
+
+// Tuyen phu trach theo tinh: noi thanh 3 thanh pho lon (Can Tho giu tuyen noi thanh HCM nhu truoc),
+// con lai di tuyen lien tinh cua mien.
+const NOI_THANH = { "Hà Nội": "R_HN_NOI", "TP Hồ Chí Minh": "R_HCM_NOI", "Cần Thơ": "R_HCM_NOI", "Đà Nẵng": "R_DN_NOI" };
+const LIEN_TINH = { BAC: "R_HN_LIEN", TRUNG: "R_DN_LIEN", NAM: "R_HCM_LIEN" };
+
+/** Khu vuc phuc vu = moi xa/phuong cua ca 34 tinh/thanh (3.321), moi xa/phuong mot tuyen. */
+export function buildServiceAreas(provinces) {
+  return provinces.flatMap((p) => {
+    const region = Object.keys(PROVINCE_REGION).find((r) => PROVINCE_REGION[r].includes(p.name));
+    if (!region) throw new Error(`Chua xep mien cho ${p.name}`);
+    const routeKey = NOI_THANH[p.name] || LIEN_TINH[region];
+    return p.wards.map((ward) => ({ province: p.name, ward, region, routeKey }));
+  });
+}
+
+// 20 xa/phuong dai dien (thay 20 quan/huyen cu, cung thu tu) - seed boc ngau nhien dia diem lay hang va
+// nguoi nhan tu day nen 200 don mau giu nguyen phan bo tuyen / vung gia nhu truoc khi bo cap quan/huyen.
+export const sampleWards = [
+  { province: "Hà Nội", ward: "Phường Hoàn Kiếm" },
+  { province: "Hà Nội", ward: "Phường Đống Đa" },
+  { province: "Hà Nội", ward: "Phường Cầu Giấy" },
+  { province: "Hà Nội", ward: "Phường Hai Bà Trưng" },
+  { province: "Hà Nội", ward: "Phường Hoàng Mai" },
+  { province: "Bắc Ninh", ward: "Phường Kinh Bắc" },
+  { province: "Bắc Ninh", ward: "Xã Tiên Du" },
+  { province: "Hưng Yên", ward: "Phường Phố Hiến" },
+  { province: "Hưng Yên", ward: "Xã Văn Giang" },
+  { province: "Hải Phòng", ward: "Phường Hồng Bàng" },
+  { province: "Hải Phòng", ward: "Phường Lê Chân" },
+  { province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
+  { province: "TP Hồ Chí Minh", ward: "Phường Xuân Hòa" },
+  { province: "TP Hồ Chí Minh", ward: "Phường Tân Mỹ" },
+  { province: "TP Hồ Chí Minh", ward: "Phường Bình Thạnh" },
+  { province: "TP Hồ Chí Minh", ward: "Phường Tân Bình" },
+  { province: "Cần Thơ", ward: "Phường Ninh Kiều" },
+  { province: "Đà Nẵng", ward: "Phường Hải Châu" },
+  { province: "Đà Nẵng", ward: "Phường Thanh Khê" },
+  { province: "Đà Nẵng", ward: "Phường Sơn Trà" },
 ];
 
 export const serviceTypes = [
@@ -120,7 +143,7 @@ export const serviceTypes = [
 // phan chenh lech gia cua EXPRESS hoan toan nam o serviceSurcharge (base x
 // serviceType.surchargeRate), khong nhan doi vao base - xem ghi chu gui nguoi dung.
 const tiersByZone = {
-  INNER_DISTRICT: [
+  INNER_WARD: [
     { fromGram: 0, toGram: 500, basePrice: 15000, pricePer500g: 3000 },
     { fromGram: 500, toGram: 1000, basePrice: 18000, pricePer500g: 3000 },
     { fromGram: 1000, toGram: 2000, basePrice: 24000, pricePer500g: 3000 },
@@ -150,7 +173,7 @@ const tiersByZone = {
   ],
 };
 
-export const ZONES = ["INNER_DISTRICT", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_REGION"];
+export const ZONES = ["INNER_WARD", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_REGION"];
 
 export function buildPriceTables() {
   const tables = [];

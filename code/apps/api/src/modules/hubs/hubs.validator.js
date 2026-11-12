@@ -1,10 +1,10 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { HUB_TYPE } from "../../constants/enums.js";
 
-// code khong sua sau khi tao (in tren nhan, bao cao). Doi dia ban (province/district)
+// code khong sua sau khi tao (in tren nhan, bao cao). Doi dia ban (province/ward)
 // thi HubService xac dinh lai khu vuc phuc vu.
-const UPDATABLE_FIELDS = ["name", "type", "parentHubId", "address", "province", "district", "location", "isActive"];
-const REQUIRED_TEXT = ["name", "province", "district"];
+const UPDATABLE_FIELDS = ["name", "type", "parentHubId", "address", "province", "ward", "location", "isActive"];
+const REQUIRED_TEXT = ["name", "province", "ward"];
 
 const isFilled = (value) => typeof value === "string" && value.trim() !== "";
 const trimmed = (value) => (typeof value === "string" ? value.trim() : value);
@@ -17,9 +17,9 @@ function assertType(type) {
 // rang buoc can tra cuu (cap tren, khu vuc phuc vu, con dang dung) o HubService.
 export const hubValidator = {
   create(body) {
-    const { code, name, type, province, district } = body;
-    if (![code, name, type, province, district].every(isFilled)) {
-      throw ErrorCodes.VALIDATION_ERROR("Thiếu code/name/type/province/district");
+    const { code, name, type, province, ward } = body;
+    if (![code, name, type, province, ward].every(isFilled)) {
+      throw ErrorCodes.VALIDATION_ERROR("Thiếu code/name/type/province/ward");
     }
     assertType(type);
     const sanitized = {
@@ -28,7 +28,7 @@ export const hubValidator = {
       type,
       parentHubId: body.parentHubId || null,
       province: province.trim(),
-      district: district.trim(),
+      ward: ward.trim(),
       isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
     };
     if (isFilled(body.address)) sanitized.address = body.address.trim();

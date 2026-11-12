@@ -115,7 +115,7 @@ export default function ApproveOrdersScreen({ user, accent, onBack }) {
             <Text style={styles.fee}>{vnd(order.fee.total)}</Text>
           </View>
           <Line label="Người gửi" value={`${order.customerName} · ${order.pickupWard}`} />
-          <Line label="Giao đến" value={`${order.receiver.district}, ${order.receiver.province}`} />
+          <Line label="Giao đến" value={`${order.receiver.ward}, ${order.receiver.province}`} />
           <Line label="Hàng" value={`${order.item.name} · ${order.chargeableWeight.toLocaleString("vi-VN")} g · ${order.serviceName}`} />
           <Line label="Phí ship" value={FEE_PAYER_LABELS[order.cod?.feePayer] || "—"} />
           <Line label="Thu hộ" value={order.cod?.enabled ? vnd(order.cod.amount) : "Không"} />

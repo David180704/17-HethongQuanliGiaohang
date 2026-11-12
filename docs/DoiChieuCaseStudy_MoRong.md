@@ -1,6 +1,6 @@
 # Đối chiếu Case study 02 + Case study 14 và chức năng mở rộng — EDMS
 
-Cập nhật 11/11/2026 (đóng Sprint 4 và Sprint 5); phạm vi bổ sung duyệt và PERT lập lại 05/11/2026
+Cập nhật 12/11/2026: đề 14 đã qua review lần 3; làm xong toàn bộ phần còn thiếu của **đề 02** (Sprint 6 và Sprint 7, trừ US-44 thuộc đề 14). Phạm vi bổ sung duyệt và PERT lập lại 05/11/2026
 (`PERT_ToanDuAn.docx`). Một dự án EDMS dùng cho cả hai đề cùng chủ đề hệ thống quản lý giao hàng
 (một phần thực hành, một phần lý thuyết), nên phải đáp ứng **đồng thời** hai đề và có thêm chức năng
 mở rộng. Trạng thái lấy theo Product Backlog, Sprint Backlog và `KiemThuTheoStory.md`.
@@ -28,25 +28,27 @@ story chưa xếp Sprint).
 | 14 | Không lấy được hàng → ghi nguyên nhân | 02 | US-28 (thêm tiêu chí, PB#34): 6 nguyên nhân, kho giao lại | ✅ |
 | 15 | Đi qua kho, điểm trung chuyển, bưu cục; ghi trạng thái nhập/xuất kho, trung chuyển | 02 | Hub/bưu cục (US-14); nhập kho, xuất kho, trung chuyển, kho đích nhận: US-41 (PB#35, #54, #55) | ✅ |
 | 16 | Phân loại hàng theo kích cỡ, loại hàng, tuyến xe | 14 | US-41 (PB#50; PB#70 gộp vào): 8 loại hàng cố định, tuyến tới kho đích | ✅ |
-| 17 | Giao thường gom theo tuyến; giao nhanh là đơn riêng | 14 | US-12, US-25, US-35 (thêm tiêu chí “đơn nhanh giao riêng, ưu tiên”) | ✅ / 📅 |
+| 17 | Giao thường gom theo tuyến; giao nhanh là đơn riêng | 14 | US-12, US-25, US-35 (đơn nhanh được phân công giao trước, có nhãn ưu tiên) | ✅ |
 | 18 | Shop theo dõi tiến trình từng đơn | 02 | US-20 (gồm danh sách đơn lọc theo trạng thái, thời gian — PB#16), US-21, US-22 | ✅ |
 | 19 | Khách thấy 4 trạng thái: Chưa nhận / Đã nhận – Chưa giao / Đã nhận – Đang giao / Đã giao | 14 | US-20, US-22 | ✅ |
 | 20 | Tự check-in khi đi qua điểm trên bản đồ, giúp khách theo dõi | 14 | US-29, US-30 (tọa độ giả lập, bán kính 150 m, chặn trùng 30 phút, gửi lại khi mất mạng; tra cứu hiện điểm đã qua) | ✅ |
-| 21 | Phân công giao tại khu vực cuối, theo năng lực | 02 | US-35 | 📅 |
-| 22 | Giao theo phiếu giao hàng (địa chỉ, phường/xã, số điện thoại) | 14 | US-31: danh sách đơn cần giao + phiếu giao hàng in được có mã QR mã vận đơn (PB#18 đưa lại) | 📅 |
-| 23 | Giao thành công + ghi nhận đã thu đủ COD | 02 | US-32, US-33 | 📅 |
-| 24 | Giao thất bại → ghi nguyên nhân, giao lại hoặc hoàn | 02 | US-32 (thêm tiêu chí, PB#40), US-36 | 📅 |
-| 25 | Đếm số lần giao, vượt giới hạn hoặc bị từ chối → hoàn hàng tới khi shop xác nhận | 02 | US-36, US-37 | 📅 |
-| 26 | Sự cố, khiếu nại: nội dung, đơn liên quan, xử lý, kết quả | 02 | US-38 | 📅 |
-| 27 | Đối soát định kỳ: thu hộ, phí, điều chỉnh, số tiền trả shop | 02 | US-34; khoản điều chỉnh trong US-43 (PB#76) | 📅 |
-| 28 | Shop xem đối soát; ghi nhận giao dịch trả tiền, hoàn tất đối soát | 02 | US-43 (PB#21, #75) | 📅 |
+| 21 | Phân công giao tại khu vực cuối, theo năng lực | 02 | US-35: tự động khi đơn tới kho đích / chờ giao lại, cùng thuật toán chiều lấy, điều chỉnh tay có lý do | ✅ |
+| 22 | Giao theo phiếu giao hàng (địa chỉ, phường/xã, số điện thoại) | 14 | US-31: danh sách đơn cần giao trong ca + phiếu giao in được có mã QR mã vận đơn | ✅ |
+| 23 | Giao thành công + ghi nhận đã thu đủ COD | 02 | US-32 (quét mã, GPS, DELIVERED là trạng thái cuối), US-33 (thu đúng số tiền, cùng transaction) | ✅ |
+| 24 | Giao thất bại → ghi nguyên nhân, giao lại hoặc hoàn | 02 | US-32 (6 nguyên nhân, PB#40), US-36 | ✅ |
+| 25 | Đếm số lần giao, vượt giới hạn hoặc bị từ chối → hoàn hàng tới khi shop xác nhận | 02 | US-36 (tối đa 3 lần, admin đổi), US-37 (phân công theo tuyến lấy cũ, shop bấm xác nhận trên Web / App) | ✅ |
+| 26 | Sự cố, khiếu nại: nội dung, đơn liên quan, xử lý, kết quả | 02 | US-38: mã SC, đơn chuyển INCIDENT tới khi giải quyết, tiến độ, kết quả, bồi thường | ✅ |
+| 27 | Đối soát định kỳ: thu hộ, phí, điều chỉnh, số tiền trả shop | 02 | US-34 (mỗi đơn một kỳ trong transaction, bồi thường sự cố tự vào điều chỉnh); US-43 (PB#76) | ✅ |
+| 28 | Shop xem đối soát; ghi nhận giao dịch trả tiền, hoàn tất đối soát | 02 | US-43 (Web + App Khách hàng; chi trả vào tài khoản đã khai báo US-42) | ✅ |
 | 29 | Tài khoản ngân hàng nhận tiền COD của shop | 02 | US-42 (PB#12) | ✅ |
-| 30 | Danh mục: shop, nhân viên, ca, tuyến/khu vực, kho/điểm trung chuyển, dịch vụ, bảng giá, chính sách | 02 | US-10…14, US-23, US-36 | ✅ / 📅 |
-| 31 | Thống kê: đơn theo trạng thái, shop, tuyến, năng suất nhân viên, doanh thu, thu hộ, đối soát | 02 | US-39 | 📅 |
+| 30 | Danh mục: shop, nhân viên, ca, tuyến/khu vực, kho/điểm trung chuyển, dịch vụ, bảng giá, chính sách | 02 | US-10…14, US-23, US-36 (chính sách số lần giao) | ✅ |
+| 31 | Thống kê: đơn theo trạng thái, shop, tuyến, năng suất nhân viên, doanh thu, thu hộ, đối soát | 02 | US-39 (aggregation pipeline; admin toàn hệ thống, kho theo phạm vi) | ✅ |
 | 32 | Client–server, RESTful API dùng chung; Web cho mọi người dùng; Mobile cho khách hàng | 02 | API + Swagger; Web Khách hàng + App Nhân viên (chạy trên web và Android) + App Khách hàng mobile | ✅ |
 | 33 | Tài liệu: actor, use case (sơ đồ, đặc tả, activity, include/extend, package), sơ đồ lớp, ERD, sơ đồ tuần tự, sơ đồ trạng thái | 14 | ERD (`docs/ERD.md`); TL1 xong 05/11/2026 (`docs/TaiLieuUML_Phan1.docx`: 10 actor, 40 use case, 7 gói, include/extend, đặc tả + activity); TL2 xong 11/11/2026 (`docs/TaiLieuUML_Phan2.docx`: sơ đồ lớp, tuần tự, trạng thái) | ✅ |
 
-Kết luận:
+Kết luận (12/11/2026): **đề 02 đã đáp ứng đủ 31/31 dòng**; đề 14 còn US-44 (thanh toán VietQR, dòng 7).
+
+Kết luận lúc đối chiếu ban đầu:
 - Phần đã làm (Sprint 1–3) đáp ứng đủ các yêu cầu thuộc phạm vi của chúng.
 - Lúc đối chiếu (05/11/2026, trước khi bổ sung), kế hoạch Sprint 4–6 cũ **chưa đủ** cho cả hai đề: 14 dòng ❌.
   Nặng nhất là **khâu tại kho** (dòng 15–16). Thiếu khâu này thì không có gì đưa đơn tới trạng thái

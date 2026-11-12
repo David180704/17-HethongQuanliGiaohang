@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import Button from "../components/Button";
+import IncidentCard from "../components/IncidentCard";
 import Screen from "../components/Screen";
 import Card from "../components/Card";
 import Banner from "../components/Banner";
@@ -6,7 +9,8 @@ import FeeBreakdown from "../components/FeeBreakdown";
 import StatusBadge from "../components/StatusBadge";
 import UpdatedAt from "../components/UpdatedAt";
 import { useCachedQuery } from "../lib/useCachedQuery";
-import { errorMessage } from "../lib/apiClient";
+import { apiClient, errorMessage } from "../lib/apiClient";
+import { queryCache } from "../lib/queryCache";
 import { formatVnd } from "../lib/format";
 import { FEE_PAYMENT_METHOD_LABELS, feePayerLabel, formatDateTime, zoneLabel } from "../lib/orderView";
 import { colors } from "../theme";
@@ -14,6 +18,20 @@ import { colors } from "../theme";
 // US-20: chi tiet don kem toan bo hanh trinh (moi nhat o tren), phi da khoa, thu ho.
 export default function OrderDetailScreen({ orderId, onBack }) {
   const { data: order, error, updatedAt, refresh } = useCachedQuery(`/orders/${orderId}`);
+  const [returnState, setReturnState] = useState({ busy: false, message: "", error: "" });
+
+  // US-37: tai xe da tra hang hoan -> nguoi gui xac nhan da nhan lai
+  async function confirmReturn() {
+    setReturnState({ busy: true, message: "", error: "" });
+    try {
+      await apiClient.post(`/deliveries/${orderId}/confirm-return`);
+      queryCache.invalidate("/orders");
+      setReturnState({ busy: false, message: "Đã xác nhận nhận lại hàng", error: "" });
+      refresh();
+    } catch (err) {
+      setReturnState({ busy: false, message: "", error: errorMessage(err) });
+    }
+  }
 
   if (error) {
     const notFound = error?.response?.status === 404;
@@ -42,6 +60,24 @@ export default function OrderDetailScreen({ orderId, onBack }) {
         <UpdatedAt at={updatedAt} onRefresh={refresh} />
       </Card>
 
+      {order.deliveryAttempts > 0 || order.status === "RETURNING" || order.status === "RETURNED" ? (
+        <Card title="Giao hàng và hoàn hàng" testID="order-return">
+          {order.deliveryAttempts > 0 ? <Text style={styles.small}>Đã giao không thành công {order.deliveryAttempts} lần.</Text> : null}
+          {order.returnReason ? <Text style={styles.small}>Hoàn về người gửi: {order.returnReason}.</Text> : null}
+          {order.status === "RETURNING" && !order.returnHandedAt ? (
+            <Text style={styles.small}>Express đang đưa hàng hoàn về địa điểm lấy hàng của bạn.</Text>
+          ) : null}
+          {order.status === "RETURNING" && order.returnHandedAt ? (
+            <>
+              <Text style={styles.small}>Người giao hàng đã trả hàng lúc {formatDateTime(order.returnHandedAt)}.</Text>
+              <Button testID="order-confirm-return" title="Đã nhận lại hàng" onPress={confirmReturn} loading={returnState.busy} />
+            </>
+          ) : null}
+          <Banner tone="success">{returnState.message}</Banner>
+          <Banner>{returnState.error}</Banner>
+        </Card>
+      ) : null}
+
       <Card title="Hành trình" testID="order-journey">
         {journey.map((step, index) => (
           <View key={`${step.status}-${step.at}`} style={styles.step} testID={`journey-${index}`}>
@@ -60,7 +96,7 @@ export default function OrderDetailScreen({ orderId, onBack }) {
           {order.receiver.name} · {order.receiver.phone}
         </Text>
         <Text style={styles.muted}>
-          {order.receiver.address}, {order.receiver.ward}, {order.receiver.district}, {order.receiver.province}
+          {order.receiver.address}, {order.receiver.ward}, {order.receiver.province}
         </Text>
         <Text style={styles.small}>
           Người gửi: {order.customerName} · lấy hàng tại {order.pickupWard}
@@ -89,6 +125,7 @@ export default function OrderDetailScreen({ orderId, onBack }) {
         />
         <Row label="Thu hộ" value={order.cod?.enabled ? formatVnd(order.cod.amount) : "Không thu hộ"} />
       </Card>
+      <IncidentCard orderId={orderId} onChanged={refresh} />
     </Screen>
   );
 }

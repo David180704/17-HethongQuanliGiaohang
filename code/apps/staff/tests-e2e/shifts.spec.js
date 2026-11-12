@@ -76,6 +76,8 @@ test("[US-23] kho HCM chi thay tuyen cua hub minh; trung gio voi ca khac cua cun
   const form = page.getByTestId("shift-form");
   await expect(form.getByRole("radio", { name: "R-HCM-NOI" })).toBeVisible();
   await expect(form.getByRole("radio", { name: "R-HN-NOI" })).toHaveCount(0);
+  // Hub HCM co 2 tuyen (noi thanh + lien tinh phia Nam): chon tuyen noi thanh cua Tai Xe 3
+  await form.getByRole("radio", { name: "R-HCM-NOI" }).click();
 
   await page.getByTestId("shift-name").fill("KT23 Ca một");
   await page.getByTestId("shift-start").fill("00:30");
@@ -84,6 +86,7 @@ test("[US-23] kho HCM chi thay tuyen cua hub minh; trung gio voi ca khac cua cun
   await page.getByTestId("shift-save").click();
   await expect(page.getByTestId("shift-notice")).toContainText("Đã thêm KT23 Ca một");
   await page.getByTestId("shift-add").click();
+  await form.getByRole("radio", { name: "R-HCM-NOI" }).click();
   await page.getByTestId("shift-name").fill("KT23 Ca hai");
   await page.getByTestId("shift-start").fill("00:35");
   await page.getByTestId("shift-end").fill("00:50");

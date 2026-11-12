@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient, errorMessage } from "../lib/apiClient.js";
-import { formatVnd } from "../lib/format.js";
+import { distanceText, formatVnd } from "../lib/format.js";
 import { EMPTY_PARCEL, toFlagsPayload, toItemPayload } from "../lib/orderForm.js";
 import AreaFields from "../components/AreaFields.jsx";
 import ParcelFields from "../components/ParcelFields.jsx";
 import FeeBreakdown from "../components/FeeBreakdown.jsx";
 
-const EMPTY_AREA = { province: "", district: "" };
+const EMPTY_AREA = { province: "", ward: "" };
 
 // Uoc tinh phi cong khai (US-16): khach vang lai nhap noi gui, noi nhan, kien hang ->
 // phi tung goi dich vu. Bam "Gui hang" -> luu nhap (draftToken) -> dang nhap/dang ky
@@ -86,23 +86,31 @@ export default function EstimatePage() {
       {result && (
         <section className="mt-6" aria-label="Kết quả ước tính">
           <p className="text-sm text-gray-600" role="status">
-            {result.pickupArea.district}, {result.pickupArea.province} → {result.receiverArea.district},{" "}
+            {result.pickupArea.ward}, {result.pickupArea.province} → {result.receiverArea.ward},{" "}
             {result.receiverArea.province} · tuyến {result.zoneLabel} · tính theo {result.chargeableWeight.toLocaleString("vi-VN")} g
             {result.volumetricWeight > Number(parcel.weightGram) ? " (khối lượng quy đổi theo kích thước)" : ""}
+            {result.distanceKm !== null ? ` · ${distanceText(result)}` : ""}
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {result.options.map((option) => (
               <article key={option.code} className="rounded-xl border border-gray-200 bg-white p-5" aria-label={option.name}>
                 <div className="flex items-baseline justify-between gap-3">
                   <h2 className="font-semibold">{option.name}</h2>
-                  <span className="text-xl font-bold text-brand-600">{formatVnd(option.fee.total)}</span>
+                  <span className="text-xl font-bold text-brand-600">{option.available === false ? "—" : formatVnd(option.fee.total)}</span>
                 </div>
-                <p className="text-sm text-gray-500">Dự kiến giao trong {option.estimatedDays} ngày</p>
-                <div className="mt-3">
-                  <FeeBreakdown fee={option.fee} label={`Chi tiết phí ${option.name}`} />
-                </div>
+                {option.available === false ? (
+                  <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">{option.reason}</p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500">Dự kiến giao trong {option.estimatedDays} ngày</p>
+                    <div className="mt-3">
+                      <FeeBreakdown fee={option.fee} label={`Chi tiết phí ${option.name}`} />
+                    </div>
+                  </>
+                )}
                 <button
                   type="button"
+                  hidden={option.available === false}
                   disabled={busy}
                   onClick={() => ship(option)}
                   className="mt-4 w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"

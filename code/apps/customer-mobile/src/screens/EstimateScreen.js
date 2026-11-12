@@ -8,11 +8,11 @@ import AreaFields from "../components/AreaFields";
 import ParcelFields from "../components/ParcelFields";
 import FeeBreakdown from "../components/FeeBreakdown";
 import { apiClient, errorMessage } from "../lib/apiClient";
-import { formatVnd, groupThousands } from "../lib/format";
+import { distanceText, formatVnd, groupThousands } from "../lib/format";
 import { EMPTY_PARCEL, toFlagsPayload, toItemPayload } from "../lib/orderForm";
 import { colors } from "../theme";
 
-const EMPTY_AREA = { province: "", district: "" };
+const EMPTY_AREA = { province: "", ward: "" };
 
 // Uoc tinh phi cong khai (US-16) - cung luong voi Web Khach hang: "Gui hang" luu nhap
 // (draftToken 24 gio) roi moi doi dang nhap / dang ky; tao don dien san du lieu da nhap.
@@ -72,19 +72,28 @@ export default function EstimateScreen({ onBack, onShip }) {
       {result ? (
         <>
           <Text style={styles.summary} testID="estimate-summary">
-            {result.pickupArea.district} → {result.receiverArea.district} · tuyến {result.zoneLabel} · tính theo{" "}
+            {result.pickupArea.ward} → {result.receiverArea.ward} · tuyến {result.zoneLabel} · tính theo{" "}
             {groupThousands(result.chargeableWeight)} g
+            {result.distanceKm !== null ? ` · ${distanceText(result)}` : ""}
           </Text>
           {result.options.map((option) => (
             <Card
               key={option.code}
               testID={`estimate-option-${option.code}`}
               title={option.name}
-              right={<Text style={styles.total}>{formatVnd(option.fee.total)}</Text>}
+              right={<Text style={styles.total}>{option.available === false ? "—" : formatVnd(option.fee.total)}</Text>}
             >
-              <Text style={styles.muted}>Dự kiến giao trong {option.estimatedDays} ngày</Text>
-              <FeeBreakdown fee={option.fee} />
-              <View>
+              {option.available === false ? (
+                <Text style={styles.muted} testID={`estimate-unavailable-${option.code}`}>
+                  {option.reason}
+                </Text>
+              ) : (
+                <>
+                  <Text style={styles.muted}>Dự kiến giao trong {option.estimatedDays} ngày</Text>
+                  <FeeBreakdown fee={option.fee} />
+                </>
+              )}
+              <View style={option.available === false ? styles.hidden : null}>
                 <Button
                   testID={`estimate-ship-${option.code}`}
                   title={`Gửi hàng gói ${option.name}`}
@@ -104,4 +113,5 @@ const styles = StyleSheet.create({
   summary: { fontSize: 13, color: colors.muted },
   total: { fontSize: 17, fontWeight: "800", color: colors.primary },
   muted: { fontSize: 13, color: colors.muted },
+  hidden: { display: "none" },
 });

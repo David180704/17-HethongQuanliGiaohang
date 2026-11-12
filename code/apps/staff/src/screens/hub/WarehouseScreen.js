@@ -125,7 +125,7 @@ export default function WarehouseScreen({ accent, onBack }) {
             <Text style={styles.badge}>{order.statusLabel}</Text>
           </View>
           <Text style={styles.text}>
-            {order.customerName} → {order.receiver.district}, {order.receiver.province}
+            {order.customerName} → {order.receiver.ward}, {order.receiver.province}
           </Text>
           <Text style={styles.muted}>
             {order.item.name}

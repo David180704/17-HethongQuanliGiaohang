@@ -109,7 +109,7 @@ export default function PickupLocationsPage() {
               {location.contactName} · {location.contactPhone}
             </p>
             <p className="text-sm text-gray-600">
-              {location.address}, {location.ward}, {location.district}, {location.province}
+              {location.address}, {location.ward}, {location.province}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button

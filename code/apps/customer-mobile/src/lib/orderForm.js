@@ -23,7 +23,7 @@ export const EMPTY_ORDER = {
   source: "wizard",
   step: 1,
   pickupLocationId: "",
-  receiver: { name: "", phone: "", address: "", province: "", district: "", ward: "" },
+  receiver: { name: "", phone: "", address: "", province: "", ward: "" },
   item: { name: "", packingType: "BOX", note: "", ...EMPTY_PARCEL },
   serviceTypeId: "",
   cod: { enabled: false, amount: "", feePayer: "RECIPIENT_PAID", feePaymentMethod: "QR" },
@@ -47,13 +47,13 @@ export function fromDraft(payload, locations = []) {
   const sameArea = locations.find(
     (location) =>
       plainText(location.province) === plainText(payload.pickup?.province) &&
-      plainText(location.district) === plainText(payload.pickup?.district),
+      plainText(location.ward) === plainText(payload.pickup?.ward),
   );
   const item = payload.item || {};
   return {
     ...EMPTY_ORDER,
     pickupLocationId: sameArea?._id || "",
-    receiver: { ...EMPTY_ORDER.receiver, province: text(payload.receiver?.province), district: text(payload.receiver?.district) },
+    receiver: { ...EMPTY_ORDER.receiver, province: text(payload.receiver?.province), ward: text(payload.receiver?.ward) },
     item: {
       ...EMPTY_ORDER.item,
       weightGram: text(item.weightGram),
@@ -116,18 +116,15 @@ const filled = (value) => String(value ?? "").trim() !== "";
 const positive = (value) => toNumber(value) > 0;
 
 /** Kiem tra nhanh tung buoc truoc khi sang buoc sau. areas: vung phuc vu cong khai. */
-export function stepError(step, form, areas = []) {
+export function stepError(step, form, { receiverProblem = "", expressBlocked = false } = {}) {
   if (step === 1 && !form.pickupLocationId) return "Chọn địa điểm lấy hàng (hoặc thêm địa điểm mới)";
   if (step === 2) {
     const { receiver } = form;
-    if (!["name", "phone", "address", "province", "district", "ward"].every((key) => filled(receiver[key]))) {
+    if (!["name", "phone", "address"].every((key) => filled(receiver[key]))) {
       return "Nhập đủ tên, số điện thoại và địa chỉ người nhận";
     }
     if (!/^0\d{9,10}$/.test(receiver.phone.replace(/[\s.-]/g, ""))) return "Số điện thoại người nhận phải gồm 10–11 chữ số, bắt đầu bằng 0";
-    const served = areas.some(
-      (area) => plainText(area.province) === plainText(receiver.province) && plainText(area.district) === plainText(receiver.district),
-    );
-    if (areas.length && !served) return `${receiver.district}, ${receiver.province} chưa thuộc vùng phục vụ`;
+    if (receiverProblem) return receiverProblem;
   }
   if (step === 3) {
     const { item, cod } = form;
@@ -136,6 +133,7 @@ export function stepError(step, form, areas = []) {
       return "Khối lượng và kích thước phải lớn hơn 0";
     }
     if (!form.serviceTypeId) return "Chọn gói dịch vụ";
+    if (expressBlocked) return "Giao hàng nhanh chỉ áp dụng trong cùng tỉnh/thành — chọn giao tiêu chuẩn";
     if (cod.enabled && !(positive(cod.amount) && toNumber(cod.amount) <= 20000000)) {
       return "Tiền thu hộ phải lớn hơn 0 và tối đa 20.000.000 đ";
     }

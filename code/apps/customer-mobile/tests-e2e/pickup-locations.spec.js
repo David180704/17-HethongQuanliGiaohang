@@ -6,7 +6,7 @@ const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
 const PASSWORD = "123456";
 const EMAIL = "khach6@edms.vn";
 const SHOT_DIR = "tests-e2e/screenshots";
-const LABEL = "E2E Shop Quận 7";
+const LABEL = "E2E Shop Tân Mỹ";
 
 async function restoreLocations() {
   const api = await request.newContext({ baseURL: API_URL });
@@ -41,23 +41,22 @@ test("[US-15] mobile: them dia diem bang goi y quan/huyen, ngoai vung bi chan, d
   await page.getByTestId("pl-contactName").fill("Khách Hàng 6");
   await page.getByTestId("pl-contactPhone").fill("0909666000");
   await page.getByTestId("pl-address").fill("88 Nguyễn Thị Thập");
-  await page.getByTestId("pl-ward").fill("Tân Phú");
-
-  // Quan/huyen ngoai vung phuc vu -> server chan
-  await page.getByTestId("pl-district").fill("Cần Giờ");
   await page.getByTestId("pl-province").fill("TP Hồ Chí Minh");
-  await page.getByTestId("pl-save").click();
-  await expect(page.getByTestId("pl-error")).toContainText("Cần Giờ, TP Hồ Chí Minh chưa thuộc vùng phục vụ");
 
-  // Go "quan 7" -> cham goi y -> tinh/thanh tu dien
-  await page.getByTestId("pl-province").fill("");
-  await page.getByTestId("pl-district").fill("quan 7");
-  await page.getByRole("button", { name: "Chọn Quận 7, TP Hồ Chí Minh" }).click();
-  await expect(page.getByTestId("pl-province")).toHaveValue("TP Hồ Chí Minh");
+  // Phuong cua tinh khac -> bao loi ngay; luu thi server cung chan
+  await page.getByTestId("pl-ward").fill("Phường Ba Đình");
+  await expect(page.getByText('"Phường Ba Đình" không phải xã/phường của TP Hồ Chí Minh — chọn trong gợi ý')).toBeVisible();
+  await page.getByTestId("pl-save").click();
+  await expect(page.getByTestId("pl-error")).toContainText('"Phường Ba Đình" không thuộc TP Hồ Chí Minh');
+
+  // Go "tan my" -> cham goi y
+  await page.getByTestId("pl-ward").fill("tan my");
+  await page.getByRole("button", { name: "Chọn Phường Tân Mỹ" }).click();
+  await expect(page.getByTestId("pl-ward")).toHaveValue("Phường Tân Mỹ");
   await page.getByTestId("pl-save").click();
   await expect(page.getByText(`Đã thêm "${LABEL}"`)).toBeVisible();
   await expect(page.getByTestId("pl-count")).toHaveText("2/10 địa điểm · shipper đến đây lấy hàng");
-  await expect(page.getByText("88 Nguyễn Thị Thập, Tân Phú, Quận 7, TP Hồ Chí Minh")).toBeVisible();
+  await expect(page.getByText("88 Nguyễn Thị Thập, Phường Tân Mỹ, TP Hồ Chí Minh")).toBeVisible();
 
   await page.getByRole("button", { name: `Đặt ${LABEL} làm mặc định` }).click();
   await expect(page.getByText(`"${LABEL}" là địa điểm mặc định`)).toBeVisible();

@@ -8,7 +8,6 @@ const pickupLocationSchema = new mongoose.Schema(
     contactPhone: { type: String, required: true },
     address: { type: String, required: true },
     province: { type: String, required: true },
-    district: { type: String, required: true },
     ward: { type: String, required: true },
     serviceAreaId: { type: mongoose.Schema.Types.ObjectId, ref: "ServiceArea", required: true },
     isDefault: { type: Boolean, default: false },

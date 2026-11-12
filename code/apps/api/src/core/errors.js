@@ -37,6 +37,9 @@ export const ErrorCodes = {
     new AppError("PRICE_NOT_AVAILABLE", message, 422),
   COD_LESS_THAN_FEE: (message = "Tiền thu hộ nhỏ hơn phí vận chuyển, không khấu trừ được") =>
     new AppError("COD_LESS_THAN_FEE", message, 422),
+  // Loai dich vu khong ap dung cho cap noi gui - noi nhan (giao nhanh chi trong cung tinh/thanh)
+  SERVICE_NOT_AVAILABLE: (message = "Loại dịch vụ này không áp dụng cho tuyến gửi này") =>
+    new AppError("SERVICE_NOT_AVAILABLE", message, 422),
 
   // API cong khai bi goi qua nhanh (US-22: tra cuu 20 lan/phut moi IP)
   TOO_MANY_REQUESTS: (message = "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút") =>

@@ -62,7 +62,7 @@ before(async () => {
   const addLocation = async (who, phone) =>
     (await as(who, request(app).post("/pickupLocations")).send({
       label: "Kho nhà", contactName: "Người gửi", contactPhone: phone, address: "1 Xuân Thủy",
-      province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+      province: "Hà Nội", ward: "Phường Cầu Giấy",
     })).body.data;
   location = await addLocation("a", "0909982001");
   const locationB = await addLocation("b", "0909982002");
@@ -70,7 +70,7 @@ before(async () => {
     const res = await as(who, request(app).post("/orders")).send({
       pickupLocationId: pickup._id,
       serviceTypeId: standard._id,
-      receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+      receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
       item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10 },
     });
     assert.equal(res.status, 201, JSON.stringify(res.body));
@@ -190,7 +190,7 @@ test("[US-20] luong nghiep vu: khach tao don -> Chua nhan; kho duyet -> hanh tri
   const created = await as("a", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: standard._id,
-    receiver: { name: "Nhận luồng US-20", phone: "0912345678", address: "9 Lê Lợi", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Thành" },
+    receiver: { name: "Nhận luồng US-20", phone: "0912345678", address: "9 Lê Lợi", province: "TP Hồ Chí Minh", ward: "Phường Bến Thành" },
     item: { name: "Áo", weightGram: 500, length: 20, width: 15, height: 5 },
   });
   assert.equal(created.status, 201);

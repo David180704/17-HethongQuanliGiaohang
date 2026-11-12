@@ -1,6 +1,7 @@
 import { BaseCrudService } from "../../core/BaseCrudService.js";
 import { ErrorCodes } from "../../core/errors.js";
 import { hubValidator } from "./hubs.validator.js";
+import { locateArea } from "../serviceAreas/locateArea.js";
 
 /**
  * Diem tap ket (HUB) va buu cuc (POST_OFFICE) - US-14.
@@ -52,10 +53,10 @@ export class HubService extends BaseCrudService {
     }
     const parentHubId = data.parentHubId !== undefined ? data.parentHubId : current.parentHubId;
     await this.#assertParent({ type, parentHubId }, id);
-    if (data.province !== undefined || data.district !== undefined) {
+    if (data.province !== undefined || data.ward !== undefined) {
       Object.assign(
         data,
-        await this.#locate({ province: data.province ?? current.province, district: data.district ?? current.district }),
+        await this.#locate({ province: data.province ?? current.province, ward: data.ward ?? current.ward }),
       );
     }
   }
@@ -90,14 +91,13 @@ export class HubService extends BaseCrudService {
     }
   }
 
-  // Quan/huyen phai thuoc vung phuc vu; luu lai ten chuan cua tinh/quan theo serviceAreas
-  async #locate({ province, district }) {
-    const area = await this.serviceAreaRepository.findByLocation(province, district);
-    if (!area) {
-      throw ErrorCodes.OUT_OF_SERVICE_AREA(
-        `${district}, ${province} chưa thuộc vùng phục vụ — thêm khu vực phục vụ trước khi mở điểm`,
-      );
-    }
-    return { province: area.province, district: area.district, serviceAreaId: area._id };
+  // Xa/phuong phai co that, thuoc dung tinh va dang phuc vu; luu ten chuan theo serviceAreas
+  async #locate(place) {
+    const area = await locateArea(
+      this.serviceAreaRepository,
+      place,
+      ({ province, ward }) => `${ward}, ${province} chưa thuộc vùng phục vụ — thêm khu vực phục vụ trước khi mở điểm`,
+    );
+    return { province: area.province, ward: area.ward, serviceAreaId: area._id };
   }
 }

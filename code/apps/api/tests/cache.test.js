@@ -4,10 +4,9 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { Route } from "../src/models/Route.js";
-import { ServiceArea } from "../src/models/ServiceArea.js";
 import { getRedis } from "../src/config/redis.js";
 import { CacheService } from "../src/infrastructure/cache/CacheService.js";
 import { MemoryCacheStore } from "../src/infrastructure/cache/MemoryCacheStore.js";
@@ -15,7 +14,9 @@ import { CachedRepository } from "../src/core/CachedRepository.js";
 
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
-const PROVINCE = "Tỉnh Kiểm Thử Cache";
+// Xa/phuong co ten khong trung voi noi nao khac -> tim theo ten ra dung 1 dong
+const AREA = { province: "Lai Châu", ward: "Xã Sin Suối Hồ" };
+const SEARCH = "Sin Suối Hồ";
 
 // ---------- Unit test: khong can MongoDB/Redis ----------
 
@@ -106,12 +107,13 @@ describe("Cache trang cong khai qua HTTP", () => {
   let admin;
   let adminToken;
   let route;
+  let restoreAreas;
 
   before(async () => {
     await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
     await removeLeftovers({ emails: ["cache-admin@edms.vn"] });
     app = createApp();
-    await ServiceArea.deleteMany({ province: PROVINCE });
+    restoreAreas = await suspendAreas([AREA]);
     route = await Route.findOne();
     admin = await User.create({
       email: "cache-admin@edms.vn",
@@ -126,7 +128,7 @@ describe("Cache trang cong khai qua HTTP", () => {
   });
 
   after(async () => {
-    await ServiceArea.deleteMany({ province: PROVINCE });
+    await restoreAreas?.();
     await User.deleteOne({ _id: admin._id });
     await getRedis().quit();
     await mongoose.disconnect();
@@ -142,20 +144,19 @@ describe("Cache trang cong khai qua HTTP", () => {
   });
 
   test("[CACHE] admin them khu vuc -> cache trang cong khai bi xoa ngay (EventBus), khach thay du lieu moi", async () => {
-    const district = `Quận Cache ${Date.now()}`;
-    const before = await request(app).get("/public/service-areas").query({ search: PROVINCE });
+    const before = await request(app).get("/public/service-areas").query({ search: SEARCH });
     assert.equal(before.body.data.length, 0);
-    await request(app).get("/public/service-areas").query({ search: PROVINCE }); // nap cache
+    await request(app).get("/public/service-areas").query({ search: SEARCH }); // nap cache
 
     const created = await request(app)
       .post("/serviceAreas")
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ province: PROVINCE, district, region: "BAC", routeId: String(route._id) });
+      .send({ ...AREA, region: "BAC", routeId: String(route._id) });
     assert.equal(created.status, 201);
 
-    const after = await request(app).get("/public/service-areas").query({ search: PROVINCE });
+    const after = await request(app).get("/public/service-areas").query({ search: SEARCH });
     assert.equal(after.headers["x-cache"], "MISS", "ghi xong phai xoa cache, khong tra ban cu");
     assert.equal(after.body.data.length, 1);
-    assert.equal(after.body.data[0].district, district);
+    assert.equal(after.body.data[0].ward, AREA.ward);
   });
 });

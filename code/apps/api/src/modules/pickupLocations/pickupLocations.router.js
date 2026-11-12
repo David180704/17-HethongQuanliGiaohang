@@ -8,15 +8,14 @@ import { PickupLocationController } from "./PickupLocationController.js";
  *   schemas:
  *     PickupLocationInput:
  *       type: object
- *       required: [label, contactName, contactPhone, address, province, district, ward]
+ *       required: [label, contactName, contactPhone, address, province, ward]
  *       properties:
  *         label: { type: string, example: "Kho Cầu Giấy" }
  *         contactName: { type: string, example: "Nguyễn Văn A" }
  *         contactPhone: { type: string, example: "0909123456" }
  *         address: { type: string, example: "12 Trần Thái Tông" }
  *         province: { type: string, example: "Hà Nội" }
- *         district: { type: string, example: "Cầu Giấy", description: "Phai thuoc vung phuc vu; server tu gan serviceAreaId" }
- *         ward: { type: string, example: "Dịch Vọng" }
+ *         ward: { type: string, example: "Phường Cầu Giấy", description: "Xa/phuong thuoc dung tinh va dang phuc vu; server tu gan serviceAreaId" }
  *         isDefault: { type: boolean }
  * /pickupLocations:
  *   get:

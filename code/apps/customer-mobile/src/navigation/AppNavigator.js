@@ -14,6 +14,7 @@ import PickupLocationsScreen from "../screens/PickupLocationsScreen";
 import EstimateScreen from "../screens/EstimateScreen";
 import OrdersScreen from "../screens/OrdersScreen";
 import OrderDetailScreen from "../screens/OrderDetailScreen";
+import SettlementsScreen from "../screens/SettlementsScreen";
 import TrackingScreen from "../screens/TrackingScreen";
 import { colors } from "../theme";
 
@@ -140,6 +141,9 @@ export default function AppNavigator() {
       />
     );
   }
+  if (top?.name === "settlements" && user) {
+    return <SettlementsScreen onBack={pop} />;
+  }
   if (top?.name === "tracking") {
     return <TrackingScreen key={top.code} initialCode={top.code} onBack={pop} />;
   }
@@ -155,6 +159,7 @@ export default function AppNavigator() {
     onLogout: requestLogout,
     onOpenPickupLocations: () => push({ name: "pickupLocations" }),
     onOpenOrders: () => push({ name: "orders" }),
+    onOpenSettlements: () => push({ name: "settlements" }),
     onTrack: (code) => push({ name: "tracking", code: (code || "").trim().toUpperCase() }),
     onEstimate: () => push({ name: "estimate" }),
   };

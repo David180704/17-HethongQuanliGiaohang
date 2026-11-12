@@ -5,7 +5,7 @@ import { inputClass } from "../lib/ui.js";
 import { Field } from "./AuthShell.jsx";
 import AddressFields from "./AddressFields.jsx";
 
-const EMPTY = { label: "", contactName: "", contactPhone: "", address: "", province: "", district: "", ward: "" };
+const EMPTY = { label: "", contactName: "", contactPhone: "", address: "", province: "", ward: "" };
 
 // Them / sua dia diem lay hang (US-15). Dung o trang "Dia diem lay hang" va buoc 1
 // cua tao don. Server tu xac dinh khu vuc phuc vu; ngoai vung thi bao loi ngay tren form.

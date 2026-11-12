@@ -59,7 +59,7 @@ test.beforeAll(async () => {
       headers: auth("shop3"),
       data: {
         label: "E2E LH Kho Đà Nẵng", contactName: "Chủ Shop 3", contactPhone: "0900000043", address: "12 Bạch Đằng",
-        province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang",
+        province: "Đà Nẵng", ward: "Phường Hải Châu",
       },
     }),
   );
@@ -71,7 +71,7 @@ test.beforeAll(async () => {
         data: {
           pickupLocationId: location._id,
           serviceTypeId: service._id,
-          receiver: { name: `E2E LH Nhận ${i}`, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+          receiver: { name: `E2E LH Nhận ${i}`, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
           item: { name: `Hàng lấy ${i}`, weightGram: 600, length: 20, width: 15, height: 10 },
         },
       }),
@@ -139,7 +139,7 @@ test("[US-28] quy trinh: tai xe quet ma lay don 1, ghi khong lay duoc don 2 -> k
   // 2. Kho thay don 2 o muc "Lay khong duoc", giao lai cho Tai Xe 4 (hen lai)
   page.on("dialog", (dialog) => dialog.accept());
   await login(page, "kho1@edms.vn");
-  await page.getByRole("button", { name: /^Phân công/ }).click();
+  await page.getByRole("button", { name: /^Phân công(?! giao)/ }).click();
   const failed = page.getByTestId(`assign-failed-${o2}`);
   await expect(failed).toContainText("Không lấy được hàng: Hàng chưa sẵn sàng — Shop hẹn 16 giờ");
   await failed.getByRole("button", { name: `Giao lại ${o2}` }).click();

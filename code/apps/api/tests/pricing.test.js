@@ -1,10 +1,10 @@
 // US-17: 10 kich ban tinh phi - ham thuan pricing.js, khong can CSDL.
-// Bang gia dung trong test giong bang gia seed "noi quan" (referenceData.js).
+// Bang gia dung trong test giong bang gia seed "noi xa/phuong" (referenceData.js).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { calcZone, calculate, calcVolumetricWeight } from "../src/modules/pricing/pricing.js";
 
-const INNER_DISTRICT_TABLE = {
+const INNER_WARD_TABLE = {
   weightTiers: [
     { fromGram: 0, toGram: 500, basePrice: 15000, pricePer500g: 3000 },
     { fromGram: 500, toGram: 1000, basePrice: 18000, pricePer500g: 3000 },
@@ -16,26 +16,26 @@ const INNER_DISTRICT_TABLE = {
 const STANDARD = { code: "STANDARD", surchargeRate: 0 };
 const EXPRESS = { code: "EXPRESS", surchargeRate: 0.5 };
 
-const area = (province, district, region) => ({ province, district, region });
-const HOAN_KIEM = area("Hà Nội", "Hoàn Kiếm", "BAC");
+const area = (province, ward, region) => ({ province, ward, region });
+const HOAN_KIEM = area("Hà Nội", "Phường Hoàn Kiếm", "BAC");
 const smallBox = (weightGram, extra = {}) => ({ weightGram, length: 10, width: 10, height: 10, declaredValue: 0, ...extra });
 const quote = (item, { serviceType = STANDARD, flags = {} } = {}) =>
-  calculate({ item, flags, serviceType, priceTable: INNER_DISTRICT_TABLE });
+  calculate({ item, flags, serviceType, priceTable: INNER_WARD_TABLE });
 
-test("[US-17] zone noi quan: cung tinh, cung quan/huyen", () => {
-  assert.equal(calcZone(HOAN_KIEM, area("Hà Nội", "Hoàn Kiếm", "BAC")), "INNER_DISTRICT");
+test("[US-17] zone noi xa/phuong: cung tinh, cung xa/phuong", () => {
+  assert.equal(calcZone(HOAN_KIEM, area("Hà Nội", "Phường Hoàn Kiếm", "BAC")), "INNER_WARD");
 });
 
-test("[US-17] zone noi tinh: cung tinh, khac quan/huyen", () => {
-  assert.equal(calcZone(HOAN_KIEM, area("Hà Nội", "Cầu Giấy", "BAC")), "INNER_PROVINCE");
+test("[US-17] zone noi tinh: cung tinh, khac xa/phuong", () => {
+  assert.equal(calcZone(HOAN_KIEM, area("Hà Nội", "Phường Cầu Giấy", "BAC")), "INNER_PROVINCE");
 });
 
 test("[US-17] zone lien tinh: khac tinh, cung mien", () => {
-  assert.equal(calcZone(HOAN_KIEM, area("Bắc Ninh", "Tiên Du", "BAC")), "INTER_PROVINCE");
+  assert.equal(calcZone(HOAN_KIEM, area("Bắc Ninh", "Xã Tiên Du", "BAC")), "INTER_PROVINCE");
 });
 
 test("[US-17] zone lien mien: khac mien", () => {
-  assert.equal(calcZone(HOAN_KIEM, area("TP Hồ Chí Minh", "Quận 1", "NAM")), "INTER_REGION");
+  assert.equal(calcZone(HOAN_KIEM, area("TP Hồ Chí Minh", "Phường Sài Gòn", "NAM")), "INTER_REGION");
 });
 
 test("[US-17] kien nhe nhung cong kenh: tinh theo khoi luong quy doi", () => {

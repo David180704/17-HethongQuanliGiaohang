@@ -37,10 +37,12 @@ const as = (who, req) => req.set("Authorization", `Bearer ${token[who]}`);
 
 /** Don da duoc tai xe lay (PICKED_UP) - buoc lay hang da kiem o US-28, o day ghi thang trang thai. */
 async function pickedUpOrder(name, serviceType = standard) {
+  // Giao nhanh chi trong cung tinh/thanh (12/11/2026): don nhanh gui trong Ha Noi
+  const to = serviceType.code === "EXPRESS" ? { province: "Hà Nội", ward: "Phường Hoàng Mai" } : { province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" };
   const created = await as("khach", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: serviceType._id,
-    receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+    receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", ...to },
     item: { name: "Tivi 32 inch", weightGram: 6000, length: 80, width: 15, height: 50 },
   });
   assert.equal(created.status, 201, JSON.stringify(created.body));
@@ -72,7 +74,7 @@ before(async () => {
   location = (
     await as("khach", request(app).post("/pickupLocations")).send({
       label: "Kho Cầu Giấy", contactName: "Chủ shop", contactPhone: "0909982802", address: "1 Xuân Thủy",
-      province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+      province: "Hà Nội", ward: "Phường Cầu Giấy",
     })
   ).body.data;
 });

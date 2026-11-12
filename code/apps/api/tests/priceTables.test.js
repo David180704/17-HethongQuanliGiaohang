@@ -25,7 +25,7 @@ let admin;
 let customer;
 let adminToken;
 let customerToken;
-let express;
+let service;
 let seeded;
 
 async function restoreSeeded() {
@@ -38,9 +38,10 @@ before(async () => {
   await removeLeftovers({ emails: ["price-admin@edms.vn", "price-customer@edms.vn"] });
   // Lan chay bi ngat de lai bang gia thu / effectiveTo da sua: don truoc
   await PriceTable.deleteMany({ effectiveFrom: { $gte: TEST_YEAR_FROM } });
-  express = await ServiceType.findOne({ code: "EXPRESS" }).lean();
-  await PriceTable.updateOne({ serviceTypeId: express._id, zone: "INTER_REGION", effectiveTo: TEST_YEAR_FROM }, { effectiveTo: null });
-  seeded = await PriceTable.findOne({ serviceTypeId: express._id, zone: "INTER_REGION" }).sort({ effectiveFrom: 1 }).lean();
+  // Gui nhanh chi trong cung tinh (12/11/2026) -> bang EXPRESS x lien mien khong con don dung; dung STANDARD
+  service = await ServiceType.findOne({ code: "STANDARD" }).lean();
+  await PriceTable.updateOne({ serviceTypeId: service._id, zone: "INTER_REGION", effectiveTo: TEST_YEAR_FROM }, { effectiveTo: null });
+  seeded = await PriceTable.findOne({ serviceTypeId: service._id, zone: "INTER_REGION" }).sort({ effectiveFrom: 1 }).lean();
   app = createApp();
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
@@ -80,7 +81,7 @@ after(async () => {
 
 const asAdmin = (req) => req.set("Authorization", `Bearer ${adminToken}`);
 const body = (effectiveFrom, effectiveTo, weightTiers = TIERS) => ({
-  serviceTypeId: express._id,
+  serviceTypeId: service._id,
   zone: "INTER_REGION",
   weightTiers,
   effectiveFrom,
@@ -117,9 +118,9 @@ test("[US-13] hai bang gia cung dich vu + vung khong trung khoang hieu luc; noi 
   const next = await asAdmin(request(app).post("/priceTables")).send(body("2099-07-01", null));
   assert.equal(next.status, 201, JSON.stringify(next.body));
 
-  const list = await asAdmin(request(app).get("/priceTables")).query({ zone: "INTER_REGION", serviceTypeId: String(express._id) });
+  const list = await asAdmin(request(app).get("/priceTables")).query({ zone: "INTER_REGION", serviceTypeId: String(service._id) });
   assert.equal(list.status, 200);
-  assert.ok(list.body.data.some((item) => item.serviceTypeId?.code === "EXPRESS"), "danh sach kem ten loai dich vu");
+  assert.ok(list.body.data.some((item) => item.serviceTypeId?.code === "STANDARD"), "danh sach kem ten loai dich vu");
 });
 
 test("[US-13] tao bang gia co bac chong lan qua API bi 400, bang gia chua dung thi xoa duoc", async () => {

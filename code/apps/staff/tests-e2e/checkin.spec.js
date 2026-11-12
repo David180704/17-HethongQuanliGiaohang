@@ -53,7 +53,7 @@ test.beforeAll(async () => {
     data: {
       pickupLocationId: location._id,
       serviceTypeId: service._id,
-      receiver: { name: "E2E CI Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+      receiver: { name: "E2E CI Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
       item: { name: "Sách", weightGram: 500, length: 20, width: 15, height: 5 },
     },
   });
@@ -147,6 +147,8 @@ test("[US-29][US-30] quy trinh: admin them diem va gan cho tai xe -> tai xe chi 
     .poll(
       async () => {
         await recipient.goto(`${WEB_URL}/tra-cuu?ma=${order.trackingCode}`);
+        // Doi ket qua tra cuu ve (goi API sau khi trang tai xong) roi moi dem, tranh dem luc trang con trong
+        await recipient.getByRole("region", { name: "Kết quả tra cứu" }).waitFor({ timeout: 10_000 }).catch(() => {});
         return recipient.getByRole("list", { name: "Điểm check-in đã qua" }).getByRole("listitem").count();
       },
       { timeout: 30_000, intervals: [2_000, 3_000] },

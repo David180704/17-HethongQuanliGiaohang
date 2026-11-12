@@ -1,15 +1,14 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { normalizeVnPhone } from "../../core/phone.js";
 
-const TEXT_FIELDS = ["label", "contactName", "address", "province", "district", "ward"];
+const TEXT_FIELDS = ["label", "contactName", "address", "province", "ward"];
 const LABELS = {
   label: "tên gợi nhớ",
   contactName: "người liên hệ",
   contactPhone: "số điện thoại liên hệ",
   address: "địa chỉ",
   province: "tỉnh/thành phố",
-  district: "quận/huyện",
-  ward: "phường/xã",
+  ward: "xã/phường",
 };
 
 const isFilled = (value) => typeof value === "string" && value.trim() !== "";
