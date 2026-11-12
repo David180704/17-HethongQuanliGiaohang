@@ -7,6 +7,8 @@ const settingSchema = new mongoose.Schema(
     _id: { type: String, required: true },
     maxPickupPerShift: { type: Number, min: 1 },
     maxDeliveryPerShift: { type: Number, min: 1 },
+    // _id "delivery": so lan giao toi da truoc khi hoan hang (US-36)
+    maxDeliveryAttempts: { type: Number, min: 1, max: 10 },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true, versionKey: false },

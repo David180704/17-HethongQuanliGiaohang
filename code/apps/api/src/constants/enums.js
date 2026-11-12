@@ -59,6 +59,9 @@ export const ITEM_CATEGORY = ["SMALL_PARCEL", "BAG", "CARTON", "TV", "LAPTOP", "
 // Nguyen nhan khong lay duoc hang (US-28, PB#34)
 export const PICKUP_FAIL_REASON = ["SHOP_UNREACHABLE", "NOT_READY", "WRONG_ADDRESS", "NOT_AS_DESCRIBED", "SHOP_CANCELLED", "OTHER"];
 
+// Nguyen nhan giao khong thanh cong (US-32, PB#40) - de 02: khong lien he duoc, hen giao lai, tu choi, sai dia chi
+export const DELIVERY_FAIL_REASON = ["RECIPIENT_UNREACHABLE", "RESCHEDULE_REQUESTED", "REFUSED", "WRONG_ADDRESS", "RECIPIENT_ABSENT", "OTHER"];
+
 // Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
 export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];
 
