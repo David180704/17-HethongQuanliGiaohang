@@ -1,34 +1,44 @@
 import { BaseRepository } from "../../core/BaseRepository.js";
-import { toSearchRegex } from "../../core/textSearch.js";
 import { ServiceArea } from "../../models/ServiceArea.js";
-
-// Khop TRON ten (khong phai "chua"): "quan 1" khop "Quận 1" nhung khong khop "Quận 10".
-const wholeName = (text) => ({ $regex: `^${toSearchRegex(String(text ?? "").trim())}$`, $options: "i" });
 
 // Mo rong BaseRepository bang truy van rieng cho trang cong khai (Open/Closed:
 // them ham moi, khong sua lop cha).
 export class ServiceAreaRepository extends BaseRepository {
   constructor() {
-    super(ServiceArea, { searchFields: ["province", "district"] });
-  }
-
-  /** Vung phuc vu cho khach vang lai: chi field an toan, khong lo routeId. */
-  searchPublic(search = "") {
-    return this.model
-      .find(this.buildQuery({ search, filters: {} }))
-      .select("province district wards region")
-      .sort({ province: 1, district: 1 })
-      .lean();
+    super(ServiceArea, { searchFields: ["province", "ward"] });
   }
 
   /**
-   * Khu vuc phuc vu cua mot dia chi (tinh + quan/huyen) - dung khi mo diem tap ket,
-   * luu dia diem lay hang, tao don. Khong phan biet hoa thuong, go khong dau van ra
-   * ("ha noi", "hoan kiem"); tra null neu quan/huyen chua phuc vu.
+   * Vung phuc vu cho khach vang lai: chi field an toan, khong lo routeId. Toi da 50 dong - danh sach
+   * day du (3.321 xa/phuong) xem theo tung tinh qua /public/provinces/wards.
    */
-  findByLocation(province, district, { session } = {}) {
+  searchPublic(search = "") {
     return this.model
-      .findOne({ province: wholeName(province), district: wholeName(district) })
+      .find(this.buildQuery({ search, filters: {} }))
+      .select("province ward region")
+      .sort({ province: 1, ward: 1 })
+      .limit(50)
+      .lean();
+  }
+
+  /** So xa/phuong dang phuc vu cua tung tinh: { "Hà Nội": 126, ... }. */
+  async servedCountByProvince() {
+    const rows = await this.model.aggregate([{ $group: { _id: "$province", n: { $sum: 1 } } }]);
+    return Object.fromEntries(rows.map((r) => [r._id, r.n]));
+  }
+
+  /** Ten xa/phuong dang phuc vu trong mot tinh (ten chuan). */
+  async servedWards(province) {
+    return (await this.model.find({ province }).select("ward").lean()).map((a) => a.ward);
+  }
+
+  /**
+   * Khu vuc phuc vu cua mot dia chi da chuan hoa ten (tinh + xa/phuong) - xem locateArea.
+   * Tra null neu xa/phuong co that nhung chua phuc vu.
+   */
+  findByLocation(province, ward, { session } = {}) {
+    return this.model
+      .findOne({ province, ward })
       .session(session ?? null)
       .lean();
   }

@@ -1,15 +1,15 @@
 import { ErrorCodes } from "../../core/errors.js";
-import { sameName } from "../../core/textSearch.js";
+import { locateArea } from "../serviceAreas/locateArea.js";
 import { FINISHED_ORDER_STATUS } from "../../constants/enums.js";
 import { pickupLocationValidator } from "./pickupLocations.validator.js";
 
 export const MAX_PICKUP_LOCATIONS = 10;
-const ADDRESS_FIELDS = ["address", "province", "district", "ward"];
+const ADDRESS_FIELDS = ["address", "province", "ward"];
 
 /**
  * Dia diem lay hang cua khach hang (US-15):
  *   - toi da 10 dia diem dang dung moi khach, luon co dung mot dia diem mac dinh;
- *   - tu xac dinh khu vuc phuc vu tu tinh + quan/huyen, ngoai vung phuc vu thi chan;
+ *   - tu xac dinh khu vuc phuc vu tu tinh + xa/phuong, ngoai vung phuc vu thi chan;
  *   - con don chua hoan tat thi khong xoa, khong doi dia chi (shipper dang toi do).
  * Moi ham nhan customerId tu token: khach khong cham duoc dia diem cua nguoi khac.
  */
@@ -86,16 +86,13 @@ export class PickupLocationService {
     return this.orderRepository.exists({ pickupLocationId, status: { $nin: FINISHED_ORDER_STATUS } });
   }
 
-  // Khu vuc phuc vu tu tinh + quan/huyen; khu vuc co khai bao danh sach phuong/xa
-  // thi phuong/xa cung phai nam trong do. Luu ten chuan theo serviceAreas.
-  async #locate({ province, district, ward }) {
-    const area = await this.serviceAreaRepository.findByLocation(province, district);
-    if (!area) {
-      throw ErrorCodes.OUT_OF_SERVICE_AREA(`${district}, ${province} chưa thuộc vùng phục vụ — Express chưa lấy hàng tại đây`);
-    }
-    if (area.wards?.length && !area.wards.some((name) => sameName(ward, name))) {
-      throw ErrorCodes.OUT_OF_SERVICE_AREA(`${ward} chưa thuộc vùng phục vụ của ${area.district}, ${area.province}`);
-    }
-    return { province: area.province, district: area.district, serviceAreaId: area._id };
+  // Khu vuc phuc vu tu tinh + xa/phuong (xa/phuong phai thuoc dung tinh). Luu ten chuan.
+  async #locate({ province, ward }) {
+    const area = await locateArea(
+      this.serviceAreaRepository,
+      { province, ward },
+      (place) => `${place.ward}, ${place.province} chưa thuộc vùng phục vụ — Express chưa lấy hàng tại đây`,
+    );
+    return { province: area.province, ward: area.ward, serviceAreaId: area._id };
   }
 }

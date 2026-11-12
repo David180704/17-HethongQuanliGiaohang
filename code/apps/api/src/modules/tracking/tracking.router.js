@@ -15,7 +15,7 @@ import { TrackingController } from "./TrackingController.js";
  *       Gioi han 20 lan/phut cho moi IP (header X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After).
  *     parameters: [{ in: path, name: code, required: true, schema: { type: string, example: "EXP1000000001" } }]
  *     responses:
- *       200: { description: "trackingCode, status, statusLabel, group, groupLabel, serviceName, sender { name, ward }, receiver { phone, district, province }, events [{ at, status, label }]" }
+ *       200: { description: "trackingCode, status, statusLabel, group, groupLabel, serviceName, sender { name, ward }, receiver { phone, ward, province }, events [{ at, status, label }]" }
  *       400: { description: Ma van don sai dinh dang (EXP + 10 chu so) }
  *       404: { description: Khong co don voi ma nay }
  *       429: { description: "TOO_MANY_REQUESTS - qua 20 lan/phut" }

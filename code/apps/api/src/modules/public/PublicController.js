@@ -20,5 +20,12 @@ export class PublicController {
     return sendCached(res, await this.service.listServiceAreas({ search }));
   };
 
+  provinces = async (req, res) => sendCached(res, await this.service.listProvinces());
+
+  wards = async (req, res) => {
+    const province = typeof req.query.province === "string" ? req.query.province.trim() : "";
+    return sendCached(res, await this.service.listWards(province));
+  };
+
   priceTables = async (req, res) => sendCached(res, await this.service.listActivePriceTables());
 }

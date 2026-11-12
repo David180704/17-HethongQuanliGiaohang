@@ -456,7 +456,7 @@ export class AssignmentService {
     );
     const locations = await this.pickupLocationRepository.findMany(
       { _id: { $in: orders.map((o) => o.pickupLocationId) } },
-      { select: "contactName contactPhone address ward district province" },
+      { select: "contactName contactPhone address ward province" },
     );
     const locationById = new Map(locations.map((l) => [String(l._id), l]));
     const orderById = new Map(orders.map((o) => [String(o._id), o]));
@@ -475,7 +475,7 @@ export class AssignmentService {
           status: o.status,
           customerName: o.customerName,
           pickup: loc
-            ? { contactName: loc.contactName, contactPhone: loc.contactPhone, address: [loc.address, loc.ward, loc.district, loc.province].filter(Boolean).join(", ") }
+            ? { contactName: loc.contactName, contactPhone: loc.contactPhone, address: [loc.address, loc.ward, loc.province].filter(Boolean).join(", ") }
             : { address: o.pickupWard },
           item: { name: o.item?.name, weightGram: o.item?.weightGram },
           cod: o.cod?.enabled ? o.cod.amount : 0,

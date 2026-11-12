@@ -332,7 +332,7 @@ const COLLECTIONS = [
           "name",
           "type",
           "province",
-          "district",
+          "ward",
           "_id"
         ],
         "properties": {
@@ -364,7 +364,7 @@ const COLLECTIONS = [
           "province": {
             "bsonType": "string"
           },
-          "district": {
+          "ward": {
             "bsonType": "string"
           },
           "serviceAreaId": {
@@ -569,7 +569,6 @@ const COLLECTIONS = [
               "phone",
               "address",
               "province",
-              "district",
               "ward"
             ],
             "properties": {
@@ -583,9 +582,6 @@ const COLLECTIONS = [
                 "bsonType": "string"
               },
               "province": {
-                "bsonType": "string"
-              },
-              "district": {
                 "bsonType": "string"
               },
               "ward": {
@@ -686,10 +682,16 @@ const COLLECTIONS = [
           "zone": {
             "bsonType": "string",
             "enum": [
-              "INNER_DISTRICT",
+              "INNER_WARD",
               "INNER_PROVINCE",
               "INTER_PROVINCE",
               "INTER_REGION"
+            ]
+          },
+          "distanceKm": {
+            "bsonType": [
+              "number",
+              "null"
             ]
           },
           "chargeableWeight": {
@@ -990,7 +992,6 @@ const COLLECTIONS = [
           "contactPhone",
           "address",
           "province",
-          "district",
           "ward",
           "serviceAreaId",
           "_id"
@@ -1012,9 +1013,6 @@ const COLLECTIONS = [
             "bsonType": "string"
           },
           "province": {
-            "bsonType": "string"
-          },
-          "district": {
             "bsonType": "string"
           },
           "ward": {
@@ -1075,7 +1073,7 @@ const COLLECTIONS = [
           "zone": {
             "bsonType": "string",
             "enum": [
-              "INNER_DISTRICT",
+              "INNER_WARD",
               "INNER_PROVINCE",
               "INTER_PROVINCE",
               "INTER_REGION"
@@ -1272,13 +1270,13 @@ const COLLECTIONS = [
   {
     // ---------------- serviceareas (model ServiceArea) ----------------
     name: "serviceareas",
-    indexes: [[{"province":1,"district":1},{"unique":true}]],
+    indexes: [[{"province":1,"ward":1},{"unique":true}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
         "required": [
           "province",
-          "district",
+          "ward",
           "region",
           "routeId",
           "_id"
@@ -1287,17 +1285,8 @@ const COLLECTIONS = [
           "province": {
             "bsonType": "string"
           },
-          "district": {
+          "ward": {
             "bsonType": "string"
-          },
-          "wards": {
-            "bsonType": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "bsonType": "string"
-            }
           },
           "region": {
             "bsonType": "string",

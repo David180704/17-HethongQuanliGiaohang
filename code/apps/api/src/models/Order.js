@@ -17,7 +17,6 @@ const receiverSchema = new mongoose.Schema(
     phone: { type: String, required: true },
     address: { type: String, required: true },
     province: { type: String, required: true },
-    district: { type: String, required: true },
     ward: { type: String, required: true },
   },
   { _id: false },
@@ -136,6 +135,8 @@ const orderSchema = new mongoose.Schema(
     serviceName: { type: String, required: true },
 
     zone: { type: String, enum: ZONE, required: true },
+    // Khoang cach noi gui - noi nhan luc tao don (km, duong chim bay giua tam hai xa/phuong)
+    distanceKm: { type: Number, default: null },
     chargeableWeight: { type: Number, required: true },
     // Bang gia da dung de tinh phi (doi chieu "phi khop bang gia dang hieu luc")
     priceTableId: { type: mongoose.Schema.Types.ObjectId, ref: "PriceTable", default: null },
