@@ -59,7 +59,7 @@ test.beforeAll(async () => {
       headers: auth("shop3"),
       data: {
         label: "E2E LH Kho Đà Nẵng", contactName: "Chủ Shop 3", contactPhone: "0900000043", address: "12 Bạch Đằng",
-        province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang",
+        province: "Đà Nẵng", ward: "Phường Hải Châu",
       },
     }),
   );
@@ -71,7 +71,7 @@ test.beforeAll(async () => {
         data: {
           pickupLocationId: location._id,
           serviceTypeId: service._id,
-          receiver: { name: `E2E LH Nhận ${i}`, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+          receiver: { name: `E2E LH Nhận ${i}`, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
           item: { name: `Hàng lấy ${i}`, weightGram: 600, length: 20, width: 15, height: 10 },
         },
       }),

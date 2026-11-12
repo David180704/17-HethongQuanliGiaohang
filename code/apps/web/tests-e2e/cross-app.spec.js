@@ -53,7 +53,7 @@ test("admin them vung phuc vu tren App Nhan vien -> khach thay tren Web trong vo
   await staff.getByRole("button", { name: "+ Thêm mới" }).click();
   await staff.getByLabel("Tỉnh/Thành phố", { exact: true }).fill("cao bang"); // go khong dau, luu ten chuan
   await staff.getByLabel("Xã/Phường", { exact: true }).fill("nung tri cao");
-  await staff.getByRole("radio", { name: "Miền Bắc" }).click();
+  await staff.getByRole("radio", { name: "Miền Bắc", exact: true }).click();
   await staff.getByRole("radio", { name: /R-HN-LIEN/ }).click();
   await staff.getByRole("button", { name: "Lưu", exact: true }).click();
   await expect(staff.getByText("Đã thêm mới")).toBeVisible();
