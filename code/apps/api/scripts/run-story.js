@@ -40,7 +40,10 @@ if (files.length === 0) {
 }
 
 console.log(`Chay test cua: ${tags.join(", ")}  (file: ${files.map((f) => path.basename(f)).join(", ")})\n`);
-const result = spawnSync(process.execPath, ["--test", "--test-name-pattern", `\\[(${tags.join("|")})\\]`, ...files], {
+// Chay tuan tu tung file (giong npm test): nhieu file cung tao don / doi bang gia, chay
+// song song thi so lieu kiem tra (bo dem ma van don...) bi file khac chen vao.
+const pattern = `\\[(${tags.join("|")})\\]`;
+const result = spawnSync(process.execPath, ["--test", "--test-concurrency=1", "--test-name-pattern", pattern, ...files], {
   stdio: "inherit",
   cwd: apiRoot,
 });

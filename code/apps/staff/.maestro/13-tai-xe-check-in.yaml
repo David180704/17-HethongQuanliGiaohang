@@ -1,0 +1,46 @@
+appId: host.exp.exponent
+name: "[US-30] Tai xe o diem check-in dang ky (Hub Ha Noi) thi tu check-in; toa do noi khac bi tu choi"
+tags:
+  - sprint5
+---
+# Moc check-in cung diem + cung don trong 30 phut khong ghi trung, nen chay lai flow khong lam phinh du lieu.
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: taixe1@edms.vn
+- scrollUntilVisible:
+    element: "Vị trí & check-in.*"
+    direction: DOWN
+- tapOn: "Vị trí & check-in.*"
+- extendedWaitUntil:
+    visible:
+      id: "chk-position"
+    timeout: 20000
+# Cuon toi chinh nut (nhan tro nang "Dang o CP-HN-HUB"), khong chi toi mep the diem
+- scrollUntilVisible:
+    element: "Đang ở CP-HN-HUB"
+    direction: DOWN
+- tapOn: "Đang ở CP-HN-HUB"
+- scrollUntilVisible:
+    element:
+      id: "chk-last"
+    direction: UP
+- extendedWaitUntil:
+    visible: ".*Tự check-in: Hub Hà Nội \\(0 m\\) — ghi \\d+ mốc.*"
+    timeout: 15000
+- assertVisible: "21.02850, 105.85420 · Hub Hà Nội"
+- takeScreenshot: 13-tai-xe-check-in
+# Toa do xa moi diem -> chua trong ban kinh
+- tapOn:
+    id: "chk-lat"
+- inputText: "21.5"
+- tapOn:
+    id: "chk-lng"
+- inputText: "105.5"
+- hideKeyboard
+- tapOn:
+    id: "chk-set"
+- extendedWaitUntil:
+    # Tu 12/11/2026: ngoai ban kinh diem dang ky thi server tu choi (moi tai xe mot diem hop le)
+    visible: ".*chỉ check-in tại điểm đã đăng ký.*"
+    timeout: 15000

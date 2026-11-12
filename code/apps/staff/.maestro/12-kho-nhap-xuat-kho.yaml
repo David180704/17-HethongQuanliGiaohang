@@ -1,0 +1,35 @@
+appId: host.exp.exponent
+name: "[US-41] Kho mo Nhap / xuat kho, xem ton kho, cham don sap toi thay buoc tiep theo"
+tags:
+  - sprint5
+---
+# Chi doc (khong bam nut chuyen trang thai): khong lam doi du lieu seed. Thao tac nhap / phan loai / xuat kho
+# da kiem bang Playwright (tests-e2e/warehouse.spec.js).
+- runFlow:
+    file: subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+- scrollUntilVisible:
+    element: "Nhập / xuất kho.*"
+    direction: DOWN
+- tapOn: "Nhập / xuất kho.*"
+- extendedWaitUntil:
+    visible:
+      id: "wh-counts"
+    timeout: 20000
+- assertVisible: "Đã nhập: \\d+ · Đã phân loại: \\d+ · Đến kho giao: \\d+ · Sắp tới: \\d+"
+- takeScreenshot: 12-kho-ton-kho
+- scrollUntilVisible:
+    element: "Nhận vào kho"
+    direction: DOWN
+- tapOn:
+    text: "Nhận vào kho"
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: "wh-result"
+    direction: UP
+- assertVisible:
+    id: "wh-action"
+- assertVisible: "Kho lấy: .* · Kho giao: .*"
+- takeScreenshot: 12-kho-quet-ma

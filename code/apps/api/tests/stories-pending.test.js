@@ -1,57 +1,40 @@
-// Story Sprint 3-5 CHUA CO CODE (tinh den 28/10/2026). Moi dong la mot tieu chi
-// chap nhan, lay tu Sprint Backlog (cot Notes), Sprint Planning 3 va CLAUDE.md muc 5.
-// npm test in ra "todo N" = so tieu chi con no. Lam xong story nao thi doi
-// test.todo(...) thanh test that cua story do (giu nguyen nhan [US-xx]).
+// Story Sprint 4-7 CHUA CO CODE (ke hoach lap lai 05/11/2026, docs/PERT_ToanDuAn.docx). Moi dong la
+// mot tieu chi chap nhan, lay tu Sprint Backlog (cot Notes), Product Backlog va bang doi chieu hai de
+// (docs/DoiChieuCaseStudy_MoRong.md). npm test in ra "todo N" = so tieu chi con no. Lam xong story nao
+// thi doi test.todo(...) thanh test that cua story do (giu nguyen nhan [US-xx]).
 import { test } from "node:test";
 
 const pending = {
-  // ---------- Sprint 3 ----------
-  "US-14": ["CRUD diem tap ket va buu cuc, moi diem gan voi mot khu vuc phuc vu"],
-  "US-15": [
-    "Khach quan ly dia diem lay hang, toi da 10 dia diem",
-    "Tu xac dinh khu vuc phuc vu tu quan/huyen, chan dia diem ngoai vung phuc vu",
-    "Chan xoa dia diem con don chua hoan tat",
+  // ---------- Sprint 4 (06/11 - 01/12/2026): da xong het ----------
+  // ---------- Sprint 5 (02/12 - 18/12/2026): da xong het ----------
+  // ---------- Sprint 6 (21/12/2026 - 11/01/2027) ----------
+  "US-35": [
+    "Tu dong phan cong don giao khi don den AT_DEST_HUB, cung thuat toan chieu lay hang",
+    "Don gui nhanh giao rieng, duoc phan cong truoc don gui thuong (de 14)",
   ],
-  "US-16": [
-    "POST /orders/estimate-fee cong khai (khong can dang nhap)",
-    "orderDrafts TTL 24 gio + draftToken giu du lieu da nhap qua buoc dang ky",
+  "US-31": [
+    "Danh sach don can giao loc theo nguoi giao hang va ca hien tai",
+    "Phieu giao hang in duoc (dia chi, phuong/xa, so dien thoai) co ma QR chua ma van don (PB#18, de 14)",
   ],
-  "US-17": [
-    "pricingService.calculate(): khoi luong quy doi, tra 4 zone, phu phi dich vu va hang dac biet (10 unit test)",
-    "Khoa phi vao don khi CONFIRMED - bang gia doi ve sau khong lam doi phi don cu",
+  "US-32": [
+    "Xac nhan giao thanh cong: ghi GPS, chuyen DELIVERED, khong doi trang thai duoc nua",
+    "Giao that bai: bat buoc chon nguyen nhan, tang so lan giao (PB#40)",
   ],
-  "US-18": [
-    "Tao don trong transaction (orders + orderDrafts + counter)",
-    "Ma van don EXP + 10 chu so sinh bang counter tang dan trong cung transaction",
-    "Chi nhan don khi ca noi gui va noi nhan thuoc vung phuc vu",
-  ],
-  "US-19": [
-    "3 hinh thuc tra phi: SHOP_PREPAID (QR/tien mat), RECIPIENT_PAID, DEDUCT_FROM_COD",
-    "COD > 0 khi bat, toi da 20.000.000 dong",
-    "Chan luu khi DEDUCT_FROM_COD ma tien thu ho nho hon phi",
-  ],
-  // ---------- Sprint 4 ----------
-  "US-20": ["Xem chi tiet don kem toan bo hanh trinh (statusHistory nhung trong don)"],
-  "US-21": ["BullMQ topic order.status.changed, consumer ghi hanh trinh, co retry va dead-letter queue"],
-  "US-22": [
-    "GET /tracking/:code cong khai, gom 18 trang thai thanh 4 nhom cho khach",
-    "Che so dien thoai dang 09xx xxx 123, gioi han 20 request/phut/IP",
-  ],
-  "US-23": ["Quan ly ca lam viec, gan nguoi giao hang vao tuyen theo tung ca"],
-  "US-24": ["Nang luc toi da 3 cap uu tien: nhan vien -> tuyen -> mac dinh he thong"],
-  "US-25": [
-    "Tu dong phan cong don lay hang theo tuyen, chon nguoi it don nhat chua day nang luc",
-    "Transaction chong vuot nang luc khi nhieu don gan cung luc; het cho -> hang cho UNASSIGNED",
-  ],
-  "US-27": ["Danh sach don can lay loc theo nguoi giao hang va ca hien tai"],
-  // ---------- Sprint 5 (dang chay: 26/10 - 06/11/2026) ----------
-  "US-28": ["Xac nhan da lay hang: quet ma van don, ghi toa do GPS va thoi gian"],
-  "US-29": ["Quan ly diem check-in tren ban do: toa do + ban kinh mac dinh 150m"],
-  "US-30": ["Tu dong check-in khi di qua diem, chan trung 30 phut, xep hang doi khi mat mang"],
-  "US-31": ["Danh sach don can giao loc theo nguoi giao hang va ca hien tai"],
-  "US-32": ["Xac nhan giao thanh cong: ghi GPS, chuyen DELIVERED, khong doi trang thai duoc nua"],
   "US-33": ["Ghi nhan thu COD tien mat hoac chuyen khoan, cung transaction voi chuyen DELIVERED"],
+  "US-36": ["Chinh sach giao lai: mac dinh toi da 3 lan giao, vuot qua thi don chuyen RETURNING"],
+  "US-37": ["Hoan hang: phan cong theo tuyen (Assignment.type = RETURN), ket thuc RETURNED khi shop xac nhan"],
+  // ---------- Sprint 7 (12/01 - 02/02/2027) ----------
+  "US-44": [
+    "Gui nhanh bat buoc nguoi gui tra truoc bang chuyen khoan; ma QR dong theo chuan VietQR dung so tien va noi dung",
+    "Nhan vien xac nhan da nhan tien: don ghi feePaid va feePaidAt",
+  ],
   "US-34": ["Tao ky doi soat trong transaction, moi don chi thuoc dung mot ky, netPayable dung cong thuc"],
+  "US-43": [
+    "Shop xem ky doi soat, chi tiet tung don va khoan dieu chinh (PB#21, #75, #76)",
+    "Ghi nhan da chi tra vao tai khoan ngan hang da khai bao, ky doi soat chuyen hoan tat",
+  ],
+  "US-38": ["Ghi nhan su co/khieu nai o moi thoi diem trong vong doi don, don chuyen INCIDENT, theo doi xu ly va ket qua"],
+  "US-39": ["Thong ke don theo trang thai, shop, tuyen, nang suat nhan vien, doanh thu, thu ho bang aggregation pipeline"],
 };
 
 for (const [story, criteria] of Object.entries(pending)) {

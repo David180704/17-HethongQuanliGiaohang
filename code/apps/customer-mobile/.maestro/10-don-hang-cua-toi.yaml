@@ -1,0 +1,64 @@
+appId: host.exp.exponent
+name: "[US-20] Shop xem don hang cua toi, loc nhom Da giao, mo chi tiet thay hanh trinh"
+tags:
+  - sprint4
+---
+# shop1 (seed) co 5 don nhom "Da giao" (4 DELIVERED + 1 RETURNED). Cac bo test khac chi tao don CREATED
+# cho shop1 nen so nay khong doi.
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-login"
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: shop1@edms.vn
+- extendedWaitUntil:
+    visible: "Tài khoản của tôi"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "account-orders"
+    direction: DOWN
+- tapOn:
+    id: "account-orders"
+- extendedWaitUntil:
+    visible:
+      id: "orders-total"
+    timeout: 20000
+- assertVisible: "Đơn hàng của tôi"
+- takeScreenshot: c16-don-hang-cua-toi
+
+# Lan cham dau co the roi vao luc danh sach dang tai lan dau -> cham lai toi da 3 lan
+- retry:
+    maxRetries: 3
+    commands:
+      - extendedWaitUntil:
+          visible: "\\d+ đơn"
+          timeout: 15000
+      # Bam theo nhan (content-desc "Đã giao") - chip tren cung, truoc cac the don co nhan cung ten
+      - tapOn:
+          text: "Đã giao"
+          index: 0
+      - extendedWaitUntil:
+          visible: "5 đơn"
+          timeout: 8000
+- assertVisible: "Giao thành công"
+- takeScreenshot: c17-loc-da-giao
+
+# Mo don dau tien: hanh trinh, moc moi nhat o tren
+- tapOn:
+    text: "EXP\\d{10}"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "order-journey"
+    timeout: 15000
+- assertVisible:
+    id: "journey-0"
+- assertVisible: "Hành trình"
+- takeScreenshot: c18-chi-tiet-don
+- tapOn:
+    id: "back-button"
+- extendedWaitUntil:
+    visible: "5 đơn"
+    timeout: 10000

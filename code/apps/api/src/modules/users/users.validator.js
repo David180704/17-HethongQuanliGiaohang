@@ -32,6 +32,7 @@ const UPDATABLE_FIELDS = [
   "maxPickupPerShift",
   "maxDeliveryPerShift",
   "bankAccount",
+  "checkinPointId",
   "email",
   "phone",
 ];
@@ -66,6 +67,7 @@ export const userValidator = {
       if (body.routeIds) sanitized.routeIds = body.routeIds;
       if (body.maxPickupPerShift != null) sanitized.maxPickupPerShift = body.maxPickupPerShift;
       if (body.maxDeliveryPerShift != null) sanitized.maxDeliveryPerShift = body.maxDeliveryPerShift;
+      if (body.checkinPointId) sanitized.checkinPointId = body.checkinPointId;
     }
     if (body.bankAccount) sanitized.bankAccount = body.bankAccount;
 
@@ -84,6 +86,7 @@ export const userValidator = {
       throw ErrorCodes.VALIDATION_ERROR("status không hợp lệ");
     }
     if (typeof sanitized.email === "string") sanitized.email = sanitized.email.toLowerCase();
+    if (sanitized.checkinPointId === "") sanitized.checkinPointId = null;
     if (isFilled(body.password)) sanitized.password = body.password;
     return sanitized;
   },

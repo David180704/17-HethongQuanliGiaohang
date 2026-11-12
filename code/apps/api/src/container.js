@@ -6,14 +6,13 @@
 //   HTTP -> Router (Factory) -> Controller -> Service (Template Method)
 //        -> CachedRepository (Decorator) -> Repository -> MongoDB
 //   Service --phat su kien--> EventBus (Observer) --> xoa cache lien quan
+//   OrderService --order.status.changed--> hang doi BullMQ --> consumer (hanh trinh cong khai, ...)
 import { env } from "./config/env.js";
 import { getRedis } from "./config/redis.js";
 import { Role } from "./models/Role.js";
-import { Route } from "./models/Route.js";
 import { EventBus } from "./core/EventBus.js";
 import { BaseRepository } from "./core/BaseRepository.js";
 import { CachedRepository } from "./core/CachedRepository.js";
-import { BaseCrudService } from "./core/BaseCrudService.js";
 import { CacheService } from "./infrastructure/cache/CacheService.js";
 import { RedisCacheStore } from "./infrastructure/cache/RedisCacheStore.js";
 import { MemoryCacheStore } from "./infrastructure/cache/MemoryCacheStore.js";
@@ -21,19 +20,45 @@ import { BcryptPasswordHasher } from "./infrastructure/security/BcryptPasswordHa
 import { RefreshTokenStore } from "./infrastructure/security/RefreshTokenStore.js";
 import { JwtTokenService } from "./infrastructure/security/JwtTokenService.js";
 import { LoginThrottle } from "./infrastructure/security/LoginThrottle.js";
+import { RateLimiter } from "./infrastructure/security/RateLimiter.js";
 import { MailService } from "./infrastructure/mail/MailService.js";
 import { createAuthMiddleware } from "./middleware/auth.js";
 import { createRequirePermission } from "./middleware/rbac.js";
+import { createRateLimit } from "./middleware/rateLimit.js";
 import { UserRepository } from "./modules/users/UserRepository.js";
 import { UserService } from "./modules/users/UserService.js";
-import { routeValidator } from "./modules/routes/routes.validator.js";
+import { RouteService } from "./modules/routes/RouteService.js";
+import { RouteRepository } from "./modules/routes/RouteRepository.js";
+import { ShiftRepository } from "./modules/shifts/ShiftRepository.js";
+import { ShiftService } from "./modules/shifts/ShiftService.js";
+import { CapacityService } from "./modules/capacity/CapacityService.js";
+import { SettingRepository } from "./modules/capacity/SettingRepository.js";
+import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
+import { AssignmentService } from "./modules/assignments/AssignmentService.js";
+import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
+import { CheckinPointRepository, CheckinLogRepository } from "./modules/checkins/CheckinRepositories.js";
+import { CheckinPointService } from "./modules/checkins/CheckinPointService.js";
+import { CheckinService } from "./modules/checkins/CheckinService.js";
+import { ProfileService } from "./modules/profile/ProfileService.js";
+import { HubRepository } from "./modules/hubs/HubRepository.js";
+import { HubService } from "./modules/hubs/HubService.js";
+import { PickupLocationRepository } from "./modules/pickupLocations/PickupLocationRepository.js";
+import { PickupLocationService } from "./modules/pickupLocations/PickupLocationService.js";
+import { PricingService } from "./modules/pricing/PricingService.js";
+import { OrderDraftRepository } from "./modules/orderDrafts/OrderDraftRepository.js";
+import { OrderDraftService } from "./modules/orderDrafts/OrderDraftService.js";
+import { OrderRepository } from "./modules/orders/OrderRepository.js";
+import { CounterRepository } from "./modules/orders/CounterRepository.js";
+import { OrderService } from "./modules/orders/OrderService.js";
+import { MongooseTransactionRunner } from "./infrastructure/db/MongooseTransactionRunner.js";
+import { BullEventQueue, workerConnectionFromUrl } from "./infrastructure/queue/BullEventQueue.js";
+import { JourneyService } from "./modules/orders/JourneyService.js";
 import { ServiceAreaRepository } from "./modules/serviceAreas/ServiceAreaRepository.js";
 import { ServiceAreaService } from "./modules/serviceAreas/ServiceAreaService.js";
 import { ServiceTypeRepository } from "./modules/serviceTypes/ServiceTypeRepository.js";
 import { ServiceTypeService } from "./modules/serviceTypes/ServiceTypeService.js";
 import { PriceTableRepository } from "./modules/priceTables/PriceTableRepository.js";
 import { PriceTableService } from "./modules/priceTables/PriceTableService.js";
-import { Order } from "./models/Order.js";
 import { PublicCatalogService } from "./modules/public/PublicCatalogService.js";
 import { PermissionService } from "./modules/rbac/PermissionService.js";
 import { AuthService } from "./modules/auth/AuthService.js";
@@ -68,27 +93,44 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   // ---- Repository: ban doc thang DB + ban co cache (Decorator) cho man hinh quan tri ----
   const withCache = (repository, scope) => new CachedRepository(repository, { cache, scope });
   const userRepository = new UserRepository();
-  const routeRepository = new BaseRepository(Route, { searchFields: ["code", "name"] });
+  const routeRepository = new RouteRepository();
+  const hubRepository = new HubRepository();
   const serviceAreaRepository = new ServiceAreaRepository();
   const serviceTypeRepository = new ServiceTypeRepository();
   const priceTableRepository = new PriceTableRepository();
   const roleRepository = new BaseRepository(Role);
-  const orderRepository = new BaseRepository(Order);
+  const orderRepository = new OrderRepository();
+  const pickupLocationRepository = new PickupLocationRepository();
+  const checkinPointRepository = new CheckinPointRepository();
 
   // ---- Service ----
   const permissionService = new PermissionService({ roleRepository, cache });
   // Dang nhap dung repository KHONG cache: vua bi khoa la phai chan ngay.
   const authService = new AuthService({ userRepository, passwordHasher, tokenService, loginThrottle, mailService });
   const services = {
-    users: new UserService({ repository: withCache(userRepository, "users"), passwordHasher, events }),
-    routes: new BaseCrudService({
-      resource: "routes",
-      repository: withCache(routeRepository, "routes"),
-      validator: routeValidator,
+    users: new UserService({
+      repository: withCache(userRepository, "users"),
+      passwordHasher,
       events,
-      filterFields: ["hubId", "isActive"],
+      hubRepository,
+      routeRepository,
+      checkinPointRepository,
     }),
-    serviceAreas: new ServiceAreaService({ repository: withCache(serviceAreaRepository, "serviceAreas"), events }),
+    hubs: new HubService({
+      repository: withCache(hubRepository, "hubs"),
+      hubRepository,
+      serviceAreaRepository,
+      routeRepository,
+      userRepository,
+      events,
+    }),
+    routes: new RouteService({ repository: withCache(routeRepository, "routes"), hubRepository, events }),
+    serviceAreas: new ServiceAreaService({
+      repository: withCache(serviceAreaRepository, "serviceAreas"),
+      hubRepository,
+      pickupLocationRepository,
+      events,
+    }),
     serviceTypes: new ServiceTypeService({
       repository: withCache(serviceTypeRepository, "serviceTypes"),
       priceTableRepository,
@@ -102,6 +144,103 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
       events,
     }),
   };
+  // Dia diem lay hang cua tung khach: khong cache (du lieu rieng, rang buoc can so moi nhat)
+  services.pickupLocations = new PickupLocationService({
+    repository: pickupLocationRepository,
+    serviceAreaRepository,
+    orderRepository,
+  });
+  // Tinh phi va nhap don: doc thang DB (phi theo bang gia moi nhat, nhap la du lieu rieng)
+  const pricingService = new PricingService({ serviceTypeRepository, priceTableRepository, serviceAreaRepository });
+  const orderDraftRepository = new OrderDraftRepository();
+  const orderDraftService = new OrderDraftService({ repository: orderDraftRepository });
+  // US-21: hang doi su kien ben vung (BullMQ) - khac EventBus o tren (chi trong mot tien trinh)
+  const orderEvents = new BullEventQueue({
+    connection: redis,
+    workerConnection: workerConnectionFromUrl(env.redisUrl),
+    name: env.orderEvents.queueName,
+    attempts: env.orderEvents.attempts,
+    backoffMs: env.orderEvents.backoffMs,
+  });
+  // Hanh trinh cong khai kem cac moc check-in (US-30); checkinService tao ben duoi
+  const journeyService = new JourneyService({ orderRepository, redis, checkinsOf: (orderId) => checkinService.forOrder(orderId) });
+  // Consumer: moi loai su kien mot handler; handler goi lan luot cac consumer (dat ben duoi khi da tao
+  // xong service). Moi consumer idempotent vi BullMQ co the chay lai job.
+  const orderEventHandlers = {
+    "order.status.changed": async (event) => {
+      await journeyService.project(event);
+      await assignmentService.onOrderStatusChanged(event);
+    },
+    "order.checkin.recorded": (event) => journeyService.project(event),
+  };
+  const orderService = new OrderService({
+    orderRepository,
+    counterRepository: new CounterRepository(),
+    orderDraftRepository,
+    pickupLocationRepository,
+    serviceAreaRepository,
+    routeRepository,
+    hubRepository,
+    userRepository,
+    pricingService,
+    transactions: new MongooseTransactionRunner(),
+    orderEvents,
+    passwordHasher,
+  });
+  // US-23: ca lam viec - doc tuyen / nguoi giao hang KHONG cache (rang buoc can so moi nhat)
+  const shiftRepository = new ShiftRepository();
+  const shiftService = new ShiftService({
+    shiftRepository,
+    routeRepository,
+    userRepository,
+    hubRepository,
+  });
+  // US-24: nang luc 3 cap (nguoi giao hang -> tuyen -> mac dinh he thong)
+  const capacityService = new CapacityService({
+    settingRepository: new SettingRepository(),
+    routeRepository,
+    userRepository,
+    hubRepository,
+    cache,
+  });
+  // US-25, US-27: phan cong lay hang (consumer thu hai cua order.status.changed) va don can lay cua tai xe
+  const assignmentService = new AssignmentService({
+    assignmentRepository: new AssignmentRepository(),
+    shiftRepository,
+    orderRepository,
+    routeRepository,
+    userRepository,
+    hubRepository,
+    pickupLocationRepository,
+    serviceAreaRepository,
+    serviceTypeRepository,
+    capacityService,
+    transactions: new MongooseTransactionRunner(),
+    orderEvents,
+  });
+  // US-29, US-30: diem check-in (danh muc admin) va check-in vi tri cua tai xe
+  services.checkinPoints = new CheckinPointService({
+    repository: withCache(checkinPointRepository, "checkinPoints"),
+    hubRepository,
+    events,
+  });
+  const checkinService = new CheckinService({
+    checkinPointRepository,
+    checkinLogRepository: new CheckinLogRepository(),
+    orderRepository,
+    userRepository,
+    orderEvents,
+  });
+  // US-41: quy trinh tai kho (nhap kho, phan loai, xuat kho) - doc thang DB
+  const warehouseService = new WarehouseService({
+    orderRepository,
+    userRepository,
+    hubRepository,
+    serviceAreaRepository,
+    routeRepository,
+    serviceTypeRepository,
+    orderEvents,
+  });
   const publicCatalogService = new PublicCatalogService({
     serviceTypeRepository,
     serviceAreaRepository,
@@ -112,8 +251,10 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
   // ---- Observer: danh muc doi -> xoa cache trang cong khai phu thuoc ----
   events.on("catalog.changed", ({ resource }) => cache.invalidate(...(DEPENDENT_CACHE_SCOPES[resource] || [])));
 
-  const { requireAuth, guardAuthenticated } = createAuthMiddleware(tokenService);
+  const { requireAuth, guardAuthenticated, optionalAuth } = createAuthMiddleware(tokenService);
   const requirePermission = createRequirePermission(permissionService);
+  // US-22: tra cuu cong khai toi da 20 lan/phut moi IP (dem tren Redis, dung chung moi tien trinh)
+  const trackingRateLimit = createRateLimit({ limiter: new RateLimiter(redis), name: "tracking", ...env.trackingRateLimit });
 
   return {
     events,
@@ -123,8 +264,22 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     permissionService,
     authService,
     publicCatalogService,
+    pricingService,
+    orderDraftService,
+    orderService,
+    shiftService,
+    capacityService,
+    assignmentService,
+    warehouseService,
+    checkinService,
+    profileService: new ProfileService({ userRepository, cache }),
+    orderEvents,
+    journeyService,
+    orderEventHandlers,
+    /** Chay consumer hang doi su kien don (server.js goi; test US-21 tu chay worker rieng). */
+    startOrderEventWorker: () => orderEvents.startWorker(orderEventHandlers),
     services,
-    middleware: { requireAuth, guardAuthenticated, requirePermission },
+    middleware: { requireAuth, guardAuthenticated, optionalAuth, requirePermission, trackingRateLimit },
   };
 }
 

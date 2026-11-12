@@ -48,10 +48,27 @@ export const ORDER_STATUS = [
   "INCIDENT",
 ];
 
+// Don da ket thuc vong doi - con lai deu la "chua hoan tat" (vd chan xoa dia diem lay hang, US-15)
+export const FINISHED_ORDER_STATUS = ["DELIVERED", "RETURNED", "CANCELLED"];
+
 export const PACKING_TYPE = ["BOX", "BAG", "PALLET", "ENVELOPE", "OTHER"];
+
+// Loai hang khi phan loai tai kho (US-41) - danh sach co dinh theo de 14 (goi nho, bao, thung, tivi, laptop, CPU, xe)
+export const ITEM_CATEGORY = ["SMALL_PARCEL", "BAG", "CARTON", "TV", "LAPTOP", "CPU", "VEHICLE", "OTHER"];
+
+// Nguyen nhan khong lay duoc hang (US-28, PB#34)
+export const PICKUP_FAIL_REASON = ["SHOP_UNREACHABLE", "NOT_READY", "WRONG_ADDRESS", "NOT_AS_DESCRIBED", "SHOP_CANCELLED", "OTHER"];
+
+// Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
+export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];
+
+// Kenh tao don va phuong tien goi y (US-40)
+export const ORDER_CHANNEL = ["ONLINE", "COUNTER"];
+export const VEHICLE_TYPE = ["MOTORBIKE", "TRUCK"];
 
 export const ASSIGNMENT_TYPE = ["PICKUP", "DELIVERY", "RETURN"];
 
-export const ASSIGNMENT_STATUS = ["ASSIGNED", "DONE", "FAILED"];
+// CANCELLED: phan cong bi thay khi quan ly dieu chinh tay (US-25) - khong tinh vao nang luc ca
+export const ASSIGNMENT_STATUS = ["ASSIGNED", "DONE", "FAILED", "CANCELLED"];
 
 export const ASSIGNMENT_METHOD = ["AUTO", "MANUAL"];

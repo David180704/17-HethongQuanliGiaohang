@@ -39,11 +39,15 @@ name: Mo App Khach hang trong Expo Go, ve Trang chu o trang thai CHUA dang nhap
 # Con phien dang nhap tu lan truoc -> dang xuat de flow nao cung bat dau nhu khach vang lai.
 - tapOn:
     id: "tab-account"
+# Nut dang xuat nam cuoi trang Tai khoan (co the khuat duoi man hinh) -> cuon toi roi moi bam.
 - runFlow:
     when:
-      visible:
-        id: "account-logout"
+      visible: "Tài khoản của tôi"
     commands:
+      - scrollUntilVisible:
+          element:
+            id: "account-logout"
+          direction: DOWN
       - tapOn:
           id: "account-logout"
       # Nut "Đăng xuất" trong hop thoai xac nhan (nut positive cua Android)

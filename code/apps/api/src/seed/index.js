@@ -2,12 +2,28 @@ import bcrypt from "bcrypt";
 import { faker } from "@faker-js/faker";
 import { connectDB, disconnectDB, LOCAL_MONGO_URI, isLocalUri, describeUri } from "../config/db.js";
 import { env } from "../config/env.js";
-import { Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment } from "../models/index.js";
-import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables } from "./referenceData.js";
+import {
+  Role,
+  User,
+  Hub,
+  Route,
+  ServiceArea,
+  ServiceType,
+  PriceTable,
+  PickupLocation,
+  Order,
+  OrderDraft,
+  Assignment,
+  CheckinPoint,
+  CheckinLog,
+} from "../models/index.js";
+import { roles, hubs, routes, serviceAreas, serviceTypes, buildPriceTables, checkinPoints } from "./referenceData.js";
 import { buildStatusChain, countDeliveryAttempts, isAssignedStage } from "./orderHistory.js";
 import { calcZone, calcChargeableWeight, calcFee } from "./feeHelper.js";
 import { randomVnName, randomVnPhone } from "./vnNames.js";
 import { ORDER_STATUS } from "../constants/enums.js";
+import { Counter } from "../models/Counter.js";
+import { TRACKING_COUNTER, formatTrackingCode } from "../modules/orders/CounterRepository.js";
 import { TEST_PASSWORD, buildTestAccounts } from "./testAccounts.js";
 
 // Cach chay:
@@ -20,6 +36,7 @@ const TARGET_URI = args.includes("--local") ? LOCAL_MONGO_URI : env.mongoUri;
 const CONFIRMED = args.includes("--yes");
 
 const TOTAL_ORDERS = 200;
+const FIRST_TRACKING_NUMBER = 1_000_000_000; // ma van don seed: EXP1000000000 -> EXP1000000199
 const BASE_COUNT_PER_STATUS = 8;
 
 faker.seed(42);
@@ -52,7 +69,7 @@ function buildStatusPool() {
 
 async function clearAll() {
   await Promise.all(
-    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment].map(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, CheckinPoint, CheckinLog, Counter].map(
       (m) => m.deleteMany({}),
     ),
   );
@@ -63,10 +80,20 @@ async function seedRoles() {
 }
 
 async function seedHubs() {
-  const docs = await Hub.insertMany(hubs.map(({ _key, ...rest }) => ({ ...rest, isActive: true })));
   const map = {};
-  hubs.forEach((h, i) => (map[h._key] = docs[i]));
+  for (const { _key, parentKey, ...rest } of hubs) {
+    map[_key] = await Hub.create({ ...rest, parentHubId: parentKey ? map[parentKey]._id : null, isActive: true });
+  }
   return map;
+}
+
+// Hub tao truoc khu vuc phuc vu (tuyen can hubId) nen gan serviceAreaId sau
+async function linkHubsToServiceAreas(hubMap, serviceAreaDocs) {
+  for (const hub of Object.values(hubMap)) {
+    const area = serviceAreaDocs.find((a) => a.province === hub.province && a.district === hub.district);
+    if (!area) throw new Error(`Diem ${hub.code} nam o ${hub.district}, ${hub.province} chua co trong serviceAreas`);
+    await Hub.updateOne({ _id: hub._id }, { serviceAreaId: area._id });
+  }
 }
 
 async function seedRoutes(hubMap) {
@@ -197,7 +224,7 @@ function buildStatusHistory(chain, createdAt) {
   });
 }
 
-async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, priceTableMap, shippers }) {
+async function seedOrders({ customerLocations, serviceAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers }) {
   const statusPool = buildStatusPool();
   const serviceTypeKeys = Object.keys(serviceTypeMap);
 
@@ -234,6 +261,13 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
     const chain = buildStatusChain(status);
     const createdAt = faker.date.recent({ days: 45 });
     const statusHistory = buildStatusHistory(chain, createdAt);
+    // Don da qua CONFIRMED thi phi da khoa tu luc xac nhan (US-17)
+    const confirmedAt = statusHistory.find((entry) => entry.status === "CONFIRMED")?.at ?? null;
+    // Hub/buu cuc quan ly tuyen cua khu vuc lay hang - nhan vien diem nay duyet don (US-18)
+    const pickupRoute = routeDocs.find((route) => String(route._id) === String(pickupArea.routeId));
+    // Kho dich (hub cua tuyen khu vuc nguoi nhan) va kho dang giu hang (US-41) - khong goi faker nen seed giu nguyen
+    const destHubId = routeDocs.find((route) => String(route._id) === String(receiverArea.routeId))?.hubId ?? null;
+    const currentHubId = ["AT_HUB", "SORTED"].includes(status) ? pickupRoute.hubId : status === "AT_DEST_HUB" ? destHubId : null;
 
     let codEnabled = faker.number.int({ min: 1, max: 100 }) <= 75;
     let feePayer = faker.helpers.arrayElement(["SHOP_PREPAID", "RECIPIENT_PAID", "DEDUCT_FROM_COD"]);
@@ -251,11 +285,14 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
       feePayer === "SHOP_PREPAID" ? (feePaymentMethod === "QR" ? true : pickedUp) : delivered || null;
 
     return {
-      trackingCode: `EXP${String(1000000000 + i).slice(0, 10)}`,
+      trackingCode: formatTrackingCode(FIRST_TRACKING_NUMBER + i),
       customerId: customer._id,
       customerName: customer.fullName,
       pickupLocationId: loc._id,
       pickupWard: loc.ward,
+      pickupHubId: pickupRoute.hubId,
+      destHubId,
+      currentHubId,
       receiver: randomReceiverAddress(receiverArea),
       item,
       flags,
@@ -263,7 +300,8 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
       serviceName: serviceTypeKey === "EXPRESS" ? "Gửi nhanh" : "Gửi thường",
       zone,
       chargeableWeight,
-      fee,
+      priceTableId: priceTable._id,
+      fee: { ...fee, lockedAt: confirmedAt },
       cod: {
         enabled: codEnabled,
         amount: codEnabled ? codAmount : 0,
@@ -286,6 +324,8 @@ async function seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, 
   });
 
   await Order.insertMany(docs);
+  // Don tao moi qua API (US-18) lay ma tiep theo tu bo dem nay, trong transaction
+  await Counter.create({ _id: TRACKING_COUNTER, seq: FIRST_TRACKING_NUMBER + docs.length - 1 });
 }
 
 async function main() {
@@ -301,7 +341,7 @@ async function main() {
   await clearAll();
   // Tao lai chi muc (unique, TTL...) ngay ca khi CSDL moi tinh tren cloud
   await Promise.all(
-    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment].map(
+    [Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, PickupLocation, Order, OrderDraft, Assignment, CheckinPoint, CheckinLog].map(
       (m) => m.syncIndexes(),
     ),
   );
@@ -313,6 +353,9 @@ async function main() {
   const hubMap = await seedHubs();
   const routeMap = await seedRoutes(hubMap);
   const serviceAreaDocs = await seedServiceAreas(routeMap);
+  await linkHubsToServiceAreas(hubMap, serviceAreaDocs);
+  // Diem check-in (US-29) - khong goi faker nen du lieu ngau nhien phia sau giu nguyen
+  const pointDocs = await CheckinPoint.insertMany(checkinPoints.map(({ hubKey, ...p }) => ({ ...p, hubId: hubKey ? hubMap[hubKey]._id : null })));
 
   console.log("Dang seed loai dich vu va bang gia...");
   const serviceTypeMap = await seedServiceTypes();
@@ -323,11 +366,17 @@ async function main() {
   const routeDocs = Object.values(routeMap);
   const { hubStaff, shippers, customers } = await seedUsers({ hubDocs, routeDocs });
 
+  // Moi tai xe mot diem check-in hop le, cung vung voi tuyen (yeu cau 12/11/2026)
+  const pointByCode = Object.fromEntries(pointDocs.map((p) => [p.code, p._id]));
+  for (const [routeKey, pointCode] of [["R_HN_NOI", "CP-HN-HUB"], ["R_HN_LIEN", "CP-QL1-NB"], ["R_HCM_NOI", "CP-HCM-HUB"], ["R_DN_NOI", "CP-DN-PO"]]) {
+    await User.updateMany({ role: "SHIPPER", routeIds: routeMap[routeKey]._id }, { $set: { checkinPointId: pointByCode[pointCode] } });
+  }
+
   console.log("Dang seed dia diem lay hang...");
   const customerLocations = await seedPickupLocations({ customers, serviceAreaDocs });
 
   console.log("Dang seed 200 don hang trai 18 trang thai...");
-  await seedOrders({ customerLocations, serviceAreaDocs, serviceTypeMap, priceTableMap, shippers });
+  await seedOrders({ customerLocations, serviceAreaDocs, routeDocs, serviceTypeMap, priceTableMap, shippers });
 
   console.log("\nHoan tat seed du lieu.");
   console.log(`Mat khau chung cho moi tai khoan test: ${TEST_PASSWORD}`);

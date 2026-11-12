@@ -1,0 +1,56 @@
+appId: host.exp.exponent
+name: "[US-42] Shop khai bao tai khoan ngan hang nhan tien thu ho, ten chu tai khoan tu bo dau in hoa"
+tags:
+  - sprint5
+---
+# Chay lai nhieu lan van dung: nut "Khai bao" / "Doi tai khoan" cung testID bank-edit.
+- runFlow: subflows/open-app.yaml
+- tapOn:
+    id: "home-login"
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      USER_EMAIL: shop1@edms.vn
+- extendedWaitUntil:
+    visible: "Tài khoản của tôi"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "bank-edit"
+    direction: DOWN
+- tapOn:
+    id: "bank-edit"
+- scrollUntilVisible:
+    element:
+      id: "bank-code-VCB"
+    direction: DOWN
+- tapOn:
+    id: "bank-code-VCB"
+- scrollUntilVisible:
+    element:
+      id: "bank-number"
+    direction: DOWN
+- tapOn:
+    id: "bank-number"
+- eraseText: 30
+- inputText: "0011223344"
+- hideKeyboard
+- tapOn:
+    id: "bank-name"
+- eraseText: 40
+- inputText: "Chu Shop Mot"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "bank-save"
+    direction: DOWN
+- tapOn:
+    id: "bank-save"
+- scrollUntilVisible:
+    element:
+      id: "bank-summary"
+    direction: UP
+- extendedWaitUntil:
+    visible: "Vietcombank · 0011223344 · CHU SHOP MOT"
+    timeout: 15000
+- takeScreenshot: c19-tai-khoan-ngan-hang
