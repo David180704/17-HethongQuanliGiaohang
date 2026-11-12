@@ -10,8 +10,19 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const onUnauthorized = () => setUser(null);
+    // Tab khac cua cung trinh duyet dang nhap / dang xuat / doi tai khoan -> tab nay theo ngay, khong de giao dien
+    // con "da dang nhap" trong khi token da doi (truoc day: bam Tao don thi bi bat dang nhap lai).
+    const onStorage = (event) => {
+      if (event.key !== null && event.key !== "edms_user") return;
+      queryCache.clear();
+      setUser(getStoredUser());
+    };
     window.addEventListener("edms:unauthorized", onUnauthorized);
-    return () => window.removeEventListener("edms:unauthorized", onUnauthorized);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("edms:unauthorized", onUnauthorized);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   const login = useCallback(async (emailOrPhone, password) => {
