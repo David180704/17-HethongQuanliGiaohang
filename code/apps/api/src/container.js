@@ -213,6 +213,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     hubRepository,
     pickupLocationRepository,
     serviceAreaRepository,
+    serviceTypeRepository,
     capacityService,
     transactions: new MongooseTransactionRunner(),
     orderEvents,
@@ -237,6 +238,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     hubRepository,
     serviceAreaRepository,
     routeRepository,
+    serviceTypeRepository,
     orderEvents,
   });
   const publicCatalogService = new PublicCatalogService({

@@ -1,6 +1,7 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { STATUS_LABELS } from "../orders/orderStatus.js";
 import { ITEM_CATEGORY_LABELS, WAREHOUSE_ACTIONS, currentHubOf, nextWarehouseAction, parseCategory } from "./warehouse.js";
+import { expressChecker, expressFirst } from "../orders/priority.js";
 
 const TRACKING = /^EXP\d{10}$/;
 const STOCK_STATUSES = ["AT_HUB", "SORTED", "AT_DEST_HUB"];
@@ -12,8 +13,13 @@ const STOCK_STATUSES = ["AT_HUB", "SORTED", "AT_DEST_HUB"];
  * truc thuoc). Doi trang thai CO DIEU KIEN (status cu) nen hai nguoi cung quet thi chi mot nguoi thanh cong.
  */
 export class WarehouseService {
-  constructor({ orderRepository, userRepository, hubRepository, serviceAreaRepository, routeRepository, orderEvents, clock = () => new Date() }) {
-    Object.assign(this, { orderRepository, userRepository, hubRepository, serviceAreaRepository, routeRepository, orderEvents, clock });
+  constructor({ orderRepository, userRepository, hubRepository, serviceAreaRepository, routeRepository, serviceTypeRepository, orderEvents, clock = () => new Date() }) {
+    Object.assign(this, { orderRepository, userRepository, hubRepository, serviceAreaRepository, routeRepository, serviceTypeRepository, orderEvents, clock });
+  }
+
+  async #isExpress() {
+    const express = this.serviceTypeRepository ? await this.serviceTypeRepository.findMany({ code: "EXPRESS" }, { select: "_id" }) : [];
+    return expressChecker(express.map((s) => s._id));
   }
 
   async #staff(user) {
@@ -56,6 +62,8 @@ export class WarehouseService {
       receiver: { district: order.receiver?.district, province: order.receiver?.province },
       item: { name: order.item?.name, weightGram: order.item?.weightGram },
       serviceName: order.serviceName,
+      // Gui nhanh: uu tien xu ly / xuat kho truoc
+      express: Boolean(order.express),
       itemCategory: order.itemCategory,
       itemCategoryLabel: order.itemCategory ? ITEM_CATEGORY_LABELS[order.itemCategory] : null,
       pickupHub: hub(order.pickupHubId),
@@ -74,7 +82,8 @@ export class WarehouseService {
     const destHubId = await this.#destHubId(order);
     const next = nextWarehouseAction(order, familyIds, destHubId);
     const hubs = await this.#hubNames([order.pickupHubId, currentHubOf(order), destHubId]);
-    return this.#view(order, next, hubs, destHubId);
+    const isExpress = await this.#isExpress();
+    return this.#view({ ...order, express: isExpress(order) }, next, hubs, destHubId);
   }
 
   async #advance(user, input, expected) {
@@ -128,7 +137,7 @@ export class WarehouseService {
   /** Ton kho cua nhom hub: hang dang giu (theo trang thai, loai hang) va hang sap toi. */
   async stock(user) {
     const { familyIds } = await this.#staff(user);
-    const select = "trackingCode status customerName receiver item itemCategory pickupHubId currentHubId destHubId updatedAt";
+    const select = "trackingCode status customerName receiver item itemCategory pickupHubId currentHubId destHubId serviceTypeId serviceName updatedAt";
     const [held, legacy, incoming] = await Promise.all([
       this.orderRepository.findMany({ currentHubId: { $in: familyIds }, status: { $in: STOCK_STATUSES } }, { select, sort: { updatedAt: -1 } }),
       // Don cu chua co currentHubId: coi nhu dang o kho lay hang
@@ -138,7 +147,10 @@ export class WarehouseService {
         { select, sort: { updatedAt: -1 } },
       ),
     ]);
-    const orders = [...held, ...legacy];
+    const isExpress = await this.#isExpress();
+    const mark = (list) => expressFirst(list, isExpress).map((o) => ({ ...o, express: isExpress(o) }));
+    const orders = mark([...held, ...legacy]);
+    const incomingSorted = mark(incoming);
     const hubs = await this.#hubNames([...orders, ...incoming].flatMap((o) => [o.pickupHubId, currentHubOf(o), o.destHubId]));
     const row = (o) => this.#view(o, nextWarehouseAction(o, familyIds), hubs, o.destHubId);
     const count = (status) => orders.filter((o) => o.status === status).length;
@@ -148,7 +160,7 @@ export class WarehouseService {
       counts: { AT_HUB: count("AT_HUB"), SORTED: count("SORTED"), AT_DEST_HUB: count("AT_DEST_HUB"), incoming: incoming.length },
       byCategory: Object.entries(byCategory).map(([code, total]) => ({ code, label: ITEM_CATEGORY_LABELS[code], total })),
       orders: orders.map(row),
-      incoming: incoming.map(row),
+      incoming: incomingSorted.map(row),
     };
   }
 
