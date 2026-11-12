@@ -54,7 +54,7 @@ async function confirmedOrder(name) {
   const created = await as("khach", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: standard._id,
-    receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+    receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
     item: { name: "Áo thun", weightGram: 500, length: 20, width: 15, height: 5 },
   });
   assert.equal(created.status, 201, JSON.stringify(created.body));
@@ -104,7 +104,7 @@ before(async () => {
   location = (
     await as("khach", request(app).post("/pickupLocations")).send({
       label: "Kho Đà Nẵng", contactName: "Chủ shop", contactPhone: "0909982602", address: "10 Bạch Đằng",
-      province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang",
+      province: "Đà Nẵng", ward: "Phường Hải Châu",
     })
   ).body.data;
   assert.ok(location?._id, "tao duoc dia diem lay hang o Da Nang");
@@ -265,7 +265,7 @@ test("[US-27] nguoi giao hang xem don can lay trong ca hien tai: dia chi lay, li
   assert.equal(data.counts.total, 2);
   assert.equal(data.counts.toPick, 2);
   assert.deepEqual(data.orders.map((o) => o.trackingCode), [orders[0].trackingCode, orders[2].trackingCode]);
-  assert.deepEqual(data.orders[0].pickup, { contactName: "Chủ shop", contactPhone: "0909982602", address: "10 Bạch Đằng, Thạch Thang, Hải Châu, Đà Nẵng" });
+  assert.deepEqual(data.orders[0].pickup, { contactName: "Chủ shop", contactPhone: "0909982602", address: "10 Bạch Đằng, Phường Hải Châu, Đà Nẵng" });
   assert.equal(data.orders[0].item.name, "Áo thun");
 
   // C co ca da ket thuc va khong co don -> danh sach rong, khong co ca hien tai

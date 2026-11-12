@@ -55,7 +55,7 @@ const createOrder = async (receiverName) => {
   const res = await as("khach", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: standard._id,
-    receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+    receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
     item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10 },
   });
   assert.equal(res.status, 201, JSON.stringify(res.body));
@@ -80,7 +80,7 @@ before(async () => {
   location = (
     await as("khach", request(app).post("/pickupLocations")).send({
       label: "Kho nhà", contactName: "Khách Sự Kiện", contactPhone: "0909982101", address: "1 Xuân Thủy",
-      province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+      province: "Hà Nội", ward: "Phường Cầu Giấy",
     })
   ).body.data;
 });
@@ -109,13 +109,13 @@ test("[US-21] hanh trinh cong khai: che so dien thoai, nhom trang thai de 14, ca
     status: "CONFIRMED",
     serviceName: "Giao hàng tiêu chuẩn",
     customerName: "Shop A",
-    pickupWard: "Dịch Vọng Hậu",
-    receiver: { name: "Trần Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", district: "Quận 1", province: "TP Hồ Chí Minh" },
+    pickupWard: "Phường Cầu Giấy",
+    receiver: { name: "Trần Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", ward: "Phường Sài Gòn", province: "TP Hồ Chí Minh" },
     statusHistory: [{ status: "CREATED", at: new Date("2026-11-09T01:00:00Z") }, { status: "CONFIRMED", at: new Date("2026-11-09T02:00:00Z") }],
   });
   assert.equal(journey.groupLabel, "Chưa nhận");
   assert.deepEqual(journey.events.map((e) => e.label), ["Chờ bưu cục xác nhận", "Đã xác nhận, chờ lấy hàng"]);
-  assert.deepEqual(journey.receiver, { phone: "09xx xxx 678", district: "Quận 1", province: "TP Hồ Chí Minh" });
+  assert.deepEqual(journey.receiver, { phone: "09xx xxx 678", ward: "Phường Sài Gòn", province: "TP Hồ Chí Minh" });
   const text = JSON.stringify(journey);
   assert.ok(!text.includes("Trần Nhận") && !text.includes("0912345678") && !text.includes("Lý Tự Trọng"), "khong lo du lieu ca nhan");
 });

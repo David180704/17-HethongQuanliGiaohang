@@ -43,8 +43,7 @@ before(async () => {
       contactPhone: "0909981901",
       address: "10 Võ Văn Tần",
       province: "TP Hồ Chí Minh",
-      district: "Quận 3",
-      ward: "Võ Thị Sáu",
+      ward: "Phường Xuân Hòa",
     })
   ).body.data;
 });
@@ -71,7 +70,7 @@ const createOrder = (cod) =>
     .send({
       pickupLocationId: location._id,
       serviceTypeId: standard._id,
-      receiver: { name: "Người Mua", phone: "0987654321", address: "9 Nguyễn Thị Thập", province: "TP Hồ Chí Minh", district: "Quận 7", ward: "Tân Phú" },
+      receiver: { name: "Người Mua", phone: "0987654321", address: "9 Nguyễn Thị Thập", province: "TP Hồ Chí Minh", ward: "Phường Tân Mỹ" },
       item: { name: "Áo thun", weightGram: 800, length: 20, width: 15, height: 5 },
       cod,
     });

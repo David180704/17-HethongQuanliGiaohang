@@ -8,7 +8,11 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
+// Xa/phuong co that tam ngung phuc vu trong luc test -> dung lam dia chi "ngoai vung phuc vu"
+const OUTSIDE = [{ province: "Lào Cai", ward: "Phường Sa Pa" }];
+let restoreAreas;
+
 import { User, Hub, ServiceType, PriceTable, PickupLocation, Order, OrderDraft } from "../src/models/index.js";
 import { Counter } from "../src/models/Counter.js";
 import { formatTrackingCode } from "../src/modules/orders/CounterRepository.js";
@@ -43,6 +47,7 @@ before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
   await removeLeftovers({ emails: EMAILS });
   await cleanup();
+  restoreAreas = await suspendAreas(OUTSIDE);
   app = createApp();
   hubs = Object.fromEntries((await Hub.find({ code: { $in: ["HUB-HN", "HUB-HCM", "PO-DN"] } }).lean()).map((h) => [h.code, h]));
   standard = await ServiceType.findOne({ code: "STANDARD" }).lean();
@@ -64,8 +69,8 @@ before(async () => {
   const addLocation = async (body) =>
     (await request(app).post("/pickupLocations").set("Authorization", `Bearer ${token.a}`).send(body)).body.data;
   const contact = { contactName: "Khách Đơn A", contactPhone: "0909981801" };
-  caugiay = await addLocation({ label: "Kho Cầu Giấy", ...contact, address: "1 Xuân Thủy", province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu" });
-  danang = await addLocation({ label: "Kho Đà Nẵng", ...contact, address: "2 Bạch Đằng", province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang" });
+  caugiay = await addLocation({ label: "Kho Cầu Giấy", ...contact, address: "1 Xuân Thủy", province: "Hà Nội", ward: "Phường Cầu Giấy" });
+  danang = await addLocation({ label: "Kho Đà Nẵng", ...contact, address: "2 Bạch Đằng", province: "Đà Nẵng", ward: "Phường Hải Châu" });
 });
 
 after(async () => {
@@ -73,6 +78,7 @@ after(async () => {
     await PriceTable.deleteMany({ _id: { $in: createdTables } });
     if (shortenedTable) await PriceTable.updateOne({ _id: shortenedTable }, { effectiveTo: null });
     await cleanup();
+    await restoreAreas?.();
   } finally {
     await getRedis().quit();
     await mongoose.disconnect();
@@ -83,7 +89,7 @@ const as = (who, req) => req.set("Authorization", `Bearer ${token[who]}`);
 const orderBody = (overrides = {}) => ({
   pickupLocationId: caugiay._id,
   serviceTypeId: standard._id,
-  receiver: { name: "Trần Nhận", phone: "0912 345 678", address: "5 Lý Tự Trọng", province: "tp ho chi minh", district: "quan 1", ward: "Bến Nghé" },
+  receiver: { name: "Trần Nhận", phone: "0912 345 678", address: "5 Lý Tự Trọng", province: "tp ho chi minh", ward: "sai gon" },
   item: { name: "Sách", weightGram: 1200, length: 20, width: 15, height: 10, declaredValue: 300000 },
   flags: {},
   ...overrides,
@@ -103,7 +109,7 @@ test("[US-18] tao don: ma van don EXP + 10 chu so lay tu counter, don CREATED, p
   assert.deepEqual(order.statusHistory.map((h) => h.status), ["CREATED"]);
   assert.equal(order.customerName, "Khách Đơn A");
   assert.equal(String(order.pickupHubId), String(hubs["HUB-HN"]._id), "tuyen R-HN-NOI do Hub Ha Noi quan ly");
-  assert.deepEqual([order.receiver.province, order.receiver.district, order.receiver.phone], ["TP Hồ Chí Minh", "Quận 1", "0912345678"]);
+  assert.deepEqual([order.receiver.province, order.receiver.ward, order.receiver.phone], ["TP Hồ Chí Minh", "Phường Sài Gòn", "0912345678"]);
   assert.equal(order.fee.lockedAt, null, "chua xac nhan thi chua khoa phi");
 
   const quote = await request(app)
@@ -116,7 +122,7 @@ test("[US-18] tao don: ma van don EXP + 10 chu so lay tu counter, don CREATED, p
 });
 
 test("[US-18] chi nhan don khi ca noi gui va noi nhan thuoc vung phuc vu", async () => {
-  const receiverOutside = await createOrder({ receiver: { ...orderBody().receiver, province: "Lào Cai", district: "Sa Pa" } });
+  const receiverOutside = await createOrder({ receiver: { ...orderBody().receiver, province: "Lào Cai", ward: "Phường Sa Pa" } });
   assert.equal(receiverOutside.status, 422);
   assert.equal(receiverOutside.body.error.code, "OUT_OF_SERVICE_AREA");
   assert.match(receiverOutside.body.error.message, /Nơi nhận/);
@@ -126,7 +132,7 @@ test("[US-18] chi nhan don khi ca noi gui va noi nhan thuoc vung phuc vu", async
   const pickupOutside = await createOrder({ pickupLocationId: danang._id });
   assert.equal(pickupOutside.status, 422);
   assert.match(pickupOutside.body.error.message, /Nơi gửi "Kho Đà Nẵng"/);
-  const area = await mongoose.connection.collection("serviceareas").findOne({ province: "Đà Nẵng", district: "Hải Châu" });
+  const area = await mongoose.connection.collection("serviceareas").findOne({ province: "Đà Nẵng", ward: "Phường Hải Châu" });
   await PickupLocation.updateOne({ _id: danang._id }, { serviceAreaId: area._id });
 
   // Dia diem lay hang cua khach khac
@@ -154,7 +160,7 @@ test("[US-18] transaction: loi giua chung thi counter, don va ban nhap cung khon
     customerId: customerA._id,
     customerName: BLOCKER_CODE_MARK,
     pickupWard: "x",
-    receiver: { ...orderBody().receiver, province: "TP Hồ Chí Minh", district: "Quận 1" },
+    receiver: { ...orderBody().receiver, province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
     serviceName: "x",
     zone: "INTER_REGION",
     chargeableWeight: 1,
@@ -217,13 +223,13 @@ test("[US-18] xac nhan don: dung nhan vien hub phu trach, CREATED -> CONFIRMED d
 
 // US-17 tieu chi 2: dung EXPRESS x noi quan (khong test nao khac doi bang gia nay luc chay song song)
 test("[US-17] khoa phi khi CONFIRMED: bang gia doi ve sau khong lam doi phi don da xac nhan", async () => {
-  const sameDistrict = { ...orderBody().receiver, province: "Hà Nội", district: "Cầu Giấy" };
+  const sameDistrict = { ...orderBody().receiver, province: "Hà Nội", ward: "Phường Cầu Giấy" };
   const order = (await createOrder({ serviceTypeId: express._id, receiver: sameDistrict })).body.data;
-  assert.equal(order.zone, "INNER_DISTRICT");
+  assert.equal(order.zone, "INNER_WARD");
   const locked = (await as("hn", request(app).post(`/orders/${order._id}/confirm`))).body.data;
 
   // Admin doi gia: bang cu het hieu luc tu bay gio, bang moi gia gap doi bat dau ngay sau
-  const current = await PriceTable.findOne({ serviceTypeId: express._id, zone: "INNER_DISTRICT", effectiveTo: null }).lean();
+  const current = await PriceTable.findOne({ serviceTypeId: express._id, zone: "INNER_WARD", effectiveTo: null }).lean();
   const switchAt = new Date(Date.now() + 1000);
   const shorten = await as("admin", request(app).put(`/priceTables/${current._id}`)).send({ effectiveTo: switchAt });
   assert.equal(shorten.status, 200, JSON.stringify(shorten.body));
@@ -236,7 +242,7 @@ test("[US-17] khoa phi khi CONFIRMED: bang gia doi ve sau khong lam doi phi don 
   }));
   const raised = await as("admin", request(app).post("/priceTables")).send({
     serviceTypeId: express._id,
-    zone: "INNER_DISTRICT",
+    zone: "INNER_WARD",
     weightTiers: doubled,
     effectiveFrom: switchAt,
   });
