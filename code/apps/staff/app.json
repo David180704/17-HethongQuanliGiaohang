@@ -7,7 +7,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "vn.edms17.nhanvien"
     },
     "android": {
       "adaptiveIcon": {
@@ -15,10 +16,14 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "vn.edms17.nhanvien",
+      "versionCode": 1,
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "scheme": "edmsnv"
   }
 }

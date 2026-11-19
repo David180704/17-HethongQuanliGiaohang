@@ -106,11 +106,16 @@ export default function SiteLayout() {
             <span className="font-semibold text-gray-700">EDMS Express</span> — Hệ thống quản lý giao hàng (đồ án
             CNPM nâng cao)
           </p>
-          <p>
+          <p className="flex flex-wrap gap-x-4">
+            <Link to="/chinh-sach-quyen-rieng-tu" className="hover:underline">
+              Chính sách quyền riêng tư
+            </Link>
+            <span>
             Bạn là nhân viên?{" "}
             <a href={STAFF_APP_URL} className="font-medium text-brand-600 hover:underline">
               Mở App Nhân viên
             </a>
+            </span>
           </p>
         </div>
       </footer>

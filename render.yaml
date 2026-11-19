@@ -1,0 +1,87 @@
+# Trien khai EDMS len Render (US-45, US-46) - Blueprint: Render doc file nay va tao du 4 dich vu.
+#   edms17-api       API Express (Docker), CSDL MongoDB Atlas (MONGO_URI nhap tay), Redis ben duoi
+#   edms17-redis     Redis (Render Key Value) cho cache, hang doi su kien BullMQ, gioi han tra cuu
+#   edms17-web       Web Khach hang (Vite, trang tinh)
+#   edms17-nhanvien  Web Nhan vien (App Nhan vien Expo xuat ban web, trang tinh)
+# Huong dan tung buoc: docs/HuongDanTrienKhai.md. Goi mien phi: API ngu sau 15 phut khong co truy cap,
+# lan mo dau tien cho khoang 1 phut. Ten dich vu (phan truoc .onrender.com) phai chua ai dung; neu Render
+# bao trung thi doi ten o ca file nay (CORS_ORIGIN, PUBLIC_API_URL, VITE_API_URL, EXPO_PUBLIC_API_URL).
+# branch: dang trien khai tu nhanh sprint-7; sau khi merge vao main thi doi thanh main.
+
+services:
+  - type: web
+    name: edms17-api
+    runtime: docker
+    region: singapore
+    plan: free
+    branch: sprint-7
+    rootDir: code/apps/api
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Chuoi ket noi MongoDB Atlas (co mat khau) - nhap tren Render, khong ghi vao git
+      - key: MONGO_URI
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: edms17-redis
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://edms17-web.onrender.com,https://edms17-nhanvien.onrender.com
+      - key: PUBLIC_API_URL
+        value: https://edms17-api.onrender.com
+      # Tai khoan VNPay sandbox (https://sandbox.vnpayment.vn/devreg/) - nhap tren Render
+      - key: VNPAY_TMN_CODE
+        sync: false
+      - key: VNPAY_HASH_SECRET
+        sync: false
+
+  - type: keyvalue
+    name: edms17-redis
+    region: singapore
+    plan: free
+    # BullMQ can noeviction: Redis day thi bao loi chu khong lang le xoa viec trong hang doi
+    maxmemoryPolicy: noeviction
+    # Chi dich vu trong Render (API) ket noi duoc
+    ipAllowList: []
+
+  - type: web
+    name: edms17-web
+    runtime: static
+    branch: sprint-7
+    rootDir: code/apps/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://edms17-api.onrender.com
+      # Link "Mo App Nhan vien" o chan trang
+      - key: VITE_STAFF_APP_URL
+        value: https://edms17-nhanvien.onrender.com
+    # Ung dung mot trang: moi duong dan (/don-hang/...) tra ve index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: web
+    name: edms17-nhanvien
+    runtime: static
+    branch: sprint-7
+    rootDir: code/apps/staff
+    buildCommand: npm ci && npx expo export --platform web
+    staticPublishPath: dist
+    envVars:
+      - key: EXPO_PUBLIC_API_URL
+        value: https://edms17-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
