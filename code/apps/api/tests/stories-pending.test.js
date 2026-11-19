@@ -8,20 +8,17 @@ const pending = {
   // ---------- Sprint 4, 5, 6: da xong het ----------
   // ---------- Sprint 7 (12/01 - 02/02/2027) ----------
   // US-34, US-43, US-38, US-39 xong 12/11/2026; US-44 (VNPay) xong 19/11/2026.
-  // Them 19/11/2026 theo yeu cau cua Product Owner: he thong chay that tren may chu, hai nen tang (web, di dong)
-  // cho ca nhan vien lan khach hang, cai duoc tren dien thoai that.
+  // US-45 -> US-47 them 19/11/2026 theo yeu cau Product Owner. Cau hinh trien khai, kiem cau hinh chay that, hai nen
+  // tang cho moi vai tro da co test (deploy.test.js, platforms.test.js). Con lai cac tieu chi chi kiem duoc SAU KHI
+  // nguoi dung tao tai khoan Render, VNPay sandbox, Expo, Google Play (docs/HuongDanTrienKhai.md):
   "US-45": [
-    "API chay tren may chu cong khai (HTTPS), du lieu tren MongoDB Atlas, Redis tren may chu; /health khong lo dia chi CSDL",
-    "Bien moi truong bat buoc khi chay that: khong dung secret mac dinh, CORS chi mo cho dia chi web cua he thong",
-    "VNPay goi IPN ve dia chi cong khai cua API; giao dich sandbox thanh cong ghi don da tra phi",
+    "API chay tren Render (HTTPS) voi CSDL MongoDB Atlas: /health tra ve ok, dang nhap duoc bang tai khoan mau",
+    "VNPay sandbox goi IPN ve dia chi cong khai cua API; thanh toan bang the test NCB ghi don da tra phi",
   ],
-  "US-46": [
-    "Web Nhan vien co dia chi rieng: admin, nhan vien kho, tai xe dang nhap va dung du chuc nang nhu App Nhan vien",
-    "Web Khach hang co dia chi rieng; tai khoan nhan vien bi tu choi o web khach va nguoc lai",
-  ],
+  "US-46": ["Web Khach hang va Web Nhan vien mo duoc tu Internet tai dia chi rieng, goi API tren Render"],
   "US-47": [
-    "App Khach hang va App Nhan vien cai duoc tren dien thoai Android that, ket noi API tren may chu",
-    "Ban phat hanh co ten goi, phien ban, chinh sach quyen rieng tu; tai len kenh thu nghiem noi bo CH Play",
+    "Cai APK (EAS preview) len dien thoai Android that: dang nhap, tao don, thanh toan VNPay quay ve app",
+    "Ban AAB (EAS production) tai len kenh thu nghiem noi bo CH Play, nguoi thu cai duoc tu CH Play",
   ],
 };
 
