@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { execFileSync } from "node:child_process";
+// Ky ket qua thanh toan bang ham cua API (cung thuat toan VNPay)
+import { sign } from "../../api/src/modules/payments/vnpay.js";
 
 // Sprint 3 tren App Khach hang (ban web, khung dien thoai): tao don 4 buoc (US-18), thu ho va
 // ai tra phi (US-19), uoc tinh phi -> dang ky moi -> tao don giu nguyen du lieu (US-16).
@@ -11,7 +13,9 @@ const SHOT_DIR = "tests-e2e/screenshots";
 function cleanup() {
   const script =
     "const ids = db.users.find({ email: /^e2e-mdraft\\d+@edms\\.vn$/ }).toArray().map((u) => u._id);" +
-    'db.orders.deleteMany({ $or: [{ customerId: { $in: ids } }, { "receiver.name": /^E2E / }] });' +
+    'const orderFilter = { $or: [{ customerId: { $in: ids } }, { "receiver.name": /^E2E / }] };' +
+    "db.payments.deleteMany({ orderId: { $in: db.orders.find(orderFilter, { _id: 1 }).toArray().map((o) => o._id) } });" +
+    "db.orders.deleteMany(orderFilter);" +
     "db.pickuplocations.deleteMany({ customerId: { $in: ids } }); db.orderdrafts.deleteMany({ customerId: { $in: ids } });" +
     "db.users.deleteMany({ _id: { $in: ids } }).deletedCount";
   try {
@@ -165,4 +169,73 @@ test("[US-16] mobile: khach vang lai uoc tinh phi -> Gui hang -> dang ky moi -> 
   await expect(page.getByTestId("order-tracking-code")).toHaveText(/^EXP\d{10}$/);
   await expect(page.getByTestId("order-created")).toContainText("Phí vận chuyển: 115.000 ₫");
   await page.screenshot({ path: `${SHOT_DIR}/m13-tao-don-sau-dang-ky.png` });
+});
+
+// US-44 (ban web cua app): trang VNPay sandbox duoc chan va tra ket qua da ky giong VNPay (API dev chay voi
+// VNPAY_HASH_SECRET, mac dinh duoi day). VNPay xong -> API -> <app>/thanh-toan?orderId=..&thanhToan=.. -> mo chi tiet don.
+const API_URL = process.env.E2E_API_URL || "http://localhost:4044";
+const VNPAY_SECRET = process.env.VNPAY_HASH_SECRET || "edms-dev-hash-secret";
+
+async function fakeVnpay(page, responseCode) {
+  await page.route("https://sandbox.vnpayment.vn/**", (route) => {
+    const sent = new URL(route.request().url()).searchParams;
+    const params = {
+      vnp_TmnCode: sent.get("vnp_TmnCode"),
+      vnp_Amount: sent.get("vnp_Amount"),
+      vnp_BankCode: "NCB",
+      vnp_OrderInfo: sent.get("vnp_OrderInfo"),
+      vnp_PayDate: "20261119120000",
+      vnp_TransactionNo: "14500002",
+      vnp_ResponseCode: responseCode,
+      vnp_TransactionStatus: responseCode === "00" ? "00" : "02",
+      vnp_TxnRef: sent.get("vnp_TxnRef"),
+    };
+    const query = new URLSearchParams({ ...params, vnp_SecureHash: sign(params, VNPAY_SECRET) });
+    return route.fulfill({ status: 302, headers: { location: `${sent.get("vnp_ReturnUrl")}?${query}` } });
+  });
+}
+
+test("[US-44] mobile: gui nhanh bat buoc tra truoc -> VNPay -> huy -> thanh toan lai thanh cong, don da tra phi", async ({ page }) => {
+  const types = (await (await page.request.get(`${API_URL}/public/service-types`)).json()).data;
+  const express = types.find((t) => t.code === "EXPRESS");
+  await page.getByTestId("home-create-order").click();
+  await page.getByTestId("login-identity").fill("shop1@edms.vn");
+  await page.getByTestId("login-password").fill(PASSWORD);
+  await page.getByTestId("login-submit").click();
+  await page.getByTestId("order-next").click();
+  // shop1 lay hang o Ha Noi -> nguoi nhan cung tinh moi co giao nhanh
+  await fillReceiver(page, "Phường Láng");
+  await page.getByTestId("rc-province").fill("Hà Nội");
+  await page.getByTestId("rc-ward").fill("Phường Láng");
+  await page.getByTestId("order-next").click();
+  await page.getByTestId("it-name").fill("Bánh trung thu");
+  await page.getByTestId("it-weightGram").fill("900");
+  await page.getByTestId("it-length").fill("20");
+  await page.getByTestId("it-width").fill("20");
+  await page.getByTestId("it-height").fill("10");
+
+  // Chon giao nhanh -> tu chuyen nguoi gui tra truoc, VNPay; nguoi nhan tra phi bi khoa
+  await page.getByTestId(`order-service-${express._id}`).click();
+  await expect(page.getByTestId("fee-payer-RECIPIENT_PAID")).toHaveAttribute("aria-disabled", "true");
+  await expect(page.getByText("Gửi nhanh bắt buộc người gửi trả trước").first()).toBeVisible();
+  await expect(page.getByTestId("prepaid-VNPAY")).toBeVisible();
+  await page.getByTestId("order-next").click();
+  await expect(page.getByTestId("order-quote")).toContainText("Cước cơ bản");
+  await page.getByTestId("order-submit").click();
+  await expect(page.getByTestId("order-created")).toContainText("bưu cục chỉ duyệt đơn sau khi thanh toán");
+
+  // Lan 1: khach huy tren VNPay -> app mo chi tiet don bao chua thanh cong
+  await fakeVnpay(page, "24");
+  await page.getByTestId("order-pay").click();
+  await expect(page.getByTestId("payment-failed")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("order-payment")).toContainText("Chưa thanh toán");
+
+  // Lan 2: thanh toan thanh cong
+  await page.unroute("https://sandbox.vnpayment.vn/**");
+  await fakeVnpay(page, "00");
+  await page.getByTestId("order-pay").click();
+  await expect(page.getByTestId("payment-success")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("order-fee")).toContainText("Đã thanh toán");
+  await expect(page.getByTestId("order-payment")).toHaveCount(0);
+  await page.screenshot({ path: `${SHOT_DIR}/m15-vnpay-da-thanh-toan.png` });
 });
