@@ -2,6 +2,7 @@ import { useState } from "react";
 import { inputClass } from "../../lib/ui.js";
 import { distanceText, formatVnd } from "../../lib/format.js";
 import { FEE_PAYERS, PACKING_TYPES, codSummary } from "../../lib/orderForm.js";
+import { PAYMENT_METHODS } from "../../lib/payment.js";
 import { Field } from "../AuthShell.jsx";
 import AddressFields from "../AddressFields.jsx";
 import ParcelFields from "../ParcelFields.jsx";
@@ -124,6 +125,10 @@ export function ParcelStep({ form, update, serviceTypes, crossProvince = false }
   const { item, cod } = form;
   const setItem = (patch) => update({ item: { ...item, ...patch } });
   const setCod = (patch) => update({ cod: { ...cod, ...patch } });
+  // Gui nhanh bat buoc nguoi gui tra truoc (US-44)
+  const expressSelected = serviceTypes.some((type) => type._id === form.serviceTypeId && type.code === "EXPRESS");
+  const chooseService = (type) =>
+    update({ serviceTypeId: type._id, ...(type.code === "EXPRESS" && { cod: { ...cod, feePayer: "SHOP_PREPAID", feePaymentMethod: cod.feePaymentMethod || "VNPAY" } }) });
   return (
     <section aria-label="Bước 3: Hàng hóa và thanh toán" className="space-y-5">
       <h2 className="text-lg font-semibold">Gửi gì, gói nào, ai trả phí?</h2>
@@ -162,7 +167,7 @@ export function ParcelStep({ form, update, serviceTypes, crossProvince = false }
                   name="serviceTypeId"
                   disabled={blocked}
                   checked={form.serviceTypeId === type._id}
-                  onChange={() => update({ serviceTypeId: type._id })}
+                  onChange={() => chooseService(type)}
                   aria-label={type.name}
                 />
                 <span className="text-sm">
@@ -194,27 +199,29 @@ export function ParcelStep({ form, update, serviceTypes, crossProvince = false }
         )}
         <div role="radiogroup" aria-label="Ai trả phí vận chuyển" className="space-y-2">
           {FEE_PAYERS.map((payer) => {
-            const disabled = payer.value === "DEDUCT_FROM_COD" && !cod.enabled;
+            const needsCod = payer.value === "DEDUCT_FROM_COD" && !cod.enabled;
+            const needsPrepaid = expressSelected && payer.value !== "SHOP_PREPAID";
+            const disabled = needsCod || needsPrepaid;
             return (
               <label key={payer.value} className={`flex gap-2 text-sm ${disabled ? "opacity-50" : "cursor-pointer"}`}>
                 <input type="radio" name="feePayer" disabled={disabled} checked={cod.feePayer === payer.value} onChange={() => setCod({ feePayer: payer.value })} aria-label={payer.label} />
                 <span>
                   <span className="font-medium">{payer.label}</span>
-                  <span className="block text-xs text-gray-500">{disabled ? "Cần bật thu hộ" : payer.hint}</span>
+                  <span className="block text-xs text-gray-500">{needsPrepaid ? "Gửi nhanh bắt buộc người gửi trả trước" : needsCod ? "Cần bật thu hộ" : payer.hint}</span>
                 </span>
               </label>
             );
           })}
         </div>
         {cod.feePayer === "SHOP_PREPAID" && (
-          <div role="radiogroup" aria-label="Cách trả trước" className="flex flex-wrap gap-4 pl-6 text-sm">
-            {[
-              ["QR", "Chuyển khoản QR"],
-              ["CASH", "Tiền mặt khi lấy hàng"],
-            ].map(([value, label]) => (
-              <label key={value} className="flex items-center gap-2">
+          <div role="radiogroup" aria-label="Cách trả trước" className="space-y-2 pl-6 text-sm">
+            {PAYMENT_METHODS.map(({ value, label, hint }) => (
+              <label key={value} className="flex cursor-pointer gap-2">
                 <input type="radio" name="feePaymentMethod" checked={cod.feePaymentMethod === value} onChange={() => setCod({ feePaymentMethod: value })} aria-label={label} />
-                {label}
+                <span>
+                  <span className="font-medium">{label}</span>
+                  <span className="block text-xs text-gray-500">{hint}</span>
+                </span>
               </label>
             ))}
           </div>

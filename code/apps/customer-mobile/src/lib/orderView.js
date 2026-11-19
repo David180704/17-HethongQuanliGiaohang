@@ -51,4 +51,4 @@ export function formatDateTime(value) {
 
 export const feePayerLabel = (code) => FEE_PAYERS.find((p) => p.value === code)?.label || "—";
 export const zoneLabel = (code) => ZONES.find((z) => z.code === code)?.label || code;
-export const FEE_PAYMENT_METHOD_LABELS = { QR: "chuyển khoản QR", CASH: "tiền mặt" };
+export const FEE_PAYMENT_METHOD_LABELS = { VNPAY: "thanh toán online VNPay", QR: "chuyển khoản QR", CASH: "tiền mặt" };

@@ -16,10 +16,8 @@ const FEE_PAYERS = [
   { value: "SHOP_PREPAID", label: "Người gửi trả trước" },
   { value: "DEDUCT_FROM_COD", label: "Trừ vào thu hộ" },
 ];
-const METHODS = [
-  { value: "CASH", label: "Tiền mặt tại quầy" },
-  { value: "QR", label: "Chuyển khoản QR" },
-];
+// Tai quay khach dung truoc mat nhan vien: tra truoc thu tien mat ngay (US-44 - khong mo cong VNPay tai quay)
+const METHODS = [{ value: "CASH", label: "Tiền mặt tại quầy" }];
 const EMPTY = {
   phone: "",
   fullName: "",

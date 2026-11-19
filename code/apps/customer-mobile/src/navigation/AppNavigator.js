@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, StyleSheet, View } from "react-native";
+import { BackHandler, Platform, StyleSheet, View } from "react-native";
+import * as Linking from "expo-linking";
+import { parsePaymentReturn } from "../lib/payment";
 import { useAuth } from "../auth/AuthContext";
 import { confirmAsync } from "../lib/dialog";
 import TabBar from "../components/TabBar";
@@ -32,6 +34,16 @@ export default function AppNavigator() {
 
   const push = useCallback((route) => setStack((current) => [...current, route]), []);
   const pop = useCallback(() => setStack((current) => current.slice(0, -1)), []);
+
+  // US-44: VNPay xong, API chuyen ve <app>/thanh-toan?orderId=..&thanhToan=.. -> mo chi tiet don kem ket qua
+  // (ban web: trang tai lai tai dia chi nay; Android/iOS: deep link edmskh:// mo lai app)
+  const url = Linking.useURL();
+  useEffect(() => {
+    const result = parsePaymentReturn(url);
+    if (!result?.orderId || !user) return;
+    setStack([{ name: "orders" }, { name: "orderDetail", id: result.orderId, paymentResult: result.status }]);
+    if (Platform.OS === "web") window.history.replaceState(null, "", "/");
+  }, [url, user]);
 
   const openCreateOrder = useCallback(() => {
     if (user) push({ name: "createOrder" });
@@ -121,7 +133,7 @@ export default function AppNavigator() {
         draftToken={top.draftToken}
         onBack={pop}
         onGoTab={goTab}
-        onOpenOrder={(id) => setStack([{ name: "orders" }, { name: "orderDetail", id }])}
+        onOpenOrder={(id, paymentResult) => setStack([{ name: "orders" }, { name: "orderDetail", id, paymentResult }])}
       />
     );
   }
@@ -148,7 +160,7 @@ export default function AppNavigator() {
     return <TrackingScreen key={top.code} initialCode={top.code} onBack={pop} />;
   }
   if (top?.name === "orderDetail" && user) {
-    return <OrderDetailScreen key={top.id} orderId={top.id} onBack={pop} />;
+    return <OrderDetailScreen key={top.id} orderId={top.id} paymentResult={top.paymentResult} onBack={pop} />;
   }
 
   const tabProps = {

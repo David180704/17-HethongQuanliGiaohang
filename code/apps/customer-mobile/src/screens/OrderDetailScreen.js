@@ -13,12 +13,27 @@ import { apiClient, errorMessage } from "../lib/apiClient";
 import { queryCache } from "../lib/queryCache";
 import { formatVnd } from "../lib/format";
 import { FEE_PAYMENT_METHOD_LABELS, feePayerLabel, formatDateTime, zoneLabel } from "../lib/orderView";
+import { needsVnpay, payWithVnpay } from "../lib/payment";
 import { colors } from "../theme";
 
 // US-20: chi tiet don kem toan bo hanh trinh (moi nhat o tren), phi da khoa, thu ho.
-export default function OrderDetailScreen({ orderId, onBack }) {
+// paymentResult: ket qua VNPay vua tra ve (SUCCESS | FAILED) khi mo lai man hinh sau thanh toan (US-44)
+export default function OrderDetailScreen({ orderId, onBack, paymentResult = null }) {
   const { data: order, error, updatedAt, refresh } = useCachedQuery(`/orders/${orderId}`);
   const [returnState, setReturnState] = useState({ busy: false, message: "", error: "" });
+  const [payState, setPayState] = useState({ busy: false, error: "", result: paymentResult });
+
+  async function pay() {
+    setPayState({ busy: true, error: "", result: null });
+    try {
+      const result = await payWithVnpay(orderId);
+      setPayState({ busy: false, error: "", result: result?.status ?? null });
+      queryCache.invalidate("/orders");
+      refresh();
+    } catch (err) {
+      setPayState({ busy: false, error: errorMessage(err, "Không mở được trang thanh toán"), result: null });
+    }
+  }
 
   // US-37: tai xe da tra hang hoan -> nguoi gui xac nhan da nhan lai
   async function confirmReturn() {
@@ -59,6 +74,24 @@ export default function OrderDetailScreen({ orderId, onBack }) {
       <Card title="Trạng thái" right={<StatusBadge display={order.display} testID="order-detail-status" />}>
         <UpdatedAt at={updatedAt} onRefresh={refresh} />
       </Card>
+
+      {payState.result === "SUCCESS" ? (
+        <Banner tone="success" testID="payment-success">
+          Thanh toán VNPay thành công — đơn đang chờ bưu cục duyệt.
+        </Banner>
+      ) : null}
+      {payState.result && payState.result !== "SUCCESS" ? (
+        <Banner testID="payment-failed">Thanh toán chưa thành công (đã hủy hoặc bị từ chối). Bạn có thể thanh toán lại.</Banner>
+      ) : null}
+      {needsVnpay(order) ? (
+        <Card title="Thanh toán phí vận chuyển" testID="order-payment">
+          <Text style={styles.small}>
+            Chưa thanh toán {formatVnd(order.fee.total)} qua VNPay — bưu cục duyệt đơn sau khi bạn thanh toán.
+          </Text>
+          <Button testID="order-pay" title="Thanh toán qua VNPay" onPress={pay} loading={payState.busy} />
+          <Banner>{payState.error}</Banner>
+        </Card>
+      ) : null}
 
       {order.deliveryAttempts > 0 || order.status === "RETURNING" || order.status === "RETURNED" ? (
         <Card title="Giao hàng và hoàn hàng" testID="order-return">
@@ -123,6 +156,12 @@ export default function OrderDetailScreen({ orderId, onBack }) {
           label="Người trả phí"
           value={`${feePayerLabel(order.cod?.feePayer)}${order.cod?.feePaymentMethod ? ` (${FEE_PAYMENT_METHOD_LABELS[order.cod.feePaymentMethod]})` : ""}`}
         />
+        {order.cod?.feePayer === "SHOP_PREPAID" ? (
+          <Row
+            label="Tình trạng trả phí"
+            value={order.cod.feePaid ? `Đã thanh toán${order.cod.feePaidAt ? ` lúc ${formatDateTime(order.cod.feePaidAt)}` : ""}` : "Chưa thanh toán"}
+          />
+        ) : null}
         <Row label="Thu hộ" value={order.cod?.enabled ? formatVnd(order.cod.amount) : "Không thu hộ"} />
       </Card>
       <IncidentCard orderId={orderId} onChanged={refresh} />

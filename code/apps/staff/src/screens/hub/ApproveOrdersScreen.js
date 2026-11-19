@@ -118,6 +118,10 @@ export default function ApproveOrdersScreen({ user, accent, onBack }) {
           <Line label="Giao đến" value={`${order.receiver.ward}, ${order.receiver.province}`} />
           <Line label="Hàng" value={`${order.item.name} · ${order.chargeableWeight.toLocaleString("vi-VN")} g · ${order.serviceName}`} />
           <Line label="Phí ship" value={FEE_PAYER_LABELS[order.cod?.feePayer] || "—"} />
+          {order.cod?.feePaymentMethod === "VNPAY" ? (
+            // US-44: tra truoc qua VNPay chua thanh toan thi API chua cho duyet
+            <Line label="Thanh toán" value={order.cod.feePaid ? "Đã thanh toán VNPay" : "Chưa thanh toán VNPay — chưa duyệt được"} />
+          ) : null}
           <Line label="Thu hộ" value={order.cod?.enabled ? vnd(order.cod.amount) : "Không"} />
           <Line label="Tạo lúc" value={new Date(order.createdAt).toLocaleString("vi-VN")} />
           <Button

@@ -26,6 +26,7 @@ import {
   toItemPayload,
   toOrderPayload,
 } from "../lib/orderForm";
+import { needsVnpay, payWithVnpay } from "../lib/payment";
 import { colors, radius } from "../theme";
 
 const STEP_TITLES = ["Lấy hàng", "Người nhận", "Hàng hóa & thanh toán", "Xác nhận"];
@@ -81,6 +82,9 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
   const expressType = (serviceTypes || []).find((type) => type.code === "EXPRESS");
   const crossProvince = Boolean(location && receiverCheck.province && location.province !== receiverCheck.province.name);
   const expressBlocked = crossProvince && Boolean(expressType) && form.serviceTypeId === expressType._id;
+  // Gui nhanh bat buoc nguoi gui tra truoc (US-44)
+  const expressSelected = Boolean(expressType) && form.serviceTypeId === expressType._id;
+  const [payState, setPayState] = useState({ busy: false, error: "" });
 
   async function saveDraft(next) {
     try {
@@ -115,6 +119,7 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
     const problem = stepError(form.step, form, {
       receiverProblem: addressProblem(receiverCheck, form.receiver, " người nhận"),
       expressBlocked,
+      expressSelected,
     });
     if (problem) {
       setError(problem);
@@ -158,6 +163,18 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
     });
   }
 
+  // VNPay xong (di dong) -> mo chi tiet don kem ket qua; ban web thi trang chuyen sang VNPay
+  async function payCreated() {
+    setPayState({ busy: true, error: "" });
+    try {
+      const result = await payWithVnpay(created._id);
+      setPayState({ busy: false, error: "" });
+      if (result) onOpenOrder(created._id, result.status);
+    } catch (err) {
+      setPayState({ busy: false, error: errorMessage(err, "Không mở được trang thanh toán") });
+    }
+  }
+
   if (created) {
     return (
       <Screen title="Đã tạo đơn" onBack={onBack}>
@@ -168,6 +185,13 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
           </Text>
           <Text style={styles.line}>Trạng thái: chờ bưu cục xác nhận</Text>
           <Text style={styles.line}>Phí vận chuyển: {formatVnd(created.fee.total)}</Text>
+          {needsVnpay(created) ? (
+            <>
+              <Text style={styles.line}>Bạn chọn trả trước qua VNPay: bưu cục chỉ duyệt đơn sau khi thanh toán.</Text>
+              <Button testID="order-pay" title={`Thanh toán ${formatVnd(created.fee.total)} qua VNPay`} onPress={payCreated} loading={payState.busy} />
+              <Banner>{payState.error}</Banner>
+            </>
+          ) : null}
           <Button testID="order-new" title="Tạo đơn khác" onPress={startOver} />
           <Button testID="order-view" title="Xem đơn" variant="secondary" onPress={() => onOpenOrder(created._id)} />
           <Button title="Về tài khoản" variant="secondary" onPress={() => onGoTab("account")} />
@@ -255,7 +279,12 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
               };
             })}
             value={form.serviceTypeId}
-            onChange={(value) => update({ serviceTypeId: value })}
+            onChange={(value) =>
+              update({
+                serviceTypeId: value,
+                ...(expressType && value === expressType._id && { cod: { ...form.cod, feePayer: "SHOP_PREPAID", feePaymentMethod: form.cod.feePaymentMethod || "VNPAY" } }),
+              })
+            }
           />
           <Card title="Thu hộ và phí vận chuyển">
             <Toggle
@@ -272,11 +301,15 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
             <ChoiceGroup
               label="Ai trả phí vận chuyển?"
               testID="fee-payer"
-              options={FEE_PAYERS.map((p) => ({
-                ...p,
-                disabled: p.value === "DEDUCT_FROM_COD" && !form.cod.enabled,
-                hint: p.value === "DEDUCT_FROM_COD" && !form.cod.enabled ? "Cần bật thu hộ" : p.hint,
-              }))}
+              options={FEE_PAYERS.map((p) => {
+                const needsCod = p.value === "DEDUCT_FROM_COD" && !form.cod.enabled;
+                const needsPrepaid = expressSelected && p.value !== "SHOP_PREPAID";
+                return {
+                  ...p,
+                  disabled: needsCod || needsPrepaid,
+                  hint: needsPrepaid ? "Gửi nhanh bắt buộc người gửi trả trước" : needsCod ? "Cần bật thu hộ" : p.hint,
+                };
+              })}
               value={form.cod.feePayer}
               onChange={(value) => update({ cod: { ...form.cod, feePayer: value } })}
             />

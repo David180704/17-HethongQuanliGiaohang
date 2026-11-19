@@ -8,6 +8,7 @@ import { formatVnd } from "../lib/format.js";
 import { addressProblem, useAddressCheck } from "../lib/adminUnits.js";
 import { EMPTY_ORDER, fromDraft, stepError, toFlagsPayload, toItemPayload, toOrderPayload } from "../lib/orderForm.js";
 import { ConfirmStep, ParcelStep, PickupStep, ReceiverStep, StepIndicator } from "../components/order/OrderSteps.jsx";
+import { needsVnpay, startVnpay } from "../lib/payment.js";
 
 // Tao don 4 buoc (US-18), thu ho va ai tra phi (US-19), xem phi du kien truoc khi xac
 // nhan (US-17). Moi lan bam "Tiep tuc" luu nhap (orderDrafts, 24 gio): tai lai trang hay
@@ -52,6 +53,8 @@ export default function CreateOrderPage() {
   const expressType = (serviceTypes || []).find((type) => type.code === "EXPRESS");
   const crossProvince = Boolean(location && receiverCheck.province && location.province !== receiverCheck.province.name);
   const expressBlocked = crossProvince && Boolean(expressType) && form.serviceTypeId === expressType._id;
+  const expressSelected = Boolean(expressType) && form.serviceTypeId === expressType._id;
+  const [paying, setPaying] = useState(false);
   const hint =
     form.estimatedPickup && !form.pickupLocationId
       ? `Bạn ước tính phí gửi từ ${form.estimatedPickup.ward}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`
@@ -92,6 +95,7 @@ export default function CreateOrderPage() {
     const problem = stepError(form.step, form, {
       receiverProblem: addressProblem(receiverCheck, form.receiver, " người nhận"),
       expressBlocked,
+      expressSelected,
     });
     if (problem) {
       setError(problem);
@@ -132,6 +136,17 @@ export default function CreateOrderPage() {
     }
   }
 
+  async function pay() {
+    setPaying(true);
+    setError("");
+    try {
+      await startVnpay(created._id);
+    } catch (err) {
+      setError(errorMessage(err, "Không mở được trang thanh toán"));
+      setPaying(false);
+    }
+  }
+
   function startOver() {
     setCreated(null);
     setDraftToken(null);
@@ -150,6 +165,24 @@ export default function CreateOrderPage() {
           <p className="mt-1 text-gray-700">
             Phí vận chuyển: <span className="font-semibold">{formatVnd(created.fee.total)}</span>
           </p>
+          {needsVnpay(created) && (
+            <div className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+              <p>Bạn chọn trả trước qua VNPay: bưu cục chỉ duyệt đơn sau khi thanh toán.</p>
+              <button
+                type="button"
+                onClick={pay}
+                disabled={paying}
+                className="mt-3 rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              >
+                {paying ? "Đang mở VNPay..." : `Thanh toán ${formatVnd(created.fee.total)} qua VNPay`}
+              </button>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button type="button" onClick={startOver} className="rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700">
               Tạo đơn khác
