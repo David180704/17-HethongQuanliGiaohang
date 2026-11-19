@@ -68,7 +68,8 @@ async function atDestHub(name, { from = "HN", serviceType = standard, cod } = {}
     serviceTypeId: serviceType._id,
     receiver: { name, phone: "0912345678", address: "20 Điện Biên Phủ", province: "Đà Nẵng", ward: "Phường Thanh Khê" },
     item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10, note: "Gọi trước khi giao" },
-    ...(cod && { cod }),
+    // Gui nhanh bat buoc tra truoc (US-44): mac dinh tra tien mat khi lay hang
+    cod: cod ?? (serviceType.code === "EXPRESS" ? { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "CASH" } : undefined),
   });
   assert.equal(created.status, 201, JSON.stringify(created.body));
   const order = await Order.findByIdAndUpdate(

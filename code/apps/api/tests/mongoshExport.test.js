@@ -13,9 +13,10 @@ test("[US-02] 01-tao-cau-truc.mongodb.js khop voi model (sua model thi chay npm 
 });
 
 // 12 collection nghiep vu ban dau + checkinPoints, checkinLogs (Sprint 5, US-29, US-30) + incidents, settlements (Sprint 7, US-38, US-34)
-test("[US-02] Cau truc sinh ra co du 16 collection va 4 chi muc bat buoc", () => {
+// + payments (Sprint 7, US-44 VNPay)
+test("[US-02] Cau truc sinh ra co du 17 collection va 5 chi muc bat buoc", () => {
   const byName = Object.fromEntries(buildStructure().map((c) => [c.name, c]));
-  assert.equal(Object.keys(byName).length, 16);
+  assert.equal(Object.keys(byName).length, 17);
   const has = (name, keys, opts = {}) =>
     byName[name].indexes.some(
       ([k, o]) => JSON.stringify(k) === JSON.stringify(keys) && Object.entries(opts).every(([key, v]) => o[key] === v),
@@ -24,6 +25,7 @@ test("[US-02] Cau truc sinh ra co du 16 collection va 4 chi muc bat buoc", () =>
   assert.ok(has("orders", { customerId: 1, status: 1, createdAt: -1 }));
   assert.ok(has("assignments", { shipperId: 1, shiftDate: 1, status: 1 }));
   assert.ok(has("orderdrafts", { createdAt: 1 }, { expireAfterSeconds: 86400 }));
+  assert.ok(has("payments", { txnRef: 1 }, { unique: true }), "ma giao dich VNPay khong trung");
 });
 
 test("[US-02] Rang buoc CSDL mang dung quy tac nghiep vu (COD toi da 20 trieu, vai tro hop le)", () => {

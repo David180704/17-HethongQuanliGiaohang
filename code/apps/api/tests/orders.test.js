@@ -222,9 +222,11 @@ test("[US-18] xac nhan don: dung nhan vien hub phu trach, CREATED -> CONFIRMED d
 });
 
 // US-17 tieu chi 2: dung EXPRESS x noi quan (khong test nao khac doi bang gia nay luc chay song song)
+// Gui nhanh bat buoc nguoi gui tra truoc (US-44): tra tien mat khi lay hang de buu cuc duyet duoc ngay
+const EXPRESS_COD = { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "CASH" };
 test("[US-17] khoa phi khi CONFIRMED: bang gia doi ve sau khong lam doi phi don da xac nhan", async () => {
   const sameDistrict = { ...orderBody().receiver, province: "Hà Nội", ward: "Phường Cầu Giấy" };
-  const order = (await createOrder({ serviceTypeId: express._id, receiver: sameDistrict })).body.data;
+  const order = (await createOrder({ serviceTypeId: express._id, receiver: sameDistrict, cod: EXPRESS_COD })).body.data;
   assert.equal(order.zone, "INNER_WARD");
   const locked = (await as("hn", request(app).post(`/orders/${order._id}/confirm`))).body.data;
 
@@ -254,7 +256,7 @@ test("[US-17] khoa phi khi CONFIRMED: bang gia doi ve sau khong lam doi phi don 
   assert.deepEqual(after.fee, locked.fee, "don da xac nhan giu nguyen phi");
   assert.equal(String(after.priceTableId), String(current._id));
 
-  const newOrder = (await createOrder({ serviceTypeId: express._id, receiver: sameDistrict })).body.data;
+  const newOrder = (await createOrder({ serviceTypeId: express._id, receiver: sameDistrict, cod: EXPRESS_COD })).body.data;
   assert.equal(newOrder.fee.base, order.fee.base * 2, "don moi tinh theo bang gia moi");
   assert.equal(String(newOrder.priceTableId), String(raised.body.data._id));
 });

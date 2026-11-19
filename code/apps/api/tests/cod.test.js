@@ -77,13 +77,13 @@ const createOrder = (cod) =>
 const rejects = (cod, pattern) =>
   assert.throws(() => parseCod(cod), (err) => err.code === "VALIDATION_ERROR" && pattern.test(err.message));
 
-test("[US-19] luat thu ho (ham thuan): mac dinh, gioi han tien, nguoi gui tra truoc phai chon QR/tien mat", () => {
+test("[US-19] luat thu ho (ham thuan): mac dinh, gioi han tien, nguoi gui tra truoc phai chon VNPay/tien mat", () => {
   assert.deepEqual(parseCod(undefined), { enabled: false, amount: 0, feePayer: "RECIPIENT_PAID", feePaymentMethod: null });
   rejects({ enabled: true, amount: 0 }, /lớn hơn 0/);
   rejects({ enabled: true, amount: -5000 }, /lớn hơn 0/);
   rejects({ enabled: true, amount: 20_000_001 }, /tối đa 20\.000\.000 đ/);
   assert.equal(parseCod({ enabled: true, amount: 20_000_000 }).amount, 20_000_000);
-  rejects({ feePayer: "SHOP_PREPAID" }, /QR hoặc tiền mặt/);
+  rejects({ feePayer: "SHOP_PREPAID" }, /online VNPay hoặc tiền mặt/);
   rejects({ feePayer: "DEDUCT_FROM_COD" }, /phải bật thu hộ/);
   rejects({ feePayer: "FREE" }, /Hình thức trả phí/);
   // Thu ho tat thi so tien bi bo qua; khong phai SHOP_PREPAID thi khong luu phuong thuc tra phi

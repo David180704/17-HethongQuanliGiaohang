@@ -44,6 +44,8 @@ async function pickedUpOrder(name, serviceType = standard) {
     serviceTypeId: serviceType._id,
     receiver: { name, phone: "0912345678", address: "5 Lý Tự Trọng", ...to },
     item: { name: "Tivi 32 inch", weightGram: 6000, length: 80, width: 15, height: 50 },
+    // Gui nhanh bat buoc tra truoc (US-44)
+    ...(serviceType.code === "EXPRESS" && { cod: { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "CASH" } }),
   });
   assert.equal(created.status, 201, JSON.stringify(created.body));
   await as("hn", request(app).post(`/orders/${created.body.data._id}/confirm`)).expect(200);
