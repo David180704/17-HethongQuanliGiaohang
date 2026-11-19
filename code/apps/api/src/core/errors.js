@@ -41,6 +41,11 @@ export const ErrorCodes = {
   SERVICE_NOT_AVAILABLE: (message = "Loại dịch vụ này không áp dụng cho tuyến gửi này") =>
     new AppError("SERVICE_NOT_AVAILABLE", message, 422),
 
+  // Thanh toan phi van chuyen qua VNPay (US-44)
+  PAYMENT_NOT_CONFIGURED: (message = "Cổng thanh toán VNPay chưa được cấu hình trên máy chủ") =>
+    new AppError("PAYMENT_NOT_CONFIGURED", message, 503),
+  PAYMENT_REQUIRED: (message = "Đơn chưa thanh toán phí vận chuyển") => new AppError("PAYMENT_REQUIRED", message, 409),
+
   // API cong khai bi goi qua nhanh (US-22: tra cuu 20 lan/phut moi IP)
   TOO_MANY_REQUESTS: (message = "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút") =>
     new AppError("TOO_MANY_REQUESTS", message, 429),

@@ -991,8 +991,9 @@ const COLLECTIONS = [
                   "null"
                 ],
                 "enum": [
-                  "QR",
+                  "VNPAY",
                   "CASH",
+                  "QR",
                   null
                 ]
               },
@@ -1174,6 +1175,124 @@ const COLLECTIONS = [
           "settlementId": {
             "bsonType": [
               "objectId",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
+    // ---------------- payments (model Payment) ----------------
+    name: "payments",
+    indexes: [[{"txnRef":1},{"unique":true}],[{"orderId":1,"createdAt":-1},{}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "orderId",
+          "trackingCode",
+          "customerId",
+          "txnRef",
+          "amount",
+          "expiresAt",
+          "_id"
+        ],
+        "properties": {
+          "orderId": {
+            "bsonType": "objectId"
+          },
+          "trackingCode": {
+            "bsonType": "string"
+          },
+          "customerId": {
+            "bsonType": "objectId"
+          },
+          "provider": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "VNPAY",
+              null
+            ]
+          },
+          "txnRef": {
+            "bsonType": "string"
+          },
+          "amount": {
+            "bsonType": "number",
+            "minimum": 1
+          },
+          "status": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "PENDING",
+              "SUCCESS",
+              "FAILED",
+              null
+            ]
+          },
+          "client": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "WEB",
+              "MOBILE",
+              null
+            ]
+          },
+          "returnTo": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "expiresAt": {
+            "bsonType": "date"
+          },
+          "responseCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "transactionNo": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "bankCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "paidAt": {
+            "bsonType": [
+              "date",
               "null"
             ]
           },

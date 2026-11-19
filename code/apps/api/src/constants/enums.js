@@ -21,7 +21,14 @@ export const ZONE = ["INNER_WARD", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_RE
 
 export const FEE_PAYER = ["SHOP_PREPAID", "RECIPIENT_PAID", "DEDUCT_FROM_COD"];
 
-export const FEE_PAYMENT_METHOD = ["QR", "CASH"];
+// VNPAY: tra truoc online qua cong VNPay (US-44); QR: chuyen khoan tu xac nhan (don cu, giao dien khong con chon)
+export const FEE_PAYMENT_METHOD = ["VNPAY", "CASH", "QR"];
+
+// Giao dich thanh toan phi van chuyen (US-44): cho thanh toan, thanh cong, that bai / huy
+export const PAYMENT_STATUS = ["PENDING", "SUCCESS", "FAILED"];
+export const PAYMENT_PROVIDER = ["VNPAY"];
+// Ung dung mo trang thanh toan - quyet dinh tra nguoi dung ve dau sau khi VNPay xu ly xong
+export const PAYMENT_CLIENT = ["WEB", "MOBILE"];
 
 export const COD_METHOD = ["CASH", "TRANSFER"];
 

@@ -2,7 +2,7 @@ import { ErrorCodes } from "../../core/errors.js";
 import { ORDER_STATUS } from "../../constants/enums.js";
 import { orderValidator } from "./orders.validator.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "./CounterRepository.js";
-import { assertCodCoversFee } from "./cod.js";
+import { assertCodCoversFee, assertExpressPrepaid } from "./cod.js";
 import { groupFilter, withDisplay } from "./orderStatus.js";
 import { suggestVehicle } from "./vehicle.js";
 import { randomBytes } from "node:crypto";
@@ -83,6 +83,7 @@ export class OrderService {
     }
     const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
     const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    assertExpressPrepaid(data.cod, serviceType);
     const quote = await this.pricingService.quote({
       pickupArea,
       receiverArea,
@@ -183,6 +184,9 @@ export class OrderService {
     const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
     const destRoute = await this.routeRepository.findById(receiverArea.routeId);
     const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    assertExpressPrepaid(data.cod, serviceType);
+    // Tai quay khach dung truoc mat nhan vien: tra truoc thi thu tien mat, khong mo cong VNPay
+    if (data.cod.feePaymentMethod === "VNPAY") throw ErrorCodes.VALIDATION_ERROR("Tại quầy: người gửi trả trước bằng tiền mặt");
     const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
     assertCodCoversFee(data.cod, quote.fee);
     const vehicle = suggestVehicle({ chargeableWeight: quote.chargeableWeight, item: data.item, flags: quote.flags });
@@ -285,6 +289,10 @@ export class OrderService {
     const conflict = () =>
       ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} đã được xử lý (không còn chờ xác nhận)`);
     if (order.status !== "CREATED") throw conflict();
+    // US-44: don chon tra truoc online ma chua thanh toan VNPay thi chua duyet
+    if (order.cod?.feePayer === "SHOP_PREPAID" && order.cod?.feePaymentMethod === "VNPAY" && !order.cod?.feePaid) {
+      throw ErrorCodes.PAYMENT_REQUIRED(`Đơn ${order.trackingCode} chưa thanh toán phí vận chuyển qua VNPay nên chưa duyệt được`);
+    }
     const now = new Date();
     const confirmed = await this.orderRepository.transition(order._id, "CREATED", {
       $set: { status: "CONFIRMED", "fee.lockedAt": now },

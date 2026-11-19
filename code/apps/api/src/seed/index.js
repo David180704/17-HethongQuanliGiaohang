@@ -301,10 +301,15 @@ async function seedOrders({ customerLocations, serviceAreaDocs, sampleAreaDocs, 
     }
 
     const delivered = chain.includes("DELIVERED");
-    const feePaymentMethod = feePayer === "SHOP_PREPAID" ? faker.helpers.arrayElement(["QR", "CASH"]) : null;
+    let feePaymentMethod = feePayer === "SHOP_PREPAID" ? faker.helpers.arrayElement(["VNPAY", "CASH"]) : null;
+    // Gui nhanh bat buoc tra truoc (US-44) - doi ma khong goi faker nen phan con lai cua seed giu nguyen
+    if (serviceTypeKey === "EXPRESS" && feePayer !== "SHOP_PREPAID") {
+      feePayer = "SHOP_PREPAID";
+      feePaymentMethod = "VNPAY";
+    }
     const pickedUp = chain.includes("PICKED_UP");
     const feePaid =
-      feePayer === "SHOP_PREPAID" ? (feePaymentMethod === "QR" ? true : pickedUp) : delivered || null;
+      feePayer === "SHOP_PREPAID" ? (feePaymentMethod === "VNPAY" ? true : pickedUp) : delivered || null;
 
     return {
       trackingCode: formatTrackingCode(FIRST_TRACKING_NUMBER + i),

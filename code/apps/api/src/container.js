@@ -40,6 +40,8 @@ import { IncidentRepository } from "./modules/incidents/IncidentRepository.js";
 import { IncidentService } from "./modules/incidents/IncidentService.js";
 import { SettlementRepository } from "./modules/settlements/SettlementRepository.js";
 import { SettlementService } from "./modules/settlements/SettlementService.js";
+import { PaymentRepository } from "./modules/payments/PaymentRepository.js";
+import { PaymentService } from "./modules/payments/PaymentService.js";
 import { StatsService } from "./modules/stats/StatsService.js";
 import { Order as OrderModel, Assignment as AssignmentModel, Settlement as SettlementModel } from "./models/index.js";
 import { WarehouseService } from "./modules/warehouse/WarehouseService.js";
@@ -264,6 +266,16 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     counterRepository: new CounterRepository(),
     transactions: new MongooseTransactionRunner(),
   });
+  // US-44: thanh toan phi van chuyen qua VNPay - ket qua ghi vao don trong transaction
+  const paymentService = new PaymentService({
+    paymentRepository: new PaymentRepository(),
+    orderRepository,
+    orderService,
+    transactions: new MongooseTransactionRunner(),
+    config: env.vnpay,
+    publicApiUrl: env.publicApiUrl,
+    allowedReturns: { webOrigins: env.corsOrigins, mobilePrefixes: env.mobileReturnPrefixes },
+  });
   // US-39 (de 02): thong ke bang aggregation pipeline (doc thang model, khong qua cache)
   const statsService = new StatsService({
     orderModel: OrderModel,
@@ -327,6 +339,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     deliveryService,
     incidentService,
     settlementService,
+    paymentService,
     statsService,
     warehouseService,
     checkinService,

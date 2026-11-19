@@ -49,6 +49,22 @@ export const env = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   },
 
+  // Dia chi cong khai cua API (Render: https://<ten>.onrender.com) - VNPay chuyen nguoi dung ve
+  // <publicApiUrl>/payments/vnpay/return va goi IPN /payments/vnpay/ipn (IPN can dia chi cong khai)
+  publicApiUrl: (process.env.PUBLIC_API_URL || `http://localhost:${process.env.PORT || 4044}`).replace(/\/$/, ""),
+
+  // Cong thanh toan VNPay (US-44). Chua co VNPAY_TMN_CODE / VNPAY_HASH_SECRET thi API bao chua cau hinh.
+  // Tai khoan sandbox dang ky tai https://sandbox.vnpayment.vn/devreg/
+  vnpay: {
+    tmnCode: process.env.VNPAY_TMN_CODE || null,
+    hashSecret: process.env.VNPAY_HASH_SECRET || null,
+    payUrl: process.env.VNPAY_PAY_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+    expireMinutes: Number(process.env.VNPAY_EXPIRE_MINUTES || 15),
+  },
+  // Sau khi thanh toan, API chuyen nguoi dung ve returnTo cua app: web phai thuoc CORS_ORIGIN,
+  // app di dong phai bat dau bang mot trong cac tien to nay (scheme cua app, Expo Go khi dev)
+  mobileReturnPrefixes: (process.env.MOBILE_RETURN_PREFIXES || "edmskh://,edmsnv://,exp://,exps://").split(",").map((s) => s.trim()),
+
   smtp: {
     host: process.env.SMTP_HOST || null,
     port: Number(process.env.SMTP_PORT || 587),
