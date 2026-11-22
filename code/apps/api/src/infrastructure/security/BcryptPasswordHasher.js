@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 
-// Adapter cho bcrypt (cost 10 theo ghi chu du an). Service chi phu thuoc giao dien
+// Adapter cho bcrypt (cost 10 theo quy uoc bao mat cua du an). Service chi phu thuoc giao dien
 // hash/compare (Dependency Inversion) -> doi sang argon2 chi can adapter khac.
 export class BcryptPasswordHasher {
   constructor(cost = 10) {

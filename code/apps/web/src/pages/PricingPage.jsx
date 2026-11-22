@@ -4,7 +4,7 @@ import { ZONES, formatTier, formatVnd, formatSurcharge, tierAllowsExtraSteps } f
 import UpdatedAt from "../components/UpdatedAt.jsx";
 
 // Gia hien thi = cuoc co ban x (1 + he so phu phi dich vu). STANDARD va EXPRESS
-// dung chung bac khoi luong (ghi chu du an muc 5) - chenh lech nam o phu phi dich vu.
+// dung chung bac khoi luong (quy tac tinh phi, modules/pricing/pricing.js) - chenh lech nam o phu phi dich vu.
 export default function PricingPage() {
   const [serviceCode, setServiceCode] = useState("STANDARD");
   const { data, loading, error: loadError, updatedAt, refresh } = useCachedQuery("/public/price-tables");

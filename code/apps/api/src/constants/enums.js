@@ -4,7 +4,7 @@ export const USER_STATUS = ["PENDING", "ACTIVE", "LOCKED"];
 
 export const CUSTOMER_TYPE = ["INDIVIDUAL", "BUSINESS"];
 
-// Hai san pham client tach theo doi tuong dung (ghi chu du an muc 2): moi app chi
+// Hai san pham client tach theo doi tuong dung (tai lieu kien truc, docs/KienTrucAPI.md): moi app chi
 // cho dang nhap cac vai tro cua minh. GUEST khong co tai khoan nen khong nam o day.
 export const APP_ROLES = {
   CUSTOMER: ["CUSTOMER"],
@@ -32,7 +32,7 @@ export const PAYMENT_CLIENT = ["WEB", "MOBILE"];
 
 export const COD_METHOD = ["CASH", "TRANSFER"];
 
-// 18 trang thai thuc te trong vong doi don hang (xem ghi chu du an muc 1 - nhan "17"
+// 18 trang thai thuc te trong vong doi don hang (tai lieu yeu cau ghi "17"
 // trong tai lieu nhung liet ke ra 18 gia tri, da bao cho nguoi dung de xac nhan lai).
 export const ORDER_STATUS = [
   "CREATED",

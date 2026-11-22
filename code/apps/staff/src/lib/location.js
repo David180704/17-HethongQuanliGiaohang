@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Vi tri GIA LAP cua tai xe (khong co giao hang / dinh vi that - ghi chu du an muc 8): tai xe chon "dang o" mot diem
+// Vi tri GIA LAP cua tai xe (khong co giao hang / dinh vi that - pham vi do an): tai xe chon "dang o" mot diem
 // check-in hoac nhap toa do; tren may ao co the dat bang `adb emu geo fix` roi nhap lai. Dung chung cho xac nhan
 // lay hang (US-28) va check-in tu dong (US-30). Luu AsyncStorage de mo lai app van con.
 const KEY = "edms.simulatedPosition";

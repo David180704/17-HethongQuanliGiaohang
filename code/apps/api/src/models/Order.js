@@ -63,7 +63,7 @@ const codSchema = new mongoose.Schema(
   {
     enabled: { type: Boolean, default: false },
     amount: { type: Number, default: 0, min: 0, max: 20000000 },
-    // Ai tra phi van chuyen - dat trong cod theo dung schema ghi chu du an, ap dung
+    // Ai tra phi van chuyen - dat trong cod theo dung thiet ke du lieu (docs/ERD.md), ap dung
     // du cod.enabled co bat hay khong (van phai co nguoi tra phi ship).
     feePayer: { type: String, enum: FEE_PAYER, default: "RECIPIENT_PAID" },
     // Chi co y nghia khi feePayer = SHOP_PREPAID: nguoi gui tra truoc qua QR

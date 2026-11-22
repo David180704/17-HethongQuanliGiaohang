@@ -1,5 +1,5 @@
 // Dung chuoi trang thai hop le de dung statusHistory mau cho moi don, theo dung
-// vong doi 18 trang thai mo ta trong ghi chu du an (tai lieu ghi "17" nhung liet ke
+// vong doi 18 trang thai mo ta trong tai lieu yeu cau (tai lieu ghi "17" nhung liet ke
 // ra 18 gia tri - da bao nguoi dung xac nhan lai, seed script dung du 18 de con
 // du lieu demo cho moi nhanh).
 const MAIN_CHAIN = [
