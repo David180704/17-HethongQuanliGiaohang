@@ -71,7 +71,10 @@ test("[US-47] App Khach hang, App Nhan vien: ten goi, scheme, ban APK / AAB goi 
     assert.equal(expo.android.package, pkg, `${app}: ten goi Android`);
     assert.equal(expo.scheme, scheme, `${app}: scheme deep link`);
     assert.ok(Number.isInteger(expo.android.versionCode) && expo.android.versionCode >= 1);
-    assert.deepEqual(expo.android.permissions, [], `${app}: khong xin quyen nhay cam`);
+    // App Khach hang khong xin quyen nhay cam; App Nhan vien chi xin vi tri KHI DANG DUNG (GPS that, 22/11/2026)
+    const expected = app === "staff" ? ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"] : [];
+    assert.deepEqual(expo.android.permissions, expected, `${app}: quyen Android`);
+    if (app === "staff") assert.deepEqual(expo.android.blockedPermissions, ["ACCESS_BACKGROUND_LOCATION"], "khong xin vi tri nen");
     const eas = easConfig(app);
     assert.equal(eas.build.preview.android.buildType, "apk", "ban cai thu tren may that");
     assert.equal(eas.build.production.android.buildType, "app-bundle", "ban tai len CH Play");

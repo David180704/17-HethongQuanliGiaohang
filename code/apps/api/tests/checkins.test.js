@@ -11,6 +11,7 @@ import { getContainer } from "../src/container.js";
 import { removeLeftovers } from "./helpers/fixtures.js";
 import { User, Hub, Route, ServiceType, PickupLocation, Order, CheckinPoint, CheckinLog } from "../src/models/index.js";
 import { distanceM, pointsInRange } from "../src/modules/checkins/geo.js";
+import { parseLocation } from "../src/modules/assignments/pickupOutcome.js";
 import { getRedis } from "../src/config/redis.js";
 
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
@@ -215,4 +216,36 @@ test("[US-30] luong nghiep vu: tai xe check-in 2 lan o diem dang ky (cach 1 gio)
   assert.deepEqual(journey.checkins.map((c) => c.point), ["KT29 Điểm một", "KT29 Điểm một"]);
   assert.ok(new Date(journey.checkins[0].at) > new Date(journey.checkins[1].at), "moi nhat truoc");
   assert.deepEqual(Object.keys(journey.checkins[0]).sort(), ["at", "point"], "chi ten diem va thoi gian, khong lo toa do");
+});
+
+// 22/11/2026: dinh vi GPS that thay vi tri gia lap. App gui them nguon vi tri (GPS / SIMULATED) va sai so GPS (m).
+test("[US-30] GPS that: toa do kem nguon vi tri va sai so; khong hop le thi bao loi (ham thuan)", () => {
+  assert.deepEqual(parseLocation({ lat: 21, lng: 105 }), { lat: 21, lng: 105 }, "app cu khong gui nguon");
+  assert.deepEqual(parseLocation({ lat: 21, lng: 105, positionSource: "GPS", accuracyM: 12.6 }), { lat: 21, lng: 105, source: "GPS", accuracyM: 13 });
+  assert.deepEqual(parseLocation({ lat: 21, lng: 105, positionSource: "SIMULATED" }), { lat: 21, lng: 105, source: "SIMULATED" });
+  assert.throws(() => parseLocation({ lat: 21, lng: 105, positionSource: "WIFI" }), /GPS hoặc SIMULATED/);
+  assert.throws(() => parseLocation({ lat: 21, lng: 105, accuracyM: -5 }), /Sai số GPS/);
+});
+
+test("[US-30] luong nghiep vu GPS that: tai xe toi diem, dien thoai bao vi tri chinh xac -> tu check-in, luu nguon GPS; tin hieu yeu thi khong tu check-in nhung check-in tay van duoc", async () => {
+  await CheckinLog.deleteMany({ shipperId: tx.a._id });
+  // Trong nha, sai so 350 m: vi tri co the lech ca ban kinh diem -> khong tu check-in
+  const weak = await checkin("a", { ...near(P1, 40), positionSource: "GPS", accuracyM: 350 }).expect(400);
+  assert.match(weak.body.error.message, /Tín hiệu GPS yếu \(sai số ±350 m\)/);
+  assert.equal(await CheckinLog.countDocuments({ shipperId: tx.a._id }), 0);
+
+  // Ra ngoai troi, sai so 15 m -> tu check-in, ghi nguon GPS + sai so vao nhat ky
+  const good = (await checkin("a", { ...near(P1, 40), positionSource: "GPS", accuracyM: 15 }).expect(201)).body.data;
+  assert.deepEqual([good.source, good.positionSource, good.accuracyM, good.recorded], ["AUTO", "GPS", 15, 2]);
+  const logs = await CheckinLog.find({ shipperId: tx.a._id }).lean();
+  assert.ok(logs.every((l) => l.positionSource === "GPS" && l.accuracyM === 15));
+
+  // Tin hieu yeu nhung tai xe dung o diem: check-in tay van nhan (nhan vien tu xac nhan)
+  await CheckinLog.deleteMany({ shipperId: tx.a._id });
+  const manual = (await checkin("a", { ...near(P1, 40), positionSource: "GPS", accuracyM: 350, pointId: points.p1._id }).expect(201)).body.data;
+  assert.deepEqual([manual.source, manual.positionSource], ["MANUAL", "GPS"]);
+  // App cu / kiem thu khong gui nguon -> ghi la vi tri gia lap
+  await CheckinLog.deleteMany({ shipperId: tx.a._id });
+  const legacy = (await checkin("a", { ...P1 }).expect(201)).body.data;
+  assert.equal(legacy.positionSource, "SIMULATED");
 });
