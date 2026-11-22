@@ -1,6 +1,6 @@
 # Kiểm thử theo story — Sprint 1 đến Sprint 7
 
-> Sinh tự động ngày 12/11/2026 bởi `npm run report:stories` (thư mục `code/apps/api`).
+> Sinh tự động ngày 22/11/2026 bởi `npm run report:stories` (thư mục `code/apps/api`).
 > Chạy lại lệnh này sau mỗi lần sửa code để cập nhật. Chạy riêng một story:
 > `npm run test:story -- 6` (story US-06).
 
@@ -8,11 +8,11 @@
 
 | | Số story |
 |---|---|
-| 🟢 Đạt (mọi tiêu chí có test và pass) | 43 |
+| 🟢 Đạt (mọi tiêu chí có test và pass) | 44 |
 | 🔴 Lỗi (có test fail) | 0 |
-| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 1 |
+| ⚪ Chưa làm (chưa có code, tiêu chí ghi dạng todo) | 0 |
 
-Điểm story đạt: **166/170** điểm của Sprint 1–7 (44 story theo kế hoạch lập lại ngày 05/11/2026).
+Điểm story đạt: **170/183** điểm của Sprint 1–7 (47 story theo kế hoạch lập lại ngày 05/11/2026).
 
 | Sprint | Story đạt | Điểm đạt |
 |---|---|---|
@@ -22,7 +22,7 @@
 | Sprint 4 | 9/9 | 35/35 |
 | Sprint 5 | 5/5 | 20/20 |
 | Sprint 6 | 6/6 | 27/27 |
-| Sprint 7 | 4/5 | 23/27 |
+| Sprint 7 | 5/8 | 27/40 |
 
 ## Chi tiết từng story
 
@@ -64,7 +64,7 @@ server nên không nằm trong lệnh này.
 | 5 | US-28 | Xác nhận đã lấy hàng hoặc ghi nhận không lấy được | 4 | 🟢 Đạt | 4/4 | App NV: tài xế quét mã lấy hàng (sai mã bị chặn), ghi không lấy được + nguyên nhân → kho giao lại → người nhận tra cứu |
 | 5 | US-41 | Quy trình tại kho: nhập kho, phân loại, xuất kho và trung chuyển | 6 | 🟢 Đạt | 7/7 | App NV: quy trình hai kho Hà Nội nhập, phân loại (bắt buộc loại hàng), xuất → Hồ Chí Minh nhận tại kho đích · Maestro NV 12 |
 | 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | 🟢 Đạt | 1/1 | App NV: admin thêm điểm check-in (tọa độ sai bị chặn, bán kính mặc định 150 m) |
-| 5 | US-30 | Tự động check-in vị trí khi đi qua điểm đã cài đặt | 5 | 🟢 Đạt | 5/5 | App NV: tài xế tự check-in, cắt mạng xếp hàng rồi gửi lại, không ghi trùng → người nhận thấy điểm đã qua trên Web · Maestro NV 13 |
+| 5 | US-30 | Tự động check-in vị trí khi đi qua điểm đã cài đặt | 5 | 🟢 Đạt | 7/7 | App NV: tài xế tự check-in, cắt mạng xếp hàng rồi gửi lại, không ghi trùng → người nhận thấy điểm đã qua trên Web · Maestro NV 13 |
 | 5 | US-42 | Khai báo tài khoản ngân hàng nhận tiền thu hộ | 2 | 🟢 Đạt | 3/3 | Liên app: khai báo trên Web, đổi trên App KH, Web thấy tài khoản mới · Maestro KH 12 |
 | 6 | US-35 | Phân công tự động đơn giao hàng cho người giao hàng | 6 | 🟢 Đạt | 3/3 |  |
 | 6 | US-31 | Xem danh sách đơn cần giao và phiếu giao hàng có mã QR | 6 | 🟢 Đạt | 2/2 |  |
@@ -72,11 +72,14 @@ server nên không nằm trong lệnh này.
 | 6 | US-33 | Ghi nhận đã thu tiền COD từ người nhận | 3 | 🟢 Đạt | 1/1 |  |
 | 6 | US-36 | Cấu hình chính sách giao lại, giới hạn số lần giao | 2 | 🟢 Đạt | 2/2 |  |
 | 6 | US-37 | Quy trình hoàn hàng — phân công theo tuyến, theo dõi đến khi shop xác nhận | 5 | 🟢 Đạt | 1/1 |  |
-| 7 | US-44 | Thanh toán phí vận chuyển bằng mã VietQR | 4 | ⚪ Chưa làm | 0/0 · còn 2 tiêu chí |  |
+| 7 | US-44 | Thanh toán phí vận chuyển qua cổng VNPay (gửi nhanh bắt buộc trả trước) | 4 | 🟢 Đạt | 6/6 |  |
 | 7 | US-34 | Tạo đối soát và tổng hợp số liệu cho khách hàng | 5 | 🟢 Đạt | 3/3 |  |
 | 7 | US-43 | Shop xem kỳ đối soát, khoản điều chỉnh; ghi nhận đã chi trả | 5 | 🟢 Đạt | 2/2 |  |
 | 7 | US-38 | Ghi nhận sự cố/khiếu nại, theo dõi xử lý và kết quả | 5 | 🟢 Đạt | 4/4 |  |
 | 7 | US-39 | Thống kê tổng hợp và dashboard quản trị | 8 | 🟢 Đạt | 2/2 |  |
+| 7 | US-45 | Triển khai hệ thống lên máy chủ: API, CSDL cloud, cổng thanh toán | 5 | 🟡 Một phần | 2/2 · còn 2 tiêu chí |  |
+| 7 | US-46 | Web Nhân viên và Web Khách hàng có địa chỉ riêng trên Internet | 3 | 🟡 Một phần | 2/2 · còn 1 tiêu chí |  |
+| 7 | US-47 | Phát hành App Nhân viên, App Khách hàng trên điện thoại thật (CH Play nội bộ) | 5 | 🟡 Một phần | 1/1 · còn 2 tiêu chí |  |
 
 ## Ngoài Sprint Backlog
 
@@ -101,5 +104,8 @@ server nên không nằm trong lệnh này.
 - \* Flow Maestro KH 09 và NV 08 đã viết nhưng chưa chạy trên máy ảo: máy dev chỉ còn khoảng 3 GB
   bộ nhớ ảo, bật máy ảo dễ làm sập tiến trình. Cùng mã nguồn đã chạy bằng Playwright (bản web).
 - US-26 (Sprint 4) đã xong sớm cùng App Nhân viên.
+- 19/11/2026: US-44 đổi từ VietQR xác nhận tay sang cổng VNPay (sandbox) theo lựa chọn của Product Owner;
+  thêm US-45 → US-47 vào Sprint 7 (máy chủ Render + MongoDB Atlas, web riêng cho nhân viên và khách,
+  app trên điện thoại thật qua kênh thử nghiệm nội bộ CH Play).
 - US-05 (CI) chỉ kiểm tra được file workflow có đủ bước lint → test → build; kết quả chạy
   thật xem trên tab Actions của GitHub.
