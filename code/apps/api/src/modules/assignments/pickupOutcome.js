@@ -1,5 +1,5 @@
 import { ErrorCodes } from "../../core/errors.js";
-import { PICKUP_FAIL_REASON } from "../../constants/enums.js";
+import { PICKUP_FAIL_REASON, POSITION_SOURCE } from "../../constants/enums.js";
 
 // Nhan nguyen nhan khong lay duoc hang (US-28, PB#34) - dung chung API, App Nhan vien, hanh trinh don
 export const PICKUP_FAIL_LABELS = {
@@ -21,7 +21,18 @@ export function parseLocation(input = {}) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
     throw ErrorCodes.VALIDATION_ERROR("Tọa độ GPS không hợp lệ");
   }
-  return { lat, lng };
+  // Nguon vi tri (GPS that / gia lap) va sai so GPS - tuy chon, app cu khong gui thi chi luu lat, lng
+  const location = { lat, lng };
+  if (input.positionSource !== undefined && input.positionSource !== null) {
+    if (!POSITION_SOURCE.includes(input.positionSource)) throw ErrorCodes.VALIDATION_ERROR("positionSource phải là GPS hoặc SIMULATED");
+    location.source = input.positionSource;
+  }
+  if (input.accuracyM !== undefined && input.accuracyM !== null && input.accuracyM !== "") {
+    const accuracyM = Number(input.accuracyM);
+    if (!Number.isFinite(accuracyM) || accuracyM < 0) throw ErrorCodes.VALIDATION_ERROR("Sai số GPS (accuracyM) không hợp lệ");
+    location.accuracyM = Math.round(accuracyM);
+  }
+  return location;
 }
 
 /** Xac nhan da lay: ma quet / nhap phai dung ma van don cua don (chong lay nham kien). */

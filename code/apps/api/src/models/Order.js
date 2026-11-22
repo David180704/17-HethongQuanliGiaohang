@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { positionFields } from "./position.js";
 import {
   ORDER_STATUS,
   ORDER_CHANNEL,
@@ -86,10 +87,7 @@ const statusHistoryEntrySchema = new mongoose.Schema(
     at: { type: Date, default: Date.now },
     by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     note: String,
-    location: {
-      lat: Number,
-      lng: Number,
-    },
+    location: positionFields,
   },
   { _id: false },
 );

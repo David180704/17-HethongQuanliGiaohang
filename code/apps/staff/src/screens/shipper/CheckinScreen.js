@@ -1,30 +1,49 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Screen from "../../components/Screen";
 import Banner from "../../components/Banner";
 import Button from "../../components/Button";
 import TextField from "../../components/TextField";
 import { apiClient, errorMessage } from "../../lib/apiClient";
-import { formatPosition, getPosition, loadPosition, setPosition } from "../../lib/location";
+import {
+  distanceM,
+  formatPosition,
+  getGpsState,
+  getPosition,
+  loadPosition,
+  onGpsStateChange,
+  onPositionChange,
+  setMode,
+  setPosition,
+  startGps,
+  toPayload,
+} from "../../lib/location";
 import { flushQueue, onPendingChange, sendCheckin } from "../../lib/checkinQueue";
 import { formatTime } from "../../lib/queryCache";
 import { colors, radius } from "../../theme";
 
 const FLUSH_INTERVAL_MS = 15_000;
+// Che do GPS: chi tu gui khi da vao ban kinh diem dang ky; gui lai sau it nhat 60 giay (server chan trung 30 phut)
+const GPS_RESEND_MS = 60_000;
+const GPS_MAX_ACCURACY_M = 200;
+
+const distanceText = (m) => (m >= 1000 ? `${(m / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} km` : `${Math.round(m)} m`);
 
 // Tu 12/11/2026: moi tai xe chi co MOT diem check-in hop le (admin gan) - server tu choi check-in o noi khac.
-// US-30: vi tri GIA LAP cua tai xe (chon "dang o" mot diem hoac nhap toa do; tren may ao co the dung toa do cua
-// `adb emu geo fix`). Moi lan doi vi tri, app tu gui check-in; nam trong ban kinh diem nao thi server ghi moc
-// cho cac don dang cam. Mat mang -> xep hang doi, tu gui lai moi 15 giay. Check-in tay la du phong.
+// US-30 (22/11/2026 dung GPS that): app theo doi vi tri cua dien thoai khi dang mo; vao ban kinh diem dang ky thi
+// tu gui check-in, server ghi moc cho cac don dang cam. Che do gia lap (chon "dang o" mot diem / nhap toa do) giu
+// lai cho kiem thu va khi may khong co GPS. Mat mang -> xep hang doi, tu gui lai moi 15 giay. Check-in tay du phong.
 export default function CheckinScreen({ accent, onBack }) {
   const [points, setPoints] = useState([]);
   const [position, setPositionState] = useState(getPosition());
+  const [gpsState, setGpsStateView] = useState(getGpsState());
   const [auto, setAuto] = useState(true);
   const [pending, setPending] = useState(0);
   const [log, setLog] = useState([]);
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [error, setError] = useState("");
+  const lastGpsSent = useRef(0);
 
   useEffect(() => {
     loadPosition().then(setPositionState);
@@ -32,11 +51,15 @@ export default function CheckinScreen({ accent, onBack }) {
       .get("/checkins/points")
       .then((res) => setPoints(res.data.data))
       .catch((err) => setError(errorMessage(err, "Không tải được điểm check-in")));
-    const unsubscribe = onPendingChange(setPending);
+    const offPending = onPendingChange(setPending);
+    const offPosition = onPositionChange(setPositionState);
+    const offState = onGpsStateChange(setGpsStateView);
     flushQueue();
     const timer = setInterval(() => flushQueue(), FLUSH_INTERVAL_MS);
     return () => {
-      unsubscribe();
+      offPending();
+      offPosition();
+      offState();
       clearInterval(timer);
     };
   }, []);
@@ -56,17 +79,27 @@ export default function CheckinScreen({ accent, onBack }) {
     }
   }, []);
 
+  // GPS that: moi lan dien thoai bao vi tri moi, vao ban kinh diem dang ky (va sai so du nho) thi tu check-in
+  const point = points[0];
+  const gpsInRange =
+    position.source === "GPS" && point && distanceM(position, point) <= (point.radiusM ?? 150) && (position.accuracyM ?? 0) <= GPS_MAX_ACCURACY_M;
+  useEffect(() => {
+    if (!auto || !gpsInRange || Date.now() - lastGpsSent.current < GPS_RESEND_MS) return;
+    lastGpsSent.current = Date.now();
+    setError("");
+    sendCheckin(toPayload(position)).then((result) => report(result, "Tự check-in (GPS)"));
+  }, [auto, gpsInRange, position, report]);
+
   async function moveTo(target) {
     setError("");
     const saved = await setPosition(target);
     setPositionState(saved);
-    if (auto) report(await sendCheckin(saved), "Tự check-in");
+    if (auto) report(await sendCheckin(toPayload(saved)), "Tự check-in");
   }
 
-  async function manual(point) {
+  async function manual(target) {
     setError("");
-    const here = getPosition();
-    report(await sendCheckin({ lat: here.lat, lng: here.lng, pointId: point._id }), `Check-in tay ${point.code}`);
+    report(await sendCheckin({ ...toPayload(getPosition()), pointId: target._id }), `Check-in tay ${target.code}`);
   }
 
   async function retry() {
@@ -74,13 +107,49 @@ export default function CheckinScreen({ accent, onBack }) {
     addLog(sent ? `Đã gửi lại ${sent} check-in` : "Vẫn chưa có mạng");
   }
 
+  const usingGps = position.source === "GPS";
+  const gpsMode = gpsState.mode === "GPS";
+
   return (
-    <Screen title="Vị trí & check-in" subtitle="Tự check-in khi đi qua điểm đã cài đặt" accent={accent} onBack={onBack}>
+    <Screen title="Vị trí & check-in" subtitle="Tự check-in khi đi qua điểm đã đăng ký" accent={accent} onBack={onBack}>
       <View style={styles.card}>
-        <Text style={styles.label}>Vị trí hiện tại (giả lập)</Text>
+        <Text style={styles.label} testID="chk-source">
+          {usingGps ? "Vị trí hiện tại (GPS của máy)" : "Vị trí hiện tại (giả lập)"}
+        </Text>
         <Text style={styles.title} testID="chk-position">
           {formatPosition(position)} · {position.label}
         </Text>
+        {point ? (
+          <Text style={styles.muted} testID="chk-distance">
+            Cách {point.name}: {distanceText(distanceM(position, point))} (bán kính {point.radiusM ?? 150} m)
+          </Text>
+        ) : null}
+        {gpsMode && gpsState.state !== "ok" && gpsState.message ? (
+          <Text style={styles.note} testID="chk-gps-state">
+            {gpsState.message}
+          </Text>
+        ) : null}
+        {usingGps && (position.accuracyM ?? 0) > GPS_MAX_ACCURACY_M ? (
+          <Text style={styles.note}>Tín hiệu GPS yếu (±{position.accuracyM} m) — ra chỗ thoáng để tự check-in, hoặc check-in tay.</Text>
+        ) : null}
+        <View style={styles.row}>
+          <Button
+            testID="chk-use-gps"
+            title="Dùng GPS của máy"
+            size="sm"
+            variant={gpsMode ? "primary" : "secondary"}
+            onPress={() => (gpsMode ? startGps() : setMode("GPS"))}
+            style={styles.grow}
+          />
+          <Button
+            testID="chk-use-sim"
+            title="Vị trí giả lập"
+            size="sm"
+            variant={gpsMode ? "secondary" : "primary"}
+            onPress={() => setMode("SIMULATED")}
+            style={styles.grow}
+          />
+        </View>
         <Button
           testID="chk-auto"
           title={auto ? "Tự động check-in: BẬT" : "Tự động check-in: TẮT"}
@@ -106,6 +175,7 @@ export default function CheckinScreen({ accent, onBack }) {
         </View>
       ) : null}
 
+      <Text style={styles.muted}>Vị trí giả lập (kiểm thử, máy không có GPS): nhập tọa độ hoặc bấm "Tôi đang ở đây".</Text>
       <View style={styles.row}>
         <TextField testID="chk-lat" label="Vĩ độ" keyboardType="decimal-pad" value={lat} onChangeText={setLat} style={styles.grow} />
         <TextField testID="chk-lng" label="Kinh độ" keyboardType="decimal-pad" value={lng} onChangeText={setLng} style={styles.grow} />
@@ -167,6 +237,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: "700", color: colors.text },
   text: { fontSize: 14, color: colors.text },
   muted: { fontSize: 13, color: colors.muted },
+  note: { fontSize: 13, color: "#92400E" },
   section: { fontSize: 16, fontWeight: "800", color: colors.text, marginTop: 6 },
   row: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
   grow: { flex: 1 },

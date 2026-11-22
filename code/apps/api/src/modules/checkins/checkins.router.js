@@ -81,6 +81,8 @@ import { ErrorCodes } from "../../core/errors.js";
  *               lng: { type: number }
  *               at: { type: string, format: date-time }
  *               clientEventId: { type: string }
+               positionSource: { type: string, enum: [GPS, SIMULATED], description: "GPS that cua dien thoai / trinh duyet hay vi tri gia lap" }
+               accuracyM: { type: number, description: "Sai so GPS (m); GPS > 200 m thi khong tu check-in" }
  *               pointId: { type: string, description: "Check-in tay du phong" }
  *     responses:
  *       201: { description: "{ matched: [{ code, name, distanceM }], orders, recorded, duplicates }" }

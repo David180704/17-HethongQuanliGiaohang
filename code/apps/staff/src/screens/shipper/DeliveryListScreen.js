@@ -7,7 +7,7 @@ import TextField from "../../components/TextField";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { formatVnd } from "../../lib/format";
-import { formatPosition, getPosition, loadPosition } from "../../lib/location";
+import { formatPosition, getPosition, loadPosition, positionForAction, toPayload } from "../../lib/location";
 import { colors, radius } from "../../theme";
 
 const STATUS_LABEL = {
@@ -75,19 +75,22 @@ export default function DeliveryListScreen({ accent, onBack }) {
   async function submit(order) {
     setBusy(true);
     setError("");
-    const { lat, lng } = getPosition();
+    // GPS that: lay toa do moi ngay luc bam (US-32)
+    const here = await positionForAction();
+    setPositionState(here);
+    const where = toPayload(here);
     const id = action.orderId;
     try {
       if (action.kind === "start") {
-        await apiClient.post(`/deliveries/${id}/start`, { code: action.code, lat, lng });
+        await apiClient.post(`/deliveries/${id}/start`, { code: action.code, ...where });
         setNotice(`Đã nhận kiện ${action.trackingCode}, đang đi giao`);
       } else if (action.kind === "delivered") {
-        const body = { lat, lng };
+        const body = { ...where };
         if (order.collect.total > 0) Object.assign(body, { collectedAmount: Number(action.amount), method: action.method, txnRef: action.txnRef });
         await apiClient.post(`/deliveries/${id}/delivered`, body);
         setNotice(order.collect.total > 0 ? `Giao thành công ${action.trackingCode} — đã thu ${formatVnd(order.collect.total)}` : `Giao thành công ${action.trackingCode}`);
       } else if (action.kind === "failed") {
-        const res = await apiClient.post(`/deliveries/${id}/failed`, { reason: action.reason, note: action.note, lat, lng });
+        const res = await apiClient.post(`/deliveries/${id}/failed`, { reason: action.reason, note: action.note, ...where });
         const { status, attempts, maxAttempts } = res.data.data;
         setNotice(
           status === "RETURNING"
@@ -95,7 +98,7 @@ export default function DeliveryListScreen({ accent, onBack }) {
             : `${action.trackingCode}: giao không thành công lần ${attempts}/${maxAttempts} — chờ giao lại`,
         );
       } else if (action.kind === "handback") {
-        await apiClient.post(`/deliveries/${id}/handed-back`, { lat, lng });
+        await apiClient.post(`/deliveries/${id}/handed-back`, { ...where });
         setNotice(`Đã trả ${action.trackingCode} cho người gửi — chờ người gửi xác nhận`);
       }
       setAction(null);
@@ -152,7 +155,7 @@ export default function DeliveryListScreen({ accent, onBack }) {
     return (
       <View style={styles.editor} testID="delivery-form">
         <Text style={styles.muted} testID="delivery-position">
-          Vị trí (giả lập): {formatPosition(position)} · {position.label}
+          {position.source === "GPS" ? "Vị trí GPS" : "Vị trí (giả lập)"}: {formatPosition(position)} · {position.label}
         </Text>
         {action.kind === "start" ? (
           <TextField

@@ -130,6 +130,24 @@ const COLLECTIONS = [
                   "number",
                   "null"
                 ]
+              },
+              "source": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "GPS",
+                  "SIMULATED",
+                  null
+                ]
+              },
+              "accuracyM": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
               }
             }
           },
@@ -222,6 +240,24 @@ const COLLECTIONS = [
               "MANUAL",
               null
             ]
+          },
+          "positionSource": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "GPS",
+              "SIMULATED",
+              null
+            ]
+          },
+          "accuracyM": {
+            "bsonType": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
           },
           "clientEventId": {
             "bsonType": [
@@ -1136,6 +1172,24 @@ const COLLECTIONS = [
                         "number",
                         "null"
                       ]
+                    },
+                    "source": {
+                      "bsonType": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "GPS",
+                        "SIMULATED",
+                        null
+                      ]
+                    },
+                    "accuracyM": {
+                      "bsonType": [
+                        "number",
+                        "null"
+                      ],
+                      "minimum": 0
                     }
                   }
                 }

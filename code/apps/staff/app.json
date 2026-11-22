@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "vn.edms17.nhanvien"
+      "bundleIdentifier": "vn.edms17.nhanvien",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "EDMS Nhân viên dùng vị trí khi bạn mở ứng dụng để tự check-in tại điểm đã đăng ký và ghi tọa độ lúc lấy hàng, giao hàng."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,11 +22,27 @@
       },
       "package": "vn.edms17.nhanvien",
       "versionCode": 1,
-      "permissions": []
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "edmsnv"
+    "scheme": "edmsnv",
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "EDMS Nhân viên dùng vị trí khi bạn mở ứng dụng để tự check-in tại điểm đã đăng ký và ghi tọa độ lúc lấy hàng, giao hàng.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ]
+    ]
   }
 }

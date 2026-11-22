@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { positionFields } from "./position.js";
 import { ASSIGNMENT_TYPE, ASSIGNMENT_STATUS, ASSIGNMENT_METHOD, PICKUP_FAIL_REASON, DELIVERY_FAIL_REASON } from "../constants/enums.js";
 
 // Nguyen nhan that bai cua ca chieu lay (US-28) va chieu giao (US-32)
@@ -22,7 +23,7 @@ const assignmentSchema = new mongoose.Schema(
     cancelledAt: { type: Date, default: null },
     // Ket qua cua tai xe (US-28 lay, US-32 giao, US-37 tra hang cho shop): thoi gian, toa do GPS; nguyen nhan khi that bai
     doneAt: { type: Date, default: null },
-    location: { lat: Number, lng: Number },
+    location: positionFields,
     failReason: { type: String, enum: FAIL_REASON, default: null },
     failNote: { type: String, default: null },
   },

@@ -77,6 +77,8 @@ export const INCIDENT_SOURCE = ["SHOP", "RECIPIENT", "STAFF"];
 
 // Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
 export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];
+// Toa do lay tu dau (22/11/2026): GPS that cua dien thoai / trinh duyet, hay vi tri gia lap (may ao, kiem thu)
+export const POSITION_SOURCE = ["GPS", "SIMULATED"];
 
 // Kenh tao don va phuong tien goi y (US-40)
 export const ORDER_CHANNEL = ["ONLINE", "COUNTER"];
