@@ -65,7 +65,7 @@ before(async () => {
       email: EMAILS[0], phone: "0909983401", passwordHash, fullName: "Chủ Shop A", role: "CUSTOMER", customerType: "BUSINESS", shopName: "Shop Đối Soát A",
       bankAccount: { bankName: "Vietcombank", bankCode: "VCB", accountNumber: "0011004455667", accountName: "CHU SHOP A" },
     },
-    { email: EMAILS[1], phone: "0909983402", passwordHash, fullName: "Shop B", role: "CUSTOMER", customerType: "INDIVIDUAL" },
+    { email: EMAILS[1], phone: "0909983402", passwordHash, fullName: "Shop B", role: "CUSTOMER", customerType: "BUSINESS", shopName: "Shop Đối Soát B", taxCode: "0312345602", status: "ACTIVE" },
     { email: EMAILS[2], phone: "0909983403", passwordHash, fullName: "Kế toán", role: "ADMIN" },
     { email: EMAILS[3], phone: "0909983404", passwordHash, fullName: "Kho Đối soát", role: "HUB_STAFF", hubId: hub._id },
   ]);
