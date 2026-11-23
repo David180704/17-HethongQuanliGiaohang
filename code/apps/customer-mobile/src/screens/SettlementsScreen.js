@@ -7,6 +7,7 @@ import UpdatedAt from "../components/UpdatedAt";
 import { useCachedQuery } from "../lib/useCachedQuery";
 import { formatVnd } from "../lib/format";
 import { colors } from "../theme";
+import { useAuth } from "../auth/AuthContext";
 
 const day = (value) => {
   const d = new Date(new Date(value).getTime() + 7 * 3600e3).toISOString().slice(0, 10).split("-");
@@ -16,6 +17,20 @@ const day = (value) => {
 // US-43 (de 02): shop xem doi soat tren dien thoai - tung ky, tong thu ho, phi bi tru, dieu chinh, thuc nhan,
 // giao dich chi tra; mo ky de xem tung don.
 export default function SettlementsScreen({ onBack }) {
+  const { user } = useAuth();
+  if (user && user.customerType !== "BUSINESS") {
+    return (
+      <Screen title="Đối soát" onBack={onBack}>
+        <Card>
+          <Text>Đối soát tiền thu hộ dành cho shop đối tác. Tài khoản cá nhân gửi hàng không kèm thu hộ.</Text>
+        </Card>
+      </Screen>
+    );
+  }
+  return <ShopSettlements onBack={onBack} />;
+}
+
+function ShopSettlements({ onBack }) {
   const { data, loading, updatedAt, refresh } = useCachedQuery("/settlements");
   const [open, setOpen] = useState("");
   const list = data || [];

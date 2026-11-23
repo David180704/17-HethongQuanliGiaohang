@@ -27,6 +27,7 @@ import {
   toOrderPayload,
 } from "../lib/orderForm";
 import { needsVnpay, payWithVnpay } from "../lib/payment";
+import { useAuth } from "../auth/AuthContext";
 import { colors, radius } from "../theme";
 
 const STEP_TITLES = ["Lấy hàng", "Người nhận", "Hàng hóa & thanh toán", "Xác nhận"];
@@ -49,6 +50,9 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+  // Shop doi tac moi gui thu ho; khach le: bo thu ho, khong tru phi vao thu ho
+  const { user } = useAuth();
+  const isShop = user?.customerType === "BUSINESS";
 
   // Mo nhap (neu vao tu Uoc tinh phi) - khach da dang nhap mo nhap thi nhap thuoc ve khach
   useEffect(() => {
@@ -67,14 +71,16 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
     if (hydrated || !locationData || !serviceTypes || draft.loading) return;
     const restored = fromDraft(draft.data?.payload, locationData);
     const defaultLocation = locationData.find((location) => location.isDefault)?._id || "";
+    const cod = restored?.cod || EMPTY_ORDER.cod;
     setForm({
       ...EMPTY_ORDER,
       ...restored,
       pickupLocationId: restored?.pickupLocationId || defaultLocation,
       serviceTypeId: restored?.serviceTypeId || serviceTypes[0]?._id || "",
+      cod: isShop ? cod : { ...cod, enabled: false, amount: "", feePayer: cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : cod.feePayer },
     });
     setHydrated(true);
-  }, [hydrated, locationData, serviceTypes, draft]);
+  }, [hydrated, locationData, serviceTypes, draft, isShop]);
 
   const location = locations.find((l) => l._id === form.pickupLocationId);
   // Dia chi nguoi nhan phai khop danh muc tinh - xa/phuong; khac tinh voi noi lay thi khong co giao nhanh
@@ -286,22 +292,28 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
               })
             }
           />
-          <Card title="Thu hộ và phí vận chuyển">
-            <Toggle
-              testID="cod-enabled"
-              label="Thu hộ tiền hàng (COD)"
-              value={form.cod.enabled}
-              onChange={(enabled) =>
-                update({ cod: { ...form.cod, enabled, feePayer: !enabled && form.cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.cod.feePayer } })
-              }
-            />
-            {form.cod.enabled ? (
+          <Card title={isShop ? "Thu hộ và phí vận chuyển" : "Phí vận chuyển"}>
+            {isShop ? (
+              <Toggle
+                testID="cod-enabled"
+                label="Thu hộ tiền hàng (COD)"
+                value={form.cod.enabled}
+                onChange={(enabled) =>
+                  update({ cod: { ...form.cod, enabled, feePayer: !enabled && form.cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.cod.feePayer } })
+                }
+              />
+            ) : (
+              <Text style={styles.muted} testID="cod-individual-note">
+                Tài khoản cá nhân gửi hàng không kèm thu hộ. Thu hộ (COD) dành cho shop đối tác.
+              </Text>
+            )}
+            {isShop && form.cod.enabled ? (
               <TextField testID="cod-amount" label="Số tiền thu hộ (đ)" help="Lớn hơn 0, tối đa 20.000.000 đ" value={form.cod.amount} onChangeText={(t) => update({ cod: { ...form.cod, amount: t } })} keyboardType="number-pad" />
             ) : null}
             <ChoiceGroup
               label="Ai trả phí vận chuyển?"
               testID="fee-payer"
-              options={FEE_PAYERS.map((p) => {
+              options={FEE_PAYERS.filter((p) => isShop || p.value !== "DEDUCT_FROM_COD").map((p) => {
                 const needsCod = p.value === "DEDUCT_FROM_COD" && !form.cod.enabled;
                 const needsPrepaid = expressSelected && p.value !== "SHOP_PREPAID";
                 return {

@@ -8,6 +8,25 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser());
 
+  // Phien luu tu ban cu chua co customerType (khach le / shop doi tac) -> doc lai /auth/me mot lan
+  useEffect(() => {
+    if (!user || "customerType" in user) return;
+    let cancelled = false;
+    apiClient
+      .get("/auth/me")
+      .then((res) => {
+        if (cancelled) return;
+        const { customerType = null, shopName = null } = res.data.data || {};
+        const next = { ...user, customerType, shopName };
+        setStoredUser(next);
+        setUser(next);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   useEffect(() => {
     const onUnauthorized = () => setUser(null);
     // Tab khac cua cung trinh duyet dang nhap / dang xuat / doi tai khoan -> tab nay theo ngay, khong de giao dien

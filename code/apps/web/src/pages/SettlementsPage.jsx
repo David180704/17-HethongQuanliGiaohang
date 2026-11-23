@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import { Link } from "react-router-dom";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { formatVnd } from "../lib/format.js";
@@ -9,6 +10,21 @@ const day = (value) => new Date(value).toLocaleDateString("vi-VN");
 // US-43 (de 02): shop theo doi doi soat - tung ky, don trong ky, tong thu ho, tong phi, khoan dieu chinh, so tien
 // thuc nhan va giao dich chi tra khi Express da chuyen tien.
 export default function SettlementsPage() {
+  const { user } = useAuth();
+  if (user && user.customerType !== "BUSINESS") {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <h1 className="text-2xl font-bold">Đối soát</h1>
+        <p role="status" className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          Đối soát tiền thu hộ dành cho shop đối tác. Tài khoản cá nhân gửi hàng không kèm thu hộ nên không có kỳ đối soát.
+        </p>
+      </div>
+    );
+  }
+  return <ShopSettlements />;
+}
+
+function ShopSettlements() {
   const { data, loading, updatedAt, refresh } = useCachedQuery("/settlements");
   const [open, setOpen] = useState("");
   const settlements = data || [];

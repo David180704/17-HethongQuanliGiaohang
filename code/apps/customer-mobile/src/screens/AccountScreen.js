@@ -84,12 +84,22 @@ function Profile({ user, onLogout, onCreateOrder, onOpenPickupLocations, onOpenO
         <Button title="Tạo đơn mới" variant="secondary" onPress={onCreateOrder} />
       </Card>
 
-      <Card title="Đối soát">
-        <Text style={styles.muted}>Tiền thu hộ, phí bị trừ, điều chỉnh và số tiền Express chuyển cho bạn mỗi kỳ.</Text>
-        <Button testID="account-settlements" title="Xem đối soát" variant="secondary" onPress={onOpenSettlements} />
-      </Card>
-
-      <BankAccountCard />
+      {/* Thu ho, tai khoan nhan COD, doi soat chi danh cho shop doi tac */}
+      {user.customerType === "BUSINESS" ? (
+        <>
+          <Card title="Đối soát">
+            <Text style={styles.muted}>Tiền thu hộ, phí bị trừ, điều chỉnh và số tiền Express chuyển cho bạn mỗi kỳ.</Text>
+            <Button testID="account-settlements" title="Xem đối soát" variant="secondary" onPress={onOpenSettlements} />
+          </Card>
+          <BankAccountCard />
+        </>
+      ) : (
+        <Card title="Thu hộ và đối soát">
+          <Text style={styles.muted} testID="account-individual-note">
+            Tài khoản cá nhân gửi hàng không kèm thu hộ. Thu hộ (COD), tài khoản nhận tiền và đối soát dành cho shop đối tác.
+          </Text>
+        </Card>
+      )}
 
       <Button testID="account-logout" title="Đăng xuất" variant="danger" onPress={onLogout} />
     </Screen>

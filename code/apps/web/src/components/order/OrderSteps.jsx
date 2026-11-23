@@ -121,7 +121,8 @@ export function ReceiverStep({ form, update }) {
 }
 
 // Buoc 3: kien hang, goi dich vu, thu ho va ai tra phi (US-19)
-export function ParcelStep({ form, update, serviceTypes, crossProvince = false }) {
+// isShop: shop doi tac moi duoc thu ho COD / tru phi vao thu ho; khach le chi chon nguoi tra phi
+export function ParcelStep({ form, update, serviceTypes, crossProvince = false, isShop = false }) {
   const { item, cod } = form;
   const setItem = (patch) => update({ item: { ...item, ...patch } });
   const setCod = (patch) => update({ cod: { ...cod, ...patch } });
@@ -183,22 +184,26 @@ export function ParcelStep({ form, update, serviceTypes, crossProvince = false }
       </fieldset>
 
       <fieldset className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
-        <legend className="px-1 font-semibold">Thu hộ và phí vận chuyển</legend>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={cod.enabled}
-            onChange={(e) => setCod({ enabled: e.target.checked, ...(e.target.checked || cod.feePayer !== "DEDUCT_FROM_COD" ? {} : { feePayer: "RECIPIENT_PAID" }) })}
-          />
-          Thu hộ tiền hàng (COD)
-        </label>
-        {cod.enabled && (
+        <legend className="px-1 font-semibold">{isShop ? "Thu hộ và phí vận chuyển" : "Phí vận chuyển"}</legend>
+        {isShop ? (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={cod.enabled}
+              onChange={(e) => setCod({ enabled: e.target.checked, ...(e.target.checked || cod.feePayer !== "DEDUCT_FROM_COD" ? {} : { feePayer: "RECIPIENT_PAID" }) })}
+            />
+            Thu hộ tiền hàng (COD)
+          </label>
+        ) : (
+          <p className="text-xs text-gray-500">Tài khoản cá nhân gửi hàng không kèm thu hộ. Thu hộ (COD) dành cho shop đối tác.</p>
+        )}
+        {isShop && cod.enabled && (
           <Field id="cod-amount" label="Số tiền thu hộ (đ)" hint="Lớn hơn 0, tối đa 20.000.000 đ">
             <input id="cod-amount" type="number" min="1" max="20000000" required value={cod.amount} onChange={(e) => setCod({ amount: e.target.value })} className={inputClass} />
           </Field>
         )}
         <div role="radiogroup" aria-label="Ai trả phí vận chuyển" className="space-y-2">
-          {FEE_PAYERS.map((payer) => {
+          {FEE_PAYERS.filter((payer) => isShop || payer.value !== "DEDUCT_FROM_COD").map((payer) => {
             const needsCod = payer.value === "DEDUCT_FROM_COD" && !cod.enabled;
             const needsPrepaid = expressSelected && payer.value !== "SHOP_PREPAID";
             const disabled = needsCod || needsPrepaid;

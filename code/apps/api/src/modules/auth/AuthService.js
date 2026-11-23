@@ -65,7 +65,8 @@ export class AuthService {
     const tokens = await this.tokenService.signPair(user);
     return {
       ...tokens,
-      user: { id: user._id, email: user.email, fullName: user.fullName, role: user.role },
+      // customerType, shopName: app khach phan biet khach le / shop doi tac (thu ho, doi soat chi cho shop)
+      user: { id: user._id, email: user.email, fullName: user.fullName, role: user.role, customerType: user.customerType ?? null, shopName: user.shopName ?? null },
     };
   }
 

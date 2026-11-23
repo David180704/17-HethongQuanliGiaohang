@@ -9,6 +9,7 @@ import { addressProblem, useAddressCheck } from "../lib/adminUnits.js";
 import { EMPTY_ORDER, fromDraft, stepError, toFlagsPayload, toItemPayload, toOrderPayload } from "../lib/orderForm.js";
 import { ConfirmStep, ParcelStep, PickupStep, ReceiverStep, StepIndicator } from "../components/order/OrderSteps.jsx";
 import { needsVnpay, startVnpay } from "../lib/payment.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 // Tao don 4 buoc (US-18), thu ho va ai tra phi (US-19), xem phi du kien truoc khi xac
 // nhan (US-17). Moi lan bam "Tiep tuc" luu nhap (orderDrafts, 24 gio): tai lai trang hay
@@ -30,6 +31,9 @@ export default function CreateOrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+  // Shop doi tac moi gui thu ho; khach le: bo thu ho, khong tru phi vao thu ho
+  const { user } = useAuth();
+  const isShop = user?.customerType === "BUSINESS";
 
   // Dien form MOT lan khi da tai xong nhap, dia diem lay hang va goi dich vu (du lieu tu API)
   useEffect(() => {
@@ -37,15 +41,17 @@ export default function CreateOrderPage() {
     if (openedDraft && !draft && !draftError) return; // nhap dang tai
     const restored = fromDraft(draft?.payload, locationData);
     const defaultLocation = locationData.find((location) => location.isDefault)?._id || "";
+    const cod = restored?.cod || EMPTY_ORDER.cod;
     // oxlint-disable-next-line react/set-state-in-effect
     setForm({
       ...EMPTY_ORDER,
       ...restored,
       pickupLocationId: restored?.pickupLocationId || defaultLocation,
       serviceTypeId: restored?.serviceTypeId || serviceTypes[0]?._id || "",
+      cod: isShop ? cod : { ...cod, enabled: false, amount: "", feePayer: cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : cod.feePayer },
     });
     setHydrated(true);
-  }, [hydrated, locationData, serviceTypes, draft, draftError, openedDraft]);
+  }, [hydrated, locationData, serviceTypes, draft, draftError, openedDraft, isShop]);
 
   const location = locations.find((l) => l._id === form.pickupLocationId);
   // Dia chi nguoi nhan go tay phai khop danh muc tinh - xa/phuong; khac tinh voi noi lay thi khong co giao nhanh
@@ -231,7 +237,7 @@ export default function CreateOrderPage() {
               />
             )}
             {form.step === 2 && <ReceiverStep form={form} update={update} />}
-            {form.step === 3 && <ParcelStep form={form} update={update} serviceTypes={serviceTypes || []} crossProvince={crossProvince} />}
+            {form.step === 3 && <ParcelStep form={form} update={update} serviceTypes={serviceTypes || []} crossProvince={crossProvince} isShop={isShop} />}
             {form.step === 4 && (
               <ConfirmStep form={form} location={location} quote={quote} quoteError={quoteError} serviceTypes={serviceTypes || []} />
             )}

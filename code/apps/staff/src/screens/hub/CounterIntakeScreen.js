@@ -48,6 +48,8 @@ const EMPTY = {
 export default function CounterIntakeScreen({ user, accent, onBack }) {
   const [form, setForm] = useState(EMPTY);
   const [customer, setCustomer] = useState(null); // { found, customer? }
+  // Khach co tai khoan shop doi tac (doanh nghiep) moi duoc thu ho
+  const shop = customer?.found && customer.customer?.customerType === "BUSINESS";
   const [quote, setQuote] = useState(null);
   const [created, setCreated] = useState(null);
   const [busy, setBusy] = useState("");
@@ -117,9 +119,9 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
         flags: { fragile: form.fragile, isVehicle: form.isVehicle },
         shopOrderCode: form.shopOrderCode || undefined,
         cod: {
-          enabled: form.codEnabled,
-          amount: form.codEnabled ? Number(form.codAmount) : 0,
-          feePayer: form.feePayer,
+          enabled: shop && form.codEnabled,
+          amount: shop && form.codEnabled ? Number(form.codAmount) : 0,
+          feePayer: !shop && form.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.feePayer,
           feePaymentMethod: form.feePayer === "SHOP_PREPAID" ? form.feePaymentMethod : null,
         },
       });
@@ -247,12 +249,25 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
       </Section>
 
       <Section title="4. Thu tiền">
-        <ChipSelect testID="ci-payer" label="Người trả phí" options={FEE_PAYERS} value={form.feePayer} onChange={set("feePayer")} />
+        <ChipSelect
+          testID="ci-payer"
+          label="Người trả phí"
+          options={FEE_PAYERS.filter((p) => shop || p.value !== "DEDUCT_FROM_COD")}
+          value={form.feePayer}
+          onChange={set("feePayer")}
+        />
         {form.feePayer === "SHOP_PREPAID" ? (
           <ChipSelect testID="ci-method" label="Hình thức" options={METHODS} value={form.feePaymentMethod} onChange={set("feePaymentMethod")} />
         ) : null}
-        <CheckboxRow testID="ci-cod" label="Thu hộ tiền hàng (COD)" value={form.codEnabled} onChange={set("codEnabled")} />
-        {form.codEnabled ? (
+        {/* Thu ho chi danh cho shop doi tac co tai khoan; khach le (ke ca khach moi) khong gui COD */}
+        {shop ? (
+          <CheckboxRow testID="ci-cod" label="Thu hộ tiền hàng (COD)" value={form.codEnabled} onChange={set("codEnabled")} />
+        ) : (
+          <Text style={styles.muted} testID="ci-cod-individual">
+            Khách lẻ gửi hàng không kèm thu hộ (COD chỉ dành cho shop đối tác).
+          </Text>
+        )}
+        {shop && form.codEnabled ? (
           <TextField testID="ci-cod-amount" label="Số tiền thu hộ (đ)" keyboardType="numeric" value={form.codAmount} onChangeText={set("codAmount")} />
         ) : null}
         {selected ? (
