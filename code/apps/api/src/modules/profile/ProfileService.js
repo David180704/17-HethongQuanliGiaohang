@@ -14,13 +14,22 @@ export class ProfileService {
     if (user.role !== "CUSTOMER") throw ErrorCodes.FORBIDDEN("Chỉ khách hàng khai báo tài khoản nhận thu hộ");
   }
 
-  async bankAccount(user) {
+  // Tai khoan nhan tien thu ho chi danh cho shop doi tac (khach le khong gui COD)
+  async #assertShop(user) {
     this.#assertCustomer(user);
-    return (await this.userRepository.findById(user.id))?.bankAccount || null;
+    const customer = await this.userRepository.findById(user.id);
+    if (customer?.customerType !== "BUSINESS") {
+      throw ErrorCodes.SHOP_ONLY("Tài khoản nhận tiền thu hộ chỉ dành cho shop đối tác");
+    }
+    return customer;
+  }
+
+  async bankAccount(user) {
+    return (await this.#assertShop(user)).bankAccount || null;
   }
 
   async saveBankAccount(user, input) {
-    this.#assertCustomer(user);
+    await this.#assertShop(user);
     const bankAccount = parseBankAccount(input);
     await this.userRepository.updateById(user.id, { bankAccount });
     await this.cache?.invalidate("users");
@@ -28,7 +37,7 @@ export class ProfileService {
   }
 
   async removeBankAccount(user) {
-    this.#assertCustomer(user);
+    await this.#assertShop(user);
     await this.userRepository.updateById(user.id, { $unset: { bankAccount: 1 } });
     await this.cache?.invalidate("users");
     return { deleted: true };

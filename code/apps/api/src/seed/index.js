@@ -302,6 +302,14 @@ async function seedOrders({ customerLocations, serviceAreaDocs, sampleAreaDocs, 
 
     const delivered = chain.includes("DELIVERED");
     let feePaymentMethod = feePayer === "SHOP_PREPAID" ? faker.helpers.arrayElement(["VNPAY", "CASH"]) : null;
+    // Khach le khong gui thu ho (23/11/2026): chi shop doi tac co COD. Doi SAU cac lan goi faker de chuoi ngau nhien
+    // (va tong phi 200 don) giu nguyen; codDrawn giu cho lan boc phuong thuc thu tien ben duoi.
+    const codDrawn = codEnabled;
+    if (customer.customerType !== "BUSINESS") {
+      codEnabled = false;
+      codAmount = 0;
+      if (feePayer === "DEDUCT_FROM_COD") feePayer = "RECIPIENT_PAID";
+    }
     // Gui nhanh bat buoc tra truoc (US-44) - doi ma khong goi faker nen phan con lai cua seed giu nguyen
     if (serviceTypeKey === "EXPRESS" && feePayer !== "SHOP_PREPAID") {
       feePayer = "SHOP_PREPAID";
@@ -338,7 +346,7 @@ async function seedOrders({ customerLocations, serviceAreaDocs, sampleAreaDocs, 
         feePaidAt: feePaid ? statusHistory[statusHistory.length - 1].at : null,
         collected: codEnabled && delivered,
         collectedAt: codEnabled && delivered ? statusHistory[statusHistory.length - 1].at : null,
-        method: codEnabled && delivered ? faker.helpers.arrayElement(["CASH", "TRANSFER"]) : null,
+        method: ((drawn) => (codEnabled ? drawn : null))(codDrawn && delivered ? faker.helpers.arrayElement(["CASH", "TRANSFER"]) : null),
         txnRef: null,
       },
       status,

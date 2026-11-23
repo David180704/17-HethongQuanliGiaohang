@@ -32,10 +32,18 @@ export class SettlementService {
     if (user.role !== "ADMIN") throw ErrorCodes.FORBIDDEN("Chỉ quản trị viên (kế toán) thực hiện đối soát");
   }
 
+  /** Doi soat chi danh cho shop doi tac: id cac tai khoan doanh nghiep (khach le khong co ky doi soat). */
+  async #shopIds(customerId) {
+    const shops = await this.userRepository.findMany({ role: "CUSTOMER", customerType: "BUSINESS" }, { select: "_id" });
+    const ids = shops.map((s) => String(s._id));
+    if (customerId && !ids.includes(String(customerId))) throw ErrorCodes.SHOP_ONLY("Chỉ đối soát cho shop đối tác");
+    return customerId ? [customerId] : ids;
+  }
+
   /** Don cua shop ket thuc trong ky, chua thuoc ky doi soat nao. */
-  #eligibleFilter(from, to, customerId) {
+  #eligibleFilter(from, to, shopIds) {
     return {
-      ...(customerId && { customerId }),
+      customerId: { $in: shopIds },
       status: { $in: SETTLEABLE_STATUS },
       settlementId: null,
       statusHistory: { $elemMatch: { status: { $in: SETTLEABLE_STATUS }, at: { $gte: from, $lte: to } } },
@@ -48,7 +56,7 @@ export class SettlementService {
     const from = vnDay(input.from, "Từ ngày", false);
     const to = vnDay(input.to, "Đến ngày", true);
     if (from > to) throw ErrorCodes.VALIDATION_ERROR("Từ ngày phải trước đến ngày");
-    const orders = await this.orderRepository.findMany(this.#eligibleFilter(from, to, input.customerId), {
+    const orders = await this.orderRepository.findMany(this.#eligibleFilter(from, to, await this.#shopIds(input.customerId)), {
       select: "trackingCode customerId customerName status statusHistory fee cod",
     });
     const byShop = new Map();
@@ -76,7 +84,7 @@ export class SettlementService {
     const from = vnDay(input.from, "Từ ngày", false);
     const to = vnDay(input.to, "Đến ngày", true);
     if (from > to) throw ErrorCodes.VALIDATION_ERROR("Từ ngày phải trước đến ngày");
-    const orders = await this.orderRepository.findMany(this.#eligibleFilter(from, to, input.customerId), { select: "customerId" });
+    const orders = await this.orderRepository.findMany(this.#eligibleFilter(from, to, await this.#shopIds(input.customerId)), { select: "customerId" });
     const customerIds = [...new Set(orders.map((o) => String(o.customerId)))];
     if (!customerIds.length) throw ErrorCodes.VALIDATION_ERROR("Không có đơn nào đã giao / đã hoàn trong kỳ chưa được đối soát");
     const created = [];
@@ -87,7 +95,7 @@ export class SettlementService {
   async #runForShop(user, customerId, from, to) {
     const at = this.clock();
     return this.transactions.run(async (session) => {
-      const orders = await this.orderRepository.findMany(this.#eligibleFilter(from, to, customerId), {
+      const orders = await this.orderRepository.findMany(this.#eligibleFilter(from, to, [customerId]), {
         select: "trackingCode customerId customerName status statusHistory fee cod",
         sort: { trackingCode: 1 },
       });

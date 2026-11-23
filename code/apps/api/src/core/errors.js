@@ -41,6 +41,9 @@ export const ErrorCodes = {
   SERVICE_NOT_AVAILABLE: (message = "Loại dịch vụ này không áp dụng cho tuyến gửi này") =>
     new AppError("SERVICE_NOT_AVAILABLE", message, 422),
 
+  // Thu ho, tai khoan nhan COD, doi soat chi danh cho shop doi tac (tai khoan doanh nghiep da duyet) - 23/11/2026
+  SHOP_ONLY: (message = "Chức năng này chỉ dành cho shop đối tác") => new AppError("SHOP_ONLY", message, 403),
+
   // Thanh toan phi van chuyen qua VNPay (US-44)
   PAYMENT_NOT_CONFIGURED: (message = "Cổng thanh toán VNPay chưa được cấu hình trên máy chủ") =>
     new AppError("PAYMENT_NOT_CONFIGURED", message, 503),

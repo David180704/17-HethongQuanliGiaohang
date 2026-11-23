@@ -2,7 +2,7 @@ import { ErrorCodes } from "../../core/errors.js";
 import { ORDER_STATUS } from "../../constants/enums.js";
 import { orderValidator } from "./orders.validator.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "./CounterRepository.js";
-import { assertCodCoversFee, assertExpressPrepaid } from "./cod.js";
+import { assertCodAllowed, assertCodCoversFee, assertExpressPrepaid } from "./cod.js";
 import { groupFilter, withDisplay } from "./orderStatus.js";
 import { suggestVehicle } from "./vehicle.js";
 import { randomBytes } from "node:crypto";
@@ -74,6 +74,8 @@ export class OrderService {
     const data = this.validator.create(input);
     const customer = await this.userRepository.findById(user.id);
     if (customer?.status !== "ACTIVE") throw ErrorCodes.FORBIDDEN("Tài khoản chưa hoạt động nên chưa tạo được đơn");
+    // Khach le khong gui thu ho; chi shop doi tac da duyet moi co COD
+    assertCodAllowed(data.cod, customer);
 
     const location = await this.pickupLocationRepository.findActiveOwned(user.id, data.pickupLocationId);
     if (!location) throw ErrorCodes.NOT_FOUND("Không tìm thấy địa điểm lấy hàng của bạn");
@@ -196,6 +198,8 @@ export class OrderService {
       throw ErrorCodes.VALIDATION_ERROR("Số điện thoại này thuộc tài khoản nhân viên, không phải khách hàng");
     }
     if (existing && existing.status === "LOCKED") throw ErrorCodes.FORBIDDEN("Tài khoản khách đang bị khóa");
+    // Khach le (ca khach moi tao tai quay) khong gui thu ho; shop doi tac co tai khoan moi co COD
+    assertCodAllowed(data.cod, existing);
     if (!existing && !data.customer.fullName) {
       throw ErrorCodes.VALIDATION_ERROR("Khách chưa có tài khoản: nhập họ tên để tạo khách lẻ");
     }

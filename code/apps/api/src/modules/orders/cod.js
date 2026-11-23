@@ -38,6 +38,15 @@ export function parseCod(cod) {
   return { enabled, amount, feePayer, feePaymentMethod };
 }
 
+/** Khach le gui hang khong kem thu ho; chi shop doi tac (doanh nghiep) duoc thu ho / tru phi vao thu ho. */
+export const isShop = (customer) => customer?.role === "CUSTOMER" && customer?.customerType === "BUSINESS";
+
+export function assertCodAllowed(cod, customer) {
+  if ((cod.enabled || cod.feePayer === "DEDUCT_FROM_COD") && !isShop(customer)) {
+    throw ErrorCodes.SHOP_ONLY("Thu hộ (COD) chỉ dành cho shop đối tác — khách lẻ gửi hàng không kèm thu hộ");
+  }
+}
+
 /** Gui nhanh bat buoc nguoi gui tra truoc phi van chuyen (US-44, de 14). */
 export function assertExpressPrepaid(cod, serviceType) {
   if (serviceType?.code === "EXPRESS" && cod.feePayer !== "SHOP_PREPAID") {
