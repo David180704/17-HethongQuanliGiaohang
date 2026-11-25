@@ -400,6 +400,9 @@ test("[US-36] giao lai: don cho giao lai tu vao lai hang cho phan cong; that bai
   const saved = await Order.findById(order._id).lean();
   assert.equal(saved.deliveryAttempts, 3);
   assert.equal(saved.returnReason, "Đã giao không thành công 3/3 lần");
+  // 3 lan giao = 3 phan cong cua cung don, danh sach tai xe chi hien MOT the (phan cong moi nhat)
+  const mine = (await as("a", request(app).get("/deliveries/mine?shiftId=all"))).body.data.orders;
+  assert.equal(mine.filter((o) => o.trackingCode === order.trackingCode).length, 1, "khong lap the");
 
   // Admin doi chinh sach: 2 lan; nhan vien kho khong doi duoc
   assert.equal((await as("kho", request(app).put("/deliveries/policy")).send({ maxDeliveryAttempts: 2 })).status, 403);
