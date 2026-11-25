@@ -198,6 +198,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     transactions: new MongooseTransactionRunner(),
     orderEvents,
     passwordHasher,
+    companyBank: companyAccount(env.companyBank, env.nodeEnv),
   });
   // US-23: ca lam viec - doc tuyen / nguoi giao hang KHONG cache (rang buoc can so moi nhat)
   const shiftRepository = new ShiftRepository();

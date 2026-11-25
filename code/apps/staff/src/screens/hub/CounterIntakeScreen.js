@@ -6,6 +6,7 @@ import Banner from "../../components/Banner";
 import TextField from "../../components/TextField";
 import ChipSelect from "../../components/ChipSelect";
 import CheckboxRow from "../../components/CheckboxRow";
+import VietQrCard from "../../components/VietQrCard";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { queryCache } from "../../lib/queryCache";
 import { colors, radius } from "../../theme";
@@ -16,8 +17,11 @@ const FEE_PAYERS = [
   { value: "SHOP_PREPAID", label: "Người gửi trả trước" },
   { value: "DEDUCT_FROM_COD", label: "Trừ vào thu hộ" },
 ];
-// Tai quay khach dung truoc mat nhan vien: tra truoc thu tien mat ngay (US-44 - khong mo cong VNPay tai quay)
-const METHODS = [{ value: "CASH", label: "Tiền mặt tại quầy" }];
+// Tai quay khach dung truoc mat nhan vien: tra truoc bang tien mat hoac chuyen khoan VietQR (de 14), khong mo cong VNPay
+const METHODS = [
+  { value: "CASH", label: "Tiền mặt tại quầy" },
+  { value: "QR", label: "Chuyển khoản VietQR" },
+];
 const EMPTY = {
   phone: "",
   fullName: "",
@@ -40,6 +44,7 @@ const EMPTY = {
   feePaymentMethod: "CASH",
   codEnabled: false,
   codAmount: "",
+  feeTxnRef: "",
 };
 
 // US-40: tiep nhan hang tai quay (luong chinh de 14) - tim khach theo so dien thoai (chua co thi tao khach le),
@@ -51,11 +56,14 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
   // Khach co tai khoan shop doi tac (doanh nghiep) moi duoc thu ho
   const shop = customer?.found && customer.customer?.customerType === "BUSINESS";
   const [quote, setQuote] = useState(null);
+  const [transfer, setTransfer] = useState(null); // ma VietQR thu phi (khi chon chuyen khoan)
   const [created, setCreated] = useState(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const set = (key) => (value) => {
     setForm((current) => ({ ...current, [key]: value }));
+    // Doi hang, noi nhan, goi dich vu, nguoi tra hay hinh thuc -> so tien doi, ma QR cu khong con dung
+    if (key !== "feeTxnRef") setTransfer(null);
     if (["weightGram", "length", "width", "height", "fragile", "isVehicle", "rcProvince", "rcWard", "declaredValue"].includes(key)) {
       setQuote(null);
     }
@@ -103,6 +111,17 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
       }));
     });
 
+  const showTransferQr = () =>
+    run("transfer", async () => {
+      const res = await apiClient.post("/orders/counter/transfer-qr", {
+        serviceTypeId: form.serviceTypeId,
+        receiver: { province: form.rcProvince, ward: form.rcWard },
+        item: item(),
+        flags: { fragile: form.fragile, isVehicle: form.isVehicle },
+      });
+      setTransfer(res.data.data);
+    });
+
   const submit = () =>
     run("submit", async () => {
       const res = await apiClient.post("/orders/counter", {
@@ -124,6 +143,7 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
           feePayer: !shop && form.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.feePayer,
           feePaymentMethod: form.feePayer === "SHOP_PREPAID" ? form.feePaymentMethod : null,
         },
+        feeTxnRef: form.feePayer === "SHOP_PREPAID" && form.feePaymentMethod === "QR" ? form.feeTxnRef : undefined,
       });
       queryCache.invalidate("/orders");
       setCreated(res.data.data);
@@ -133,6 +153,7 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
     setForm(EMPTY);
     setCustomer(null);
     setQuote(null);
+    setTransfer(null);
     setCreated(null);
     setError("");
   }
@@ -259,6 +280,30 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
         {form.feePayer === "SHOP_PREPAID" ? (
           <ChipSelect testID="ci-method" label="Hình thức" options={METHODS} value={form.feePaymentMethod} onChange={set("feePaymentMethod")} />
         ) : null}
+        {form.feePayer === "SHOP_PREPAID" && form.feePaymentMethod === "QR" ? (
+          <View style={styles.transfer}>
+            {transfer ? (
+              <VietQrCard data={transfer} testID="ci-transfer" />
+            ) : (
+              <Button
+                testID="ci-transfer-qr"
+                title="Hiện mã VietQR cho khách quét"
+                variant="secondary"
+                disabled={!form.serviceTypeId}
+                loading={busy === "transfer"}
+                onPress={showTransferQr}
+              />
+            )}
+            <TextField
+              testID="ci-txn"
+              label="Mã giao dịch chuyển khoản"
+              required
+              help="Lấy trên màn hình chuyển khoản thành công của khách"
+              value={form.feeTxnRef}
+              onChangeText={set("feeTxnRef")}
+            />
+          </View>
+        ) : null}
         {/* Thu ho chi danh cho shop doi tac co tai khoan; khach le (ke ca khach moi) khong gui COD */}
         {shop ? (
           <CheckboxRow testID="ci-cod" label="Thu hộ tiền hàng (COD)" value={form.codEnabled} onChange={set("codEnabled")} />
@@ -300,6 +345,7 @@ function Section({ title, children }) {
 }
 
 const styles = StyleSheet.create({
+  transfer: { gap: 10 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
   row: { flexDirection: "row", alignItems: "flex-end", gap: 8 },

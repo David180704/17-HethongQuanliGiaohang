@@ -6,6 +6,10 @@ import { assertCodAllowed, assertCodCoversFee, assertExpressPrepaid } from "./co
 import { groupFilter, withDisplay } from "./orderStatus.js";
 import { suggestVehicle } from "./vehicle.js";
 import { randomBytes } from "node:crypto";
+import QRCode from "qrcode";
+import { buildVietQr, transferNote } from "../payments/vietqr.js";
+import { BANKS } from "../profile/bankAccount.js";
+import { vnNow } from "../assignments/AssignmentService.js";
 
 const MAX_LIMIT = 100;
 
@@ -33,6 +37,7 @@ export class OrderService {
     transactions,
     orderEvents = null,
     passwordHasher = null,
+    companyBank = null,
     validator = orderValidator,
   }) {
     Object.assign(this, {
@@ -45,6 +50,7 @@ export class OrderService {
       hubRepository,
       userRepository,
       pricingService,
+      companyBank,
       transactions,
       orderEvents,
       passwordHasher,
@@ -177,6 +183,38 @@ export class OrderService {
   }
 
   /**
+   * Ma VietQR thu phi tai quay (de 14: gui nhanh tra qua chuyen khoan): so tien la phi cua dich vu da chon, tinh lai tren
+   * may chu theo bang gia hien hanh (khong tin so tien tu ung dung). Noi dung "EDMS <ma diem> <gio phut>" de doi chieu.
+   */
+  async counterTransferQr(user, input) {
+    const data = this.validator.counterTransferQr(input);
+    const { hub, area: pickupArea } = await this.#counterPoint(user);
+    const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
+    const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
+    if (!this.companyBank) {
+      throw ErrorCodes.PAYMENT_NOT_CONFIGURED("Chưa cấu hình tài khoản nhận chuyển khoản của công ty (COMPANY_BANK_CODE, COMPANY_BANK_ACCOUNT)");
+    }
+    const { time } = vnNow(new Date());
+    const note = `EDMS ${hub.code} ${time.replace(":", "")}`;
+    const amount = quote.fee.total;
+    const payload = buildVietQr({ bankCode: this.companyBank.code, accountNo: this.companyBank.accountNo, amount, note });
+    return {
+      amount,
+      note: transferNote(note),
+      serviceName: serviceType.name,
+      qr: await QRCode.toDataURL(payload, { margin: 1, width: 280, errorCorrectionLevel: "M" }),
+      bank: {
+        code: this.companyBank.code,
+        name: BANKS.find((b) => b.code === this.companyBank.code)?.name || this.companyBank.code,
+        accountNo: this.companyBank.accountNo,
+        accountName: this.companyBank.accountName,
+      },
+      demo: Boolean(this.companyBank.demo),
+    };
+  }
+
+  /**
    * Tao don tai quay trong MOT transaction: tim hoac tao khach le, sinh ma van don, phi khoa ngay, don di
    * CREATED -> CONFIRMED -> AT_HUB (hang da nam tai diem). Tra truoc tien mat -> ghi da thu phi.
    */
@@ -187,8 +225,10 @@ export class OrderService {
     const destRoute = await this.routeRepository.findById(receiverArea.routeId);
     const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
     assertExpressPrepaid(data.cod, serviceType);
-    // Tai quay khach dung truoc mat nhan vien: tra truoc thi thu tien mat, khong mo cong VNPay
-    if (data.cod.feePaymentMethod === "VNPAY") throw ErrorCodes.VALIDATION_ERROR("Tại quầy: người gửi trả trước bằng tiền mặt");
+    // Tai quay khach dung truoc mat nhan vien: tra truoc bang tien mat hoac chuyen khoan VietQR (de 14), khong mo cong VNPay
+    if (data.cod.feePaymentMethod === "VNPAY") {
+      throw ErrorCodes.VALIDATION_ERROR("Tại quầy: người gửi trả trước bằng tiền mặt hoặc chuyển khoản VietQR");
+    }
     const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
     assertCodCoversFee(data.cod, quote.fee);
     const vehicle = suggestVehicle({ chargeableWeight: quote.chargeableWeight, item: data.item, flags: quote.flags });
@@ -207,7 +247,12 @@ export class OrderService {
     const walkInHash = existing ? null : await this.passwordHasher.hash(randomBytes(24).toString("hex"));
 
     const now = new Date();
-    const paidAtCounter = data.cod.feePayer === "SHOP_PREPAID" && data.cod.feePaymentMethod === "CASH";
+    const paidAtCounter = data.cod.feePayer === "SHOP_PREPAID" && ["CASH", "QR"].includes(data.cod.feePaymentMethod);
+    const paidNote = !paidAtCounter
+      ? ""
+      : data.cod.feePaymentMethod === "QR"
+        ? ` — thu phí chuyển khoản VietQR, mã GD ${data.feeTxnRef}`
+        : " — thu phí tiền mặt";
     const by = staff._id;
     const saved = await this.transactions.run(async (session) => {
       const customer =
@@ -258,7 +303,7 @@ export class OrderService {
           status: "AT_HUB",
           statusHistory: [
             { status: "CREATED", at: now, by, note: `Tiếp nhận tại quầy ${hub.name}` },
-            { status: "CONFIRMED", at: now, by, note: "Kiểm hàng, báo giá và khóa phí tại quầy" },
+            { status: "CONFIRMED", at: now, by, note: `Kiểm hàng, báo giá và khóa phí tại quầy${paidNote}` },
             { status: "AT_HUB", at: now, by, note: `Hàng đã nhận tại ${hub.name}` },
           ],
         },

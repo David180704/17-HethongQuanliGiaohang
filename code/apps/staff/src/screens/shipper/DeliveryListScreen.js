@@ -5,6 +5,7 @@ import Banner from "../../components/Banner";
 import Button from "../../components/Button";
 import TextField from "../../components/TextField";
 import ScanCodeField from "../../components/ScanCodeField";
+import VietQrCard from "../../components/VietQrCard";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { formatVnd } from "../../lib/format";
@@ -44,26 +45,7 @@ function TransferQr({ orderId }) {
       </View>
     );
   }
-  return (
-    <View style={[styles.transfer, styles.transferCard]} testID="delivery-transfer-card">
-      {data.demo ? (
-        <Banner tone="warning" testID="delivery-transfer-demo">
-          Tài khoản DEMO (máy chủ chưa cấu hình tài khoản công ty) — chỉ để xem, không chuyển tiền.
-        </Banner>
-      ) : null}
-      <Image source={{ uri: data.qr }} style={styles.transferQr} accessibilityLabel="Mã VietQR chuyển khoản" testID="delivery-transfer-image" />
-      <Text style={styles.transferAmount} testID="delivery-transfer-amount">
-        {formatVnd(data.amount)}
-      </Text>
-      <Text style={styles.muted}>
-        {data.bank.name} · {data.bank.accountNo}
-        {data.bank.accountName ? ` · ${data.bank.accountName}` : ""}
-      </Text>
-      <Text style={styles.muted} testID="delivery-transfer-note">
-        Nội dung: {data.note}
-      </Text>
-    </View>
-  );
+  return <VietQrCard data={data} testID="delivery-transfer" />;
 }
 
 const METHODS = [
@@ -387,7 +369,4 @@ const styles = StyleSheet.create({
   slipCode: { fontSize: 18, fontWeight: "800", color: colors.text, letterSpacing: 1 },
   qr: { width: 180, height: 180 },
   transfer: { gap: 8 },
-  transferCard: { alignItems: "center", padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
-  transferQr: { width: 220, height: 220 },
-  transferAmount: { fontSize: 20, fontWeight: "800", color: colors.text },
 });

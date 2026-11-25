@@ -60,6 +60,15 @@ function parseReceiver(receiver) {
 
 // Strategy kiem tra don tao moi (US-18). Ham thuan; khu vuc phuc vu, bang gia, chu so
 // huu dia diem lay hang kiem o OrderService.
+// Tai quay tra truoc bang chuyen khoan VietQR (feePaymentMethod QR): bat buoc ma giao dich tren man hinh chuyen khoan
+// thanh cong cua khach (4-40 ky tu) de doi chieu sao ke.
+function parseFeeTxnRef(body) {
+  if (body?.cod?.feePaymentMethod !== "QR") return null;
+  const ref = typeof body.feeTxnRef === "string" ? body.feeTxnRef.trim() : "";
+  if (ref.length < 4 || ref.length > 40) throw ErrorCodes.VALIDATION_ERROR("Nhập mã giao dịch chuyển khoản (4-40 ký tự)");
+  return ref;
+}
+
 export const orderValidator = {
   create(body = {}) {
     if (!isFilled(body.pickupLocationId)) throw ErrorCodes.VALIDATION_ERROR("Chọn địa điểm lấy hàng");
@@ -87,7 +96,14 @@ export const orderValidator = {
       flags: parseFlags(body.flags),
       cod: parseCod(body.cod),
       shopOrderCode: parseShopOrderCode(body.shopOrderCode),
+      feeTxnRef: parseFeeTxnRef(body),
     };
+  },
+
+  /** Ma VietQR thu phi tai quay: nhu bao gia + loai dich vu da chon. */
+  counterTransferQr(body = {}) {
+    if (!isFilled(body.serviceTypeId)) throw ErrorCodes.VALIDATION_ERROR("Chọn loại dịch vụ");
+    return { ...this.counterQuote(body), serviceTypeId: body.serviceTypeId };
   },
 
   /** Bao gia tai quay: chi can noi nhan (tinh, quan) va kien hang. */

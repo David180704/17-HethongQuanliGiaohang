@@ -134,6 +134,25 @@ import { OrderController } from "./OrderController.js";
  *               flags: { type: object }
  *     responses:
  *       200: { description: "Nhu estimate-fee + vehicle { code MOTORBIKE|TRUCK, label, reason } + counter { hubId, hubName }" }
+ * /orders/counter/transfer-qr:
+ *   post:
+ *     tags: [Orders]
+ *     summary: "Ma VietQR thu phi tai quay (de 14: tra qua chuyen khoan) - so tien = phi cua dich vu da chon, tinh lai tren may chu; tien vao tai khoan cong ty"
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [serviceTypeId]
+ *             properties:
+ *               serviceTypeId: { type: string }
+ *               receiver: { type: object, properties: { province: { type: string }, ward: { type: string } } }
+ *               item: { type: object }
+ *               flags: { type: object }
+ *     responses:
+ *       200: { description: "{ amount, note, serviceName, qr (PNG data URL), bank { code, name, accountNo, accountName }, demo }" }
+ *       503: { description: Chay that ma chua cau hinh tai khoan cong ty }
  * /orders/counter:
  *   post:
  *     tags: [Orders]
@@ -189,6 +208,7 @@ export function buildOrdersRouter({ pricingService, orderService, middleware }) 
   // Tiep nhan tai quay (US-40): dat truoc "/:id"; nhan vien kho co quyen duyet don thi tiep nhan duoc
   router.get("/counter/customers", requirePermission("order:approve"), asyncHandler(controller.counterCustomer));
   router.post("/counter/quote", requirePermission("order:approve"), asyncHandler(controller.counterQuote));
+  router.post("/counter/transfer-qr", requirePermission("order:approve"), asyncHandler(controller.counterTransferQr));
   router.post("/counter", requirePermission("order:approve"), asyncHandler(controller.createAtCounter));
   router.get("/:id", requirePermission(READ_PERMISSIONS), asyncHandler(controller.get));
   router.post("/:id/confirm", requirePermission("order:approve"), asyncHandler(controller.confirm));
