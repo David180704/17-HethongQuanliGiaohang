@@ -5,7 +5,7 @@ Cập nhật 12/11/2026: đề 14 đã qua review lần 3; làm xong toàn bộ 
 (một phần thực hành, một phần lý thuyết), nên phải đáp ứng **đồng thời** hai đề và có thêm chức năng
 mở rộng. Trạng thái lấy theo Product Backlog, Sprint Backlog và `KiemThuTheoStory.md`.
 
-Ký hiệu: ✅ đã làm, có test · 📅 đã có story trong kế hoạch Sprint 4–7 · ❌ thiếu (chưa có story, hoặc
+Ký hiệu: ✅ đã làm, có test · ⚠️ làm một phần (kiểm thử độc lập 25/11/2026) · 📅 đã có story trong kế hoạch Sprint 4–7 · ❌ thiếu (chưa có story, hoặc
 story chưa xếp Sprint).
 
 ## 1. Ma trận truy vết yêu cầu
@@ -18,7 +18,7 @@ story chưa xếp Sprint).
 | 4 | Thông số hàng: dễ vỡ, trị giá, thu tiền, hàng là xe | 14 | US-17, US-19 | ✅ |
 | 5 | Phí theo khu vực, khối lượng, kích thước, dịch vụ, bảng giá tại thời điểm tạo đơn; xem phí trước khi xác nhận | 02, 14 | US-13, US-16, US-17 | ✅ |
 | 6 | Thu hộ COD; ba cách trả phí (trả trước, người nhận trả, trừ vào thu hộ) | 02 | US-19 | ✅ |
-| 7 | Gửi thường thu tiền khi giao; gửi nhanh chuyển khoản / thanh toán trực tuyến | 14 | US-19; US-44 VietQR: gửi nhanh bắt buộc trả trước chuyển khoản, xác nhận đã nhận tiền | ✅ / 📅 |
+| 7 | Gửi thường thu tiền khi giao; gửi nhanh chuyển khoản / thanh toán trực tuyến | 14 | US-19; US-44 VNPay (online, gửi nhanh bắt buộc trả trước); tại quầy và lúc giao: chuyển khoản **VietQR tự sinh** (US-40, US-33, 25/11/2026), nhân viên ghi mã giao dịch | ✅ (VNPay chưa chạy với sandbox thật) |
 | 8 | Nhận mã đơn từ website bán hàng | 14 | US-40: nhập mã đơn của shop khi tạo đơn (tìm được theo mã này). Cổng tự nhận đơn từ website (PB#47, mở rộng E3) đã bỏ | ✅ |
 | 9 | Nhân viên kiểm hàng, báo giá, nhập đơn tại điểm; chọn phương tiện giao | 14 | US-40 (PB#48): tiếp nhận tại quầy, gợi ý phương tiện | ✅ |
 | 10 | Xác nhận đơn → đưa vào quy trình lấy hàng | 02 | US-18 (kho xác nhận, khóa phí) | ✅ |
@@ -31,12 +31,12 @@ story chưa xếp Sprint).
 | 17 | Giao thường gom theo tuyến; giao nhanh là đơn riêng | 14 | US-12, US-25, US-35 (đơn nhanh được phân công giao trước, có nhãn ưu tiên) | ✅ |
 | 18 | Shop theo dõi tiến trình từng đơn | 02 | US-20 (gồm danh sách đơn lọc theo trạng thái, thời gian — PB#16), US-21, US-22 | ✅ |
 | 19 | Khách thấy 4 trạng thái: Chưa nhận / Đã nhận – Chưa giao / Đã nhận – Đang giao / Đã giao | 14 | US-20, US-22 | ✅ |
-| 20 | Tự check-in khi đi qua điểm trên bản đồ, giúp khách theo dõi | 14 | US-29, US-30 (tọa độ giả lập, bán kính 150 m, chặn trùng 30 phút, gửi lại khi mất mạng; tra cứu hiện điểm đã qua) | ✅ |
+| 20 | Tự check-in khi đi qua điểm trên bản đồ, giúp khách theo dõi | 14 | US-29, US-30 (GPS thật / giả lập, bán kính 150 m, chặn trùng 30 phút, gửi lại khi mất mạng; chỉ ghi mốc cho đơn tài xế đang cầm). **Hạn chế:** mỗi tài xế chỉ một điểm check-in đăng ký (theo yêu cầu PO 12/11), nên khách thấy ít mốc | ⚠️ một phần |
 | 21 | Phân công giao tại khu vực cuối, theo năng lực | 02 | US-35: tự động khi đơn tới kho đích / chờ giao lại, cùng thuật toán chiều lấy, điều chỉnh tay có lý do | ✅ |
-| 22 | Giao theo phiếu giao hàng (địa chỉ, phường/xã, số điện thoại) | 14 | US-31: danh sách đơn cần giao trong ca + phiếu giao in được có mã QR mã vận đơn | ✅ |
+| 22 | Giao theo phiếu giao hàng (địa chỉ, phường/xã, số điện thoại) | 14 | US-31: danh sách đơn cần giao trong ca + phiếu giao có mã QR mã vận đơn; quét QR bằng camera (25/11/2026). **Hạn chế:** nút In trên web in cả trang, trên Android chưa in được | ⚠️ một phần |
 | 23 | Giao thành công + ghi nhận đã thu đủ COD | 02 | US-32 (quét mã, GPS, DELIVERED là trạng thái cuối), US-33 (thu đúng số tiền, cùng transaction) | ✅ |
 | 24 | Giao thất bại → ghi nguyên nhân, giao lại hoặc hoàn | 02 | US-32 (6 nguyên nhân, PB#40), US-36 | ✅ |
-| 25 | Đếm số lần giao, vượt giới hạn hoặc bị từ chối → hoàn hàng tới khi shop xác nhận | 02 | US-36 (tối đa 3 lần, admin đổi), US-37 (phân công theo tuyến lấy cũ, shop bấm xác nhận trên Web / App) | ✅ |
+| 25 | Đếm số lần giao, vượt giới hạn hoặc bị từ chối → hoàn hàng tới khi shop xác nhận | 02 | US-36 (tối đa 3 lần, admin đổi), US-37 (phân công theo tuyến lấy cũ, shop bấm xác nhận trên Web / App; đơn tại quầy hoàn về quầy, nhân viên quầy xác nhận). **Còn lỗi:** đơn liên tỉnh hoàn từ kho đích chưa có chặng trung chuyển ngược | ⚠️ một phần |
 | 26 | Sự cố, khiếu nại: nội dung, đơn liên quan, xử lý, kết quả | 02 | US-38: mã SC, đơn chuyển INCIDENT tới khi giải quyết, tiến độ, kết quả, bồi thường | ✅ |
 | 27 | Đối soát định kỳ: thu hộ, phí, điều chỉnh, số tiền trả shop | 02 | US-34 (mỗi đơn một kỳ trong transaction, bồi thường sự cố tự vào điều chỉnh); US-43 (PB#76) | ✅ |
 | 28 | Shop xem đối soát; ghi nhận giao dịch trả tiền, hoàn tất đối soát | 02 | US-43 (Web + App Khách hàng; chi trả vào tài khoản đã khai báo US-42) | ✅ |

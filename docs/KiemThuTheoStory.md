@@ -1,6 +1,6 @@
 # Kiểm thử theo story — Sprint 1 đến Sprint 7
 
-> Sinh tự động ngày 22/11/2026 bởi `npm run report:stories` (thư mục `code/apps/api`).
+> Sinh tự động ngày 25/11/2026 bởi `npm run report:stories` (thư mục `code/apps/api`).
 > Chạy lại lệnh này sau mỗi lần sửa code để cập nhật. Chạy riêng một story:
 > `npm run test:story -- 6` (story US-06).
 
@@ -51,12 +51,12 @@ server nên không nằm trong lệnh này.
 | 3 | US-16 | Ước tính phí vận chuyển trước khi gửi hàng | 3 | 🟢 Đạt | 10/10 | Web + App KH: ước tính phí → Gửi hàng → đăng ký tài khoản mới → tạo đơn điền sẵn dữ liệu · Maestro KH 09* |
 | 3 | US-17 | Xem phí vận chuyển dự kiến trước khi xác nhận đơn | 5 | 🟢 Đạt | 11/11 | Web + App KH: bước xác nhận tách từng khoản phí, phí tạo đơn bằng phí đã ước tính · Liên app: phí khóa khi kho duyệt |
 | 3 | US-18 | Tạo đơn hàng giao mới | 5 | 🟢 Đạt | 7/7 | Web + App KH: tạo đơn 4 bước, chặn bước sai · App NV: kho duyệt đơn, hub khác không thấy · Liên app Web → App NV · Maestro KH 09*, NV 08* |
-| 3 | US-19 | Khai báo tiền thu hộ COD và hình thức thanh toán phí | 3 | 🟢 Đạt | 6/6 | Web + App KH: thu hộ, 3 hình thức trả phí, khấu trừ chỉ khi bật thu hộ, thu hộ nhỏ hơn phí thì không cho xác nhận |
-| 4 | US-20 | Xem danh sách và chi tiết đơn hàng, toàn bộ hành trình | 4 | 🟢 Đạt | 8/8 | Web + App KH: lọc 4 nhóm trạng thái, thời gian, mã vận đơn; chi tiết hành trình, phí đã khóa · Maestro KH 10 |
+| 3 | US-19 | Khai báo tiền thu hộ COD và hình thức thanh toán phí | 3 | 🟢 Đạt | 8/8 | Web + App KH: thu hộ, 3 hình thức trả phí, khấu trừ chỉ khi bật thu hộ, thu hộ nhỏ hơn phí thì không cho xác nhận |
+| 4 | US-20 | Xem danh sách và chi tiết đơn hàng, toàn bộ hành trình | 4 | 🟢 Đạt | 9/9 | Web + App KH: lọc 4 nhóm trạng thái, thời gian, mã vận đơn; chi tiết hành trình, phí đã khóa · Maestro KH 10 |
 | 4 | US-21 | Hàng đợi sự kiện và consumer ghi nhật ký hành trình đơn | 5 | 🟢 Đạt | 5/5 | Story kỹ thuật, không có màn hình: hàng đợi thật (BullMQ trên Redis) trong test API; kết quả thấy qua tra cứu công khai (US-22) |
 | 4 | US-22 | Tra cứu hành trình đơn hàng bằng mã vận đơn | 3 | 🟢 Đạt | 4/4 | Web + App KH: tra cứu khi chưa đăng nhập, 4 nhóm, che số · Quy trình 3 app: shop tạo đơn → kho duyệt → người nhận tra cứu · Maestro KH 11 |
-| 4 | US-40 | Tiếp nhận hàng tại quầy: kiểm hàng, báo giá, tạo đơn hộ khách | 5 | 🟢 Đạt | 8/8 | App NV: tiếp nhận khách lẻ / shop, gợi ý xe tải, thu tiền mặt · Quy trình: kho tiếp nhận → người nhận tra cứu Web, shop thấy đơn · Maestro NV 09 |
-| 4 | US-23 | Quản lý ca làm việc và phân công nhân viên vào tuyến | 3 | 🟢 Đạt | 7/7 | App NV: kho xếp ca → tài xế thấy ca hôm nay; kho HCM chỉ thấy tuyến mình, trùng giờ bị chặn · Maestro NV 10 |
+| 4 | US-40 | Tiếp nhận hàng tại quầy: kiểm hàng, báo giá, tạo đơn hộ khách | 5 | 🟢 Đạt | 10/10 | App NV: tiếp nhận khách lẻ / shop, gợi ý xe tải, thu tiền mặt · Quy trình: kho tiếp nhận → người nhận tra cứu Web, shop thấy đơn · Maestro NV 09 |
+| 4 | US-23 | Quản lý ca làm việc và phân công nhân viên vào tuyến | 3 | 🟢 Đạt | 8/8 | App NV: kho xếp ca → tài xế thấy ca hôm nay; kho HCM chỉ thấy tuyến mình, trùng giờ bị chặn · Maestro NV 10 |
 | 4 | US-24 | Cấu hình năng lực xử lý tối đa của người giao hàng | 3 | 🟢 Đạt | 5/5 | App NV: admin đặt mặc định → kho đặt năng lực riêng tài xế → bỏ ghi đè về theo tuyến · Maestro NV 10 |
 | 4 | US-25 | Phân công đơn lấy hàng cho người giao hàng | 7 | 🟢 Đạt | 7/7 | App NV: quy trình shop tạo đơn → kho duyệt → tự phân công theo ca/năng lực → hàng chờ → phân công tay có lý do → tài xế thấy đơn · Maestro NV 10 |
 | 4 | US-26 | Đăng nhập ứng dụng di động | 2 | 🟢 Đạt | 3/3 | Maestro NV 01–07 trên máy ảo Android · App NV: 17 kịch bản |
@@ -65,20 +65,20 @@ server nên không nằm trong lệnh này.
 | 5 | US-41 | Quy trình tại kho: nhập kho, phân loại, xuất kho và trung chuyển | 6 | 🟢 Đạt | 7/7 | App NV: quy trình hai kho Hà Nội nhập, phân loại (bắt buộc loại hàng), xuất → Hồ Chí Minh nhận tại kho đích · Maestro NV 12 |
 | 5 | US-29 | Quản lý điểm check-in trên bản đồ | 3 | 🟢 Đạt | 1/1 | App NV: admin thêm điểm check-in (tọa độ sai bị chặn, bán kính mặc định 150 m) |
 | 5 | US-30 | Tự động check-in vị trí khi đi qua điểm đã cài đặt | 5 | 🟢 Đạt | 7/7 | App NV: tài xế tự check-in, cắt mạng xếp hàng rồi gửi lại, không ghi trùng → người nhận thấy điểm đã qua trên Web · Maestro NV 13 |
-| 5 | US-42 | Khai báo tài khoản ngân hàng nhận tiền thu hộ | 2 | 🟢 Đạt | 3/3 | Liên app: khai báo trên Web, đổi trên App KH, Web thấy tài khoản mới · Maestro KH 12 |
+| 5 | US-42 | Khai báo tài khoản ngân hàng nhận tiền thu hộ | 2 | 🟢 Đạt | 4/4 | Liên app: khai báo trên Web, đổi trên App KH, Web thấy tài khoản mới · Maestro KH 12 |
 | 6 | US-35 | Phân công tự động đơn giao hàng cho người giao hàng | 6 | 🟢 Đạt | 3/3 |  |
 | 6 | US-31 | Xem danh sách đơn cần giao và phiếu giao hàng có mã QR | 6 | 🟢 Đạt | 2/2 |  |
 | 6 | US-32 | Xác nhận giao hàng thành công hoặc ghi nhận giao thất bại | 5 | 🟢 Đạt | 2/2 |  |
-| 6 | US-33 | Ghi nhận đã thu tiền COD từ người nhận | 3 | 🟢 Đạt | 1/1 |  |
+| 6 | US-33 | Ghi nhận đã thu tiền COD từ người nhận | 3 | 🟢 Đạt | 5/5 |  |
 | 6 | US-36 | Cấu hình chính sách giao lại, giới hạn số lần giao | 2 | 🟢 Đạt | 2/2 |  |
 | 6 | US-37 | Quy trình hoàn hàng — phân công theo tuyến, theo dõi đến khi shop xác nhận | 5 | 🟢 Đạt | 1/1 |  |
 | 7 | US-44 | Thanh toán phí vận chuyển qua cổng VNPay (gửi nhanh bắt buộc trả trước) | 4 | 🟢 Đạt | 6/6 |  |
-| 7 | US-34 | Tạo đối soát và tổng hợp số liệu cho khách hàng | 5 | 🟢 Đạt | 3/3 |  |
+| 7 | US-34 | Tạo đối soát và tổng hợp số liệu cho khách hàng | 5 | 🟢 Đạt | 4/4 |  |
 | 7 | US-43 | Shop xem kỳ đối soát, khoản điều chỉnh; ghi nhận đã chi trả | 5 | 🟢 Đạt | 2/2 |  |
 | 7 | US-38 | Ghi nhận sự cố/khiếu nại, theo dõi xử lý và kết quả | 5 | 🟢 Đạt | 4/4 |  |
 | 7 | US-39 | Thống kê tổng hợp và dashboard quản trị | 8 | 🟢 Đạt | 2/2 |  |
-| 7 | US-45 | Triển khai hệ thống lên máy chủ: API, CSDL cloud, cổng thanh toán | 5 | 🟡 Một phần | 2/2 · còn 2 tiêu chí |  |
-| 7 | US-46 | Web Nhân viên và Web Khách hàng có địa chỉ riêng trên Internet | 3 | 🟡 Một phần | 2/2 · còn 1 tiêu chí |  |
+| 7 | US-45 | Triển khai hệ thống lên máy chủ: API, CSDL cloud, cổng thanh toán | 5 | 🟡 Một phần | 4/4 · còn 2 tiêu chí |  |
+| 7 | US-46 | Web Nhân viên và Web Khách hàng có địa chỉ riêng trên Internet | 3 | 🟡 Một phần | 4/4 · còn 1 tiêu chí |  |
 | 7 | US-47 | Phát hành App Nhân viên, App Khách hàng trên điện thoại thật (CH Play nội bộ) | 5 | 🟡 Một phần | 1/1 · còn 2 tiêu chí |  |
 
 ## Ngoài Sprint Backlog
