@@ -1,7 +1,7 @@
 # Hướng dẫn triển khai EDMS lên máy chủ và điện thoại thật
 
 Sprint 7 · US-44 (VNPay), US-45 (máy chủ), US-46 (hai trang web riêng), US-47 (app trên điện thoại thật).
-Cập nhật 19/11/2026.
+Cập nhật 25/11/2026: thêm bảng chi phí, link công khai không cần tài khoản (mục 8), sao lưu dữ liệu (mục 9).
 
 ## 0. Sau khi làm xong, hệ thống gồm
 
@@ -22,6 +22,17 @@ Tên `edms17-...` có thể đã có người dùng. Nếu Render báo trùng t�
 chỉ đi kèm: `CORS_ORIGIN`, `PUBLIC_API_URL`, `VITE_API_URL`, `VITE_STAFF_APP_URL`, `EXPO_PUBLIC_API_URL`, cả
 `eas.json` của hai app), sau đó chạy lại `npm test` trong `code/apps/api`. Test `deploy.test.js` kiểm các địa chỉ
 này có khớp nhau không.
+
+**Chi phí (kiểm lại 25/11/2026):** tất cả miễn phí, trừ CH Play.
+
+| Dịch vụ | Gói miễn phí | Giới hạn cần biết |
+|---|---|---|
+| Render | Web service + trang tĩnh + Key Value miễn phí | API ngủ sau 15 phút không dùng (mở lại ~1 phút); Key Value có thể mất dữ liệu khi khởi động lại (chỉ là cache, hàng đợi) |
+| MongoDB Atlas M0 | 512 MB | **Không có sao lưu tự động** → dùng mục 9 |
+| VNPay sandbox | Đăng ký bằng email, nhận mã ngay | Không trừ tiền thật; sandbox **không thử được thanh toán bằng QR** (mở app ngân hàng quét) → thử bằng thẻ test NCB |
+| Expo EAS | 30 bản build Android mỗi tháng | Hàng đợi build ưu tiên thấp (chờ 5–20 phút) |
+| CH Play | **25 USD một lần** | Không muốn trả phí: gửi link APK của EAS (mục 4) — cài được trên mọi máy Android |
+| Cloudflare Quick Tunnel | Không cần tài khoản | Chỉ để chạy thử, link đổi mỗi lần bật (mục 8) |
 
 ## 1. MongoDB Atlas (5 phút)
 
@@ -116,3 +127,47 @@ cd code/apps/api && MONGO_URI="mongodb://localhost:27018/edms?directConnection=t
 
 Playwright giả lập trang VNPay: chặn địa chỉ `sandbox.vnpayment.vn` rồi trả về kết quả đã ký bằng cùng hash secret.
 Xem `apps/web/tests-e2e/create-order.spec.js` và `apps/customer-mobile/tests-e2e/create-order.spec.js`, test `[US-44]`.
+
+## 8. Có link web thật ngay hôm nay (miễn phí, không cần tài khoản)
+
+Khi chưa làm mục 1–3, vẫn có thể gửi cho người khác **link https thật** mở từ bất kỳ đâu (điện thoại 4G, máy giảng
+viên). Cloudflare Quick Tunnel cấp tên miền ngẫu nhiên dạng `https://<bốn-từ-ngẫu-nhiên>.trycloudflare.com`, trỏ về
+máy của bạn.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\code\chay-demo.ps1        # bật API, Docker như mọi khi
+powershell -ExecutionPolicy Bypass -File .\code\chay-cong-khai.ps1   # build web, mở 2 link (lần đầu tải cloudflared ~60 MB)
+powershell -ExecutionPolicy Bypass -File .\code\chay-cong-khai.ps1 -Stop   # tắt khi demo xong
+```
+
+- Script in ra hai link: **Web Khách hàng** và **Web Nhân viên** (App Nhân viên bản web, dùng cho admin, kho, tài xế).
+  Mỗi link là một proxy nhỏ (`code/scripts/public-demo/proxy.mjs`): trang web + `/api/...` chuyển tiếp sang API ở
+  cổng 4044, cùng một địa chỉ nên không phải sửa CORS.
+- Link sống khi máy bật và script đang chạy; mỗi lần chạy ra link mới. Web Nhân viên qua https nên dùng được GPS thật
+  của điện thoại.
+- Dữ liệu nằm ở CSDL mà API đang dùng: Docker trên máy này, hoặc Atlas nếu API chạy theo `.env`. Muốn dữ liệu nằm trên
+  cloud: làm mục 1 (nạp cấu trúc + dữ liệu mẫu lên Atlas) rồi bật API theo `.env`.
+- Ai có link đều vào được, mà tài khoản mẫu dùng mật khẩu `123456`: chỉ bật khi demo, xong thì `-Stop`.
+
+## 9. Sao lưu dữ liệu (kiểm soát rủi ro khi dữ liệu nằm trên cloud)
+
+Atlas M0 không tự sao lưu. Dự án giữ thêm bản sao ở **hai nơi khác** Atlas:
+
+1. **Trên máy / ổ đồng bộ** (Google Drive, OneDrive):
+   ```bash
+   cd code/apps/api
+   npm run backup                                   # Atlas theo .env -> backups/edms-<ngày-giờ>/
+   npm run backup -- --out "D:\GoogleDrive\EDMS"    # ghi thẳng vào thư mục đồng bộ cloud
+   npm run backup -- --local                        # CSDL Docker local
+   ```
+   Mỗi collection một file JSON (giữ nguyên ObjectId, ngày giờ) kèm `manifest.json` ghi số bản ghi.
+2. **Trên GitHub** (tự động 01:00 mỗi ngày, giữ 30 ngày): repo → *Settings → Secrets and variables → Actions → New
+   repository secret* tên `BACKUP_MONGO_URI`, giá trị là chuỗi Atlas (nên tạo user Atlas **chỉ có quyền đọc** cho
+   việc này). Bản sao nằm ở tab *Actions → Sao luu CSDL → Artifacts*. Chưa có secret thì workflow tự bỏ qua.
+
+Khôi phục (ghi đè dữ liệu hiện có, nên phải xác nhận):
+
+```bash
+npm run restore -- backups/edms-20261125-010000 --local --yes            # vào Docker local (thử trước)
+npm run restore -- backups/edms-20261125-010000 --yes --cho-phep-cloud   # vào Atlas
+```
