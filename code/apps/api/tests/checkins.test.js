@@ -80,9 +80,11 @@ before(async () => {
     await Order.updateOne({ _id: res.body.data._id }, { $set: { status, assignedTo: a._id } });
     return res.body.data;
   };
-  orders.pickup = await create("E2E CI đi lấy", "PICKUP_ASSIGNED");
+  orders.pickup = await create("E2E CI đang giao", "OUT_FOR_DELIVERY");
   orders.carry = await create("E2E CI đang chở", "PICKED_UP");
   orders.done = await create("E2E CI đã giao", "DELIVERED");
+  // Moi duoc phan cong, hang con o shop -> khong duoc ghi moc (loi kiem thu doc lap 25/11/2026)
+  orders.assigned = await create("E2E CI chưa lấy", "PICKUP_ASSIGNED");
 });
 
 after(async () => {
@@ -160,6 +162,7 @@ test("[US-30] tu dong check-in khi di qua diem: ghi moc cho don dang cam; cung d
   assert.equal(first.matched[0].distanceM, 80);
   assert.deepEqual([first.orders, first.recorded, first.duplicates, first.source], [2, 2, 0, "AUTO"]);
   assert.equal(await CheckinLog.countDocuments({ orderId: orders.done._id }), 0, "don da giao khong ghi");
+  assert.equal(await CheckinLog.countDocuments({ orderId: orders.assigned._id }), 0, "don chua lay hang (con o shop) khong ghi");
 
   const again = (await checkin("a", { ...near(P1, 20), at: minutes(45) }).expect(201)).body.data;
   assert.deepEqual([again.recorded, again.duplicates], [0, 2], "15 phut sau: trung");

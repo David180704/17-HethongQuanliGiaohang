@@ -121,6 +121,19 @@ test("[US-20] moi trang thai (tru INCIDENT) thuoc dung mot trong 4 nhom cua de 1
   }
 });
 
+test("[US-20] don hoan / da huy: van loc theo 4 nhom nhung nhan hien dung su that (khong ghi \"Da giao\" cho don da hoan tra)", () => {
+  const shown = (statuses) => withDisplay({ status: statuses.at(-1), statusHistory: history(...statuses) }).display;
+  assert.deepEqual(shown(["CREATED", "PICKED_UP", "DELIVERY_FAILED", "RETURNED"]), {
+    statusLabel: "Đã hoàn trả người gửi",
+    group: "DELIVERED",
+    groupLabel: "Đã hoàn trả người gửi",
+  });
+  assert.equal(shown(["CREATED", "PICKED_UP", "RETURNING"]).groupLabel, "Đang hoàn về người gửi");
+  assert.equal(shown(["CREATED", "CANCELLED"]).groupLabel, "Đã hủy");
+  assert.equal(shown(["CREATED", "PICKED_UP", "RETURNING", "INCIDENT"]).groupLabel, "Đang hoàn về người gửi", "su co trong luc hoan");
+  assert.equal(shown(["CREATED", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]).groupLabel, "Đã giao");
+});
+
 test("[US-20] don INCIDENT lay nhom cua trang thai lien truoc (bo qua cac moc INCIDENT lien tiep)", () => {
   const group = (statuses) => customerGroup({ status: statuses.at(-1), statusHistory: history(...statuses) }).code;
   assert.equal(group(["CREATED", "INCIDENT"]), "NOT_RECEIVED");
