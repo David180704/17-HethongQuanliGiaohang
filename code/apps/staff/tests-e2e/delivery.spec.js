@@ -125,8 +125,9 @@ test("[US-35][US-31][US-32][US-33] kho phan cong giao -> tai xe xem phieu QR, nh
   await phone.screenshot({ path: `${SHOT_DIR}/31-phieu-giao-qr.png`, fullPage: true });
   await phone.getByRole("button", { name: "Đóng phiếu" }).click();
 
-  // 3. Quet sai ma bi chan; dung ma -> dang giao
+  // 3. Quet sai ma bi chan; dung ma -> dang giao. O nhap co nut "Quet QR" mo camera (quet that kiem tren may ao)
   await phone.getByRole("button", { name: `Nhận kiện, đi giao ${orders.cod.trackingCode}` }).click();
+  await expect(phone.getByRole("button", { name: "Quét mã QR bằng camera" })).toBeVisible();
   await phone.getByTestId("delivery-code").fill("EXP0000000000");
   await phone.getByTestId("delivery-submit").click();
   await expect(phone.getByTestId("delivery-error")).toContainText("không khớp");
@@ -135,12 +136,21 @@ test("[US-35][US-31][US-32][US-33] kho phan cong giao -> tai xe xem phieu QR, nh
   await expect(phone.getByTestId("delivery-notice")).toContainText("đang đi giao");
   await expect(card).toContainText("Giao · Đang giao");
 
-  // 4. Thu thieu tien bi chan; thu du -> giao thanh cong
+  // 4. Thu thieu tien bi chan; nguoi nhan chuyen khoan: hien ma VietQR dung so tien, noi dung ma van don -> ghi ma
+  //    giao dich -> giao thanh cong
   await phone.getByRole("button", { name: `Giao thành công ${orders.cod.trackingCode}` }).click();
   await phone.getByTestId("delivery-amount").fill("200000");
   await phone.getByTestId("delivery-submit").click();
   await expect(phone.getByTestId("delivery-error")).toContainText("Phải thu đủ");
   await phone.getByTestId("delivery-amount").fill(String(expected));
+  await phone.getByRole("radio", { name: "Chuyển khoản" }).click();
+  await phone.getByTestId("delivery-transfer-qr").click();
+  await expect(phone.getByTestId("delivery-transfer-image")).toBeVisible();
+  await expect(phone.getByTestId("delivery-transfer-amount")).toHaveText(money(expected));
+  await expect(phone.getByTestId("delivery-transfer-note")).toHaveText(`Nội dung: EDMS ${orders.cod.trackingCode}`);
+  await expect(phone.getByTestId("delivery-transfer-demo")).toContainText("Tài khoản DEMO");
+  await phone.screenshot({ path: `${SHOT_DIR}/33-vietqr-chuyen-khoan.png`, fullPage: true });
+  await phone.getByTestId("delivery-txn").fill("FT2611250001");
   await phone.getByTestId("delivery-submit").click();
   await expect(phone.getByTestId("delivery-notice")).toContainText(`Giao thành công ${orders.cod.trackingCode} — đã thu ${money(expected)}`);
   await expect(card).toContainText("Giao thành công");

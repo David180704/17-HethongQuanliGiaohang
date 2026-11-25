@@ -1,0 +1,41 @@
+appId: host.exp.exponent
+name: "[US-41] Kho quet ma QR tren kien bang camera, tu tra cuu don"
+tags:
+  - camera
+---
+# Can may ao bat camera sau o che do "virtual scene" co dan anh QR cua EXP1000000008 len tuong:
+#   emulator -avd edms_pixel -camera-back virtualscene -virtualscene-poster wall=<anh QR>.png
+# Camera ao mac dinh nhin vao TV, tam anh QR nam tren tuong: khi flow mo man quet, trong cua so may ao GIU Alt va re
+# chuot (W/A/S/D de di chuyen) quay ve phia tam anh. Vi can thao tac tay nen flow nam o manual/, khong chay trong bo
+# Maestro tu dong. Kiem thu tu dong viec giai ma QR: tests-e2e/scan.spec.js (Playwright, camera gia phat video QR).
+# Chay: maestro test .maestro/manual/14-kho-quet-qr-camera.yaml. Chi tra cuu, khong doi du lieu.
+- runFlow:
+    file: ../subflows/login-ok.yaml
+    env:
+      USER_EMAIL: kho1@edms.vn
+- scrollUntilVisible:
+    element: "Nhập / xuất kho.*"
+    direction: DOWN
+- tapOn: "Nhập / xuất kho.*"
+- extendedWaitUntil:
+    visible:
+      id: "wh-code-scan"
+    timeout: 20000
+- tapOn:
+    id: "wh-code-scan"
+# Lan dau Android hoi quyen camera
+- runFlow:
+    when:
+      visible: "While using the app|Allow|Cho phép.*"
+    commands:
+      - tapOn: "While using the app|Allow|Cho phép.*"
+- takeScreenshot: 14-camera-dang-quet
+- extendedWaitUntil:
+    visible: "Đã quét: EXP1000000008"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "wh-result"
+    timeout: 20000
+- assertVisible: "EXP1000000008.*"
+- takeScreenshot: 14-quet-qr-tra-cuu
