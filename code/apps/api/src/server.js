@@ -2,8 +2,12 @@ import { createApp } from "./app.js";
 import { connectDB } from "./config/db.js";
 import { env } from "./config/env.js";
 import { getContainer } from "./container.js";
+import { productionProblems } from "./config/productionCheck.js";
 
 async function main() {
+  // US-45: chay that (NODE_ENV=production) ma thieu cau hinh thi dung ngay, khong chay voi secret mac dinh
+  const problems = productionProblems(process.env);
+  if (problems.length) throw new Error(`Cau hinh chay that chua dung:\n - ${problems.join("\n - ")}`);
   await connectDB();
   const app = createApp();
   // Consumer hang doi su kien doi trang thai don (US-21) chay cung tien trinh API

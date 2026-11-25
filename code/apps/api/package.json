@@ -18,7 +18,9 @@
     "test:story": "node scripts/run-story.js",
     "report:stories": "node scripts/story-report.js",
     "unlock": "node scripts/unlock-accounts.js",
-    "accounts:demo": "node scripts/demo-accounts.mjs"
+    "accounts:demo": "node scripts/demo-accounts.mjs",
+    "backup": "node scripts/backup-db.js",
+    "restore": "node scripts/backup-db.js restore"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +36,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.24.5",
     "nodemailer": "^10.0.16",
+    "qrcode": "^1.5.4",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
   },

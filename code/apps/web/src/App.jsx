@@ -14,8 +14,10 @@ import AccountPage from "./pages/AccountPage.jsx";
 import PickupLocationsPage from "./pages/PickupLocationsPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import OrderDetailPage from "./pages/OrderDetailPage.jsx";
+import SettlementsPage from "./pages/SettlementsPage.jsx";
 import TrackingPage from "./pages/TrackingPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
+import PrivacyPage from "./pages/PrivacyPage.jsx";
 
 // Web Khach hang: khach vang lai xem duoc trang chu, bang gia, vung phuc vu.
 // Chi "Tao don" va "Tai khoan" moi doi dang nhap (ProtectedRoute).
@@ -37,6 +39,7 @@ export default function App() {
             <Route path="uoc-tinh-phi" element={<EstimatePage />} />
             <Route path="vung-phuc-vu" element={<CoveragePage />} />
             <Route path="tra-cuu" element={<TrackingPage />} />
+            <Route path="chinh-sach-quyen-rieng-tu" element={<PrivacyPage />} />
             <Route
               path="tao-don"
               element={
@@ -74,6 +77,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <OrderDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="doi-soat"
+              element={
+                <ProtectedRoute>
+                  <SettlementsPage />
                 </ProtectedRoute>
               }
             />

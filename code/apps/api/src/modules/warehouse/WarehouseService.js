@@ -33,7 +33,7 @@ export class WarehouseService {
   /** Kho dich: luu luc tao don; don cu thi tinh tu khu vuc nguoi nhan -> tuyen -> hub. */
   async #destHubId(order) {
     if (order.destHubId) return order.destHubId;
-    const area = await this.serviceAreaRepository.findByLocation(order.receiver?.province, order.receiver?.district);
+    const area = await this.serviceAreaRepository.findByLocation(order.receiver?.province, order.receiver?.ward);
     const route = area ? await this.routeRepository.findById(area.routeId) : null;
     return route?.hubId ?? null;
   }
@@ -59,7 +59,7 @@ export class WarehouseService {
       status: order.status,
       statusLabel: STATUS_LABELS[order.status] || order.status,
       customerName: order.customerName,
-      receiver: { district: order.receiver?.district, province: order.receiver?.province },
+      receiver: { ward: order.receiver?.ward, province: order.receiver?.province },
       item: { name: order.item?.name, weightGram: order.item?.weightGram },
       serviceName: order.serviceName,
       // Gui nhanh: uu tien xu ly / xuat kho truoc
@@ -72,6 +72,8 @@ export class WarehouseService {
       action,
       actionLabel: action ? WAREHOUSE_ACTIONS[action].label : null,
       reason: reason ?? null,
+      // Don tai quay da duoc tai xe tra ve quay: nhan vien giao lai cho khach roi xac nhan (POST /deliveries/:id/confirm-return)
+      counterReturnReady: order.channel === "COUNTER" && order.status === "RETURNING" && Boolean(order.returnHandedAt),
     };
   }
 

@@ -5,8 +5,11 @@ import { queryCache } from "../lib/queryCache.js";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { useOrderDraft } from "../lib/useOrderDraft.js";
 import { formatVnd } from "../lib/format.js";
+import { addressProblem, useAddressCheck } from "../lib/adminUnits.js";
 import { EMPTY_ORDER, fromDraft, stepError, toFlagsPayload, toItemPayload, toOrderPayload } from "../lib/orderForm.js";
 import { ConfirmStep, ParcelStep, PickupStep, ReceiverStep, StepIndicator } from "../components/order/OrderSteps.jsx";
+import { needsVnpay, startVnpay } from "../lib/payment.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 // Tao don 4 buoc (US-18), thu ho va ai tra phi (US-19), xem phi du kien truoc khi xac
 // nhan (US-17). Moi lan bam "Tiep tuc" luu nhap (orderDrafts, 24 gio): tai lai trang hay
@@ -18,7 +21,6 @@ export default function CreateOrderPage() {
   const { draft, error: draftError } = useOrderDraft(openedDraft);
   const { data: locationData, refresh: refreshLocations } = useCachedQuery("/pickupLocations");
   const { data: serviceTypes } = useCachedQuery("/public/service-types");
-  const { data: areas } = useCachedQuery("/public/service-areas");
   const locations = locationData || [];
 
   const [form, setForm] = useState(EMPTY_ORDER);
@@ -29,6 +31,9 @@ export default function CreateOrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+  // Shop doi tac moi gui thu ho; khach le: bo thu ho, khong tru phi vao thu ho
+  const { user } = useAuth();
+  const isShop = user?.customerType === "BUSINESS";
 
   // Dien form MOT lan khi da tai xong nhap, dia diem lay hang va goi dich vu (du lieu tu API)
   useEffect(() => {
@@ -36,20 +41,29 @@ export default function CreateOrderPage() {
     if (openedDraft && !draft && !draftError) return; // nhap dang tai
     const restored = fromDraft(draft?.payload, locationData);
     const defaultLocation = locationData.find((location) => location.isDefault)?._id || "";
+    const cod = restored?.cod || EMPTY_ORDER.cod;
     // oxlint-disable-next-line react/set-state-in-effect
     setForm({
       ...EMPTY_ORDER,
       ...restored,
       pickupLocationId: restored?.pickupLocationId || defaultLocation,
       serviceTypeId: restored?.serviceTypeId || serviceTypes[0]?._id || "",
+      cod: isShop ? cod : { ...cod, enabled: false, amount: "", feePayer: cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : cod.feePayer },
     });
     setHydrated(true);
-  }, [hydrated, locationData, serviceTypes, draft, draftError, openedDraft]);
+  }, [hydrated, locationData, serviceTypes, draft, draftError, openedDraft, isShop]);
 
   const location = locations.find((l) => l._id === form.pickupLocationId);
+  // Dia chi nguoi nhan go tay phai khop danh muc tinh - xa/phuong; khac tinh voi noi lay thi khong co giao nhanh
+  const receiverCheck = useAddressCheck(form.receiver.province, form.receiver.ward);
+  const expressType = (serviceTypes || []).find((type) => type.code === "EXPRESS");
+  const crossProvince = Boolean(location && receiverCheck.province && location.province !== receiverCheck.province.name);
+  const expressBlocked = crossProvince && Boolean(expressType) && form.serviceTypeId === expressType._id;
+  const expressSelected = Boolean(expressType) && form.serviceTypeId === expressType._id;
+  const [paying, setPaying] = useState(false);
   const hint =
     form.estimatedPickup && !form.pickupLocationId
-      ? `Bạn ước tính phí gửi từ ${form.estimatedPickup.district}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`
+      ? `Bạn ước tính phí gửi từ ${form.estimatedPickup.ward}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`
       : "";
 
   async function saveDraft(next) {
@@ -71,7 +85,7 @@ export default function CreateOrderPage() {
     setQuoteError("");
     try {
       const res = await apiClient.post("/orders/estimate-fee", {
-        pickup: { province: location.province, district: location.district },
+        pickup: { province: location.province, ward: location.ward },
         receiver: current.receiver,
         item: toItemPayload(current.item),
         flags: toFlagsPayload(current.item),
@@ -84,13 +98,25 @@ export default function CreateOrderPage() {
   }
 
   async function next() {
-    const problem = stepError(form.step, form, areas || []);
+    const problem = stepError(form.step, form, {
+      receiverProblem: addressProblem(receiverCheck, form.receiver, " người nhận"),
+      expressBlocked,
+      expressSelected,
+    });
     if (problem) {
       setError(problem);
       return;
     }
     setError("");
     const advanced = { ...form, step: form.step + 1 };
+    if (form.step === 2) {
+      // Luu ten chuan theo danh muc ("ba dinh" -> "Phường Ba Đình")
+      advanced.receiver = { ...form.receiver, province: receiverCheck.province.name, ward: receiverCheck.ward };
+      const toProvince = receiverCheck.province.name;
+      if (expressType && advanced.serviceTypeId === expressType._id && location && location.province !== toProvince) {
+        advanced.serviceTypeId = (serviceTypes || []).find((type) => type.code !== "EXPRESS")?._id || "";
+      }
+    }
     setForm(advanced);
     saveDraft(advanced);
     if (advanced.step === 4) loadQuote(advanced);
@@ -116,6 +142,17 @@ export default function CreateOrderPage() {
     }
   }
 
+  async function pay() {
+    setPaying(true);
+    setError("");
+    try {
+      await startVnpay(created._id);
+    } catch (err) {
+      setError(errorMessage(err, "Không mở được trang thanh toán"));
+      setPaying(false);
+    }
+  }
+
   function startOver() {
     setCreated(null);
     setDraftToken(null);
@@ -134,6 +171,24 @@ export default function CreateOrderPage() {
           <p className="mt-1 text-gray-700">
             Phí vận chuyển: <span className="font-semibold">{formatVnd(created.fee.total)}</span>
           </p>
+          {needsVnpay(created) && (
+            <div className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+              <p>Bạn chọn trả trước qua VNPay: bưu cục chỉ duyệt đơn sau khi thanh toán.</p>
+              <button
+                type="button"
+                onClick={pay}
+                disabled={paying}
+                className="mt-3 rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              >
+                {paying ? "Đang mở VNPay..." : `Thanh toán ${formatVnd(created.fee.total)} qua VNPay`}
+              </button>
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-red-700">
+              {error}
+            </p>
+          )}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button type="button" onClick={startOver} className="rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700">
               Tạo đơn khác
@@ -182,7 +237,7 @@ export default function CreateOrderPage() {
               />
             )}
             {form.step === 2 && <ReceiverStep form={form} update={update} />}
-            {form.step === 3 && <ParcelStep form={form} update={update} serviceTypes={serviceTypes || []} />}
+            {form.step === 3 && <ParcelStep form={form} update={update} serviceTypes={serviceTypes || []} crossProvince={crossProvince} isShop={isShop} />}
             {form.step === 4 && (
               <ConfirmStep form={form} location={location} quote={quote} quoteError={quoteError} serviceTypes={serviceTypes || []} />
             )}

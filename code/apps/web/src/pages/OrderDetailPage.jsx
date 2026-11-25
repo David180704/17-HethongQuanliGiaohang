@@ -1,5 +1,7 @@
-import { Link, useParams } from "react-router-dom";
-import { errorMessage } from "../lib/apiClient.js";
+import { useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { apiClient, errorMessage } from "../lib/apiClient.js";
+import { queryCache } from "../lib/queryCache.js";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { formatVnd } from "../lib/format.js";
 import {
@@ -12,11 +14,40 @@ import {
 import FeeBreakdown from "../components/FeeBreakdown.jsx";
 import StatusBadge from "../components/order/StatusBadge.jsx";
 import UpdatedAt from "../components/UpdatedAt.jsx";
+import IncidentSection from "../components/order/IncidentSection.jsx";
+import { needsVnpay, startVnpay } from "../lib/payment.js";
 
 // US-20: chi tiet don cua khach kem toan bo hanh trinh (statusHistory nhung trong don, moi nhat o tren).
 export default function OrderDetailPage() {
   const { id } = useParams();
   const { data: order, error, updatedAt, refresh } = useCachedQuery(`/orders/${id}`);
+  const [returnState, setReturnState] = useState({ busy: false, message: "", error: "" });
+  // US-44: VNPay dua ve day kem ?thanhToan=SUCCESS|FAILED
+  const [params] = useSearchParams();
+  const paymentResult = params.get("thanhToan");
+  const [payState, setPayState] = useState({ busy: false, error: "" });
+
+  async function pay() {
+    setPayState({ busy: true, error: "" });
+    try {
+      await startVnpay(id);
+    } catch (err) {
+      setPayState({ busy: false, error: errorMessage(err, "Không mở được trang thanh toán") });
+    }
+  }
+
+  // US-37: tai xe da tra hang hoan -> nguoi gui xac nhan da nhan lai (ket thuc theo doi hoan hang)
+  async function confirmReturn() {
+    setReturnState({ busy: true, message: "", error: "" });
+    try {
+      await apiClient.post(`/deliveries/${id}/confirm-return`);
+      queryCache.invalidate("/orders");
+      setReturnState({ busy: false, message: "Đã xác nhận nhận lại hàng", error: "" });
+      refresh();
+    } catch (err) {
+      setReturnState({ busy: false, message: "", error: errorMessage(err) });
+    }
+  }
 
   if (error) {
     const notFound = error?.response?.status === 404;
@@ -52,6 +83,57 @@ export default function OrderDetailPage() {
         <UpdatedAt date={updatedAt} onRefresh={refresh} />
       </div>
 
+      {paymentResult === "SUCCESS" && (
+        <div role="status" className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+          Thanh toán VNPay thành công — đơn đang chờ bưu cục duyệt.
+        </div>
+      )}
+      {paymentResult && paymentResult !== "SUCCESS" && (
+        <div role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          Thanh toán chưa thành công (đã hủy hoặc bị từ chối). Bạn có thể thanh toán lại.
+        </div>
+      )}
+      {needsVnpay(order) && (
+        <section aria-label="Thanh toán phí vận chuyển" className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+          <p className="flex-1">
+            Chưa thanh toán phí vận chuyển <span className="font-semibold">{formatVnd(order.fee.total)}</span> qua VNPay — bưu cục duyệt đơn sau
+            khi bạn thanh toán.
+          </p>
+          <button
+            type="button"
+            onClick={pay}
+            disabled={payState.busy}
+            className="rounded-lg bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          >
+            {payState.busy ? "Đang mở VNPay..." : "Thanh toán qua VNPay"}
+          </button>
+          {payState.error && <p role="alert" className="w-full text-red-700">{payState.error}</p>}
+        </section>
+      )}
+
+      {(order.deliveryAttempts > 0 || order.status === "RETURNING" || order.status === "RETURNED") && (
+        <section aria-label="Giao hàng và hoàn hàng" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+          {order.deliveryAttempts > 0 && <p>Đã giao không thành công {order.deliveryAttempts} lần.</p>}
+          {order.returnReason && <p>Hoàn về người gửi: {order.returnReason}.</p>}
+          {order.status === "RETURNING" && !order.returnHandedAt && <p>Express đang đưa hàng hoàn về địa điểm lấy hàng của bạn.</p>}
+          {order.status === "RETURNING" && order.returnHandedAt && (
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <p>Người giao hàng đã trả hàng lúc {formatDateTime(order.returnHandedAt)}.</p>
+              <button
+                type="button"
+                onClick={confirmReturn}
+                disabled={returnState.busy}
+                className="rounded-lg bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+              >
+                Đã nhận lại hàng
+              </button>
+            </div>
+          )}
+          {returnState.message && <p role="status" className="mt-2 font-medium text-green-700">{returnState.message}</p>}
+          {returnState.error && <p role="alert" className="mt-2 text-red-700">{returnState.error}</p>}
+        </section>
+      )}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
         <section aria-label="Hành trình đơn hàng" className="rounded-xl border border-gray-200 bg-white p-5">
           <h2 className="font-semibold">Hành trình</h2>
@@ -79,7 +161,7 @@ export default function OrderDetailPage() {
               {order.receiver.name} · {order.receiver.phone}
             </p>
             <p className="text-gray-600">
-              {order.receiver.address}, {order.receiver.ward}, {order.receiver.district}, {order.receiver.province}
+              {order.receiver.address}, {order.receiver.ward}, {order.receiver.province}
             </p>
             <p className="mt-2 text-gray-500">
               Người gửi: {order.customerName} · lấy hàng tại {order.pickupWard}
@@ -132,6 +214,14 @@ export default function OrderDetailPage() {
               Người trả phí: <span className="font-medium">{feePayerLabel(order.cod?.feePayer)}</span>
               {order.cod?.feePaymentMethod && ` (${FEE_PAYMENT_METHOD_LABELS[order.cod.feePaymentMethod]})`}
             </p>
+            {order.cod?.feePayer === "SHOP_PREPAID" && (
+              <p className="text-sm" aria-label="Tình trạng trả phí">
+                Tình trạng:{" "}
+                <span className={`font-medium ${order.cod.feePaid ? "text-green-700" : "text-amber-700"}`}>
+                  {order.cod.feePaid ? `Đã thanh toán${order.cod.feePaidAt ? ` lúc ${formatDateTime(order.cod.feePaidAt)}` : ""}` : "Chưa thanh toán"}
+                </span>
+              </p>
+            )}
             <p className="text-sm">
               Thu hộ:{" "}
               <span className="font-medium">{order.cod?.enabled ? formatVnd(order.cod.amount) : "Không thu hộ"}</span>
@@ -139,6 +229,7 @@ export default function OrderDetailPage() {
           </section>
         </div>
       </div>
+      <IncidentSection orderId={id} onChanged={refresh} />
     </div>
   );
 }

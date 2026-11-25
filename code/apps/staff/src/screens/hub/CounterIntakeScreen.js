@@ -6,6 +6,7 @@ import Banner from "../../components/Banner";
 import TextField from "../../components/TextField";
 import ChipSelect from "../../components/ChipSelect";
 import CheckboxRow from "../../components/CheckboxRow";
+import VietQrCard from "../../components/VietQrCard";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { queryCache } from "../../lib/queryCache";
 import { colors, radius } from "../../theme";
@@ -16,9 +17,10 @@ const FEE_PAYERS = [
   { value: "SHOP_PREPAID", label: "Người gửi trả trước" },
   { value: "DEDUCT_FROM_COD", label: "Trừ vào thu hộ" },
 ];
+// Tai quay khach dung truoc mat nhan vien: tra truoc bang tien mat hoac chuyen khoan VietQR (de 14), khong mo cong VNPay
 const METHODS = [
   { value: "CASH", label: "Tiền mặt tại quầy" },
-  { value: "QR", label: "Chuyển khoản QR" },
+  { value: "QR", label: "Chuyển khoản VietQR" },
 ];
 const EMPTY = {
   phone: "",
@@ -27,7 +29,6 @@ const EMPTY = {
   rcPhone: "",
   rcAddress: "",
   rcProvince: "",
-  rcDistrict: "",
   rcWard: "",
   itemName: "",
   weightGram: "",
@@ -43,6 +44,7 @@ const EMPTY = {
   feePaymentMethod: "CASH",
   codEnabled: false,
   codAmount: "",
+  feeTxnRef: "",
 };
 
 // US-40: tiep nhan hang tai quay (luong chinh de 14) - tim khach theo so dien thoai (chua co thi tao khach le),
@@ -51,13 +53,18 @@ const EMPTY = {
 export default function CounterIntakeScreen({ user, accent, onBack }) {
   const [form, setForm] = useState(EMPTY);
   const [customer, setCustomer] = useState(null); // { found, customer? }
+  // Khach co tai khoan shop doi tac (doanh nghiep) moi duoc thu ho
+  const shop = customer?.found && customer.customer?.customerType === "BUSINESS";
   const [quote, setQuote] = useState(null);
+  const [transfer, setTransfer] = useState(null); // ma VietQR thu phi (khi chon chuyen khoan)
   const [created, setCreated] = useState(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const set = (key) => (value) => {
     setForm((current) => ({ ...current, [key]: value }));
-    if (["weightGram", "length", "width", "height", "fragile", "isVehicle", "rcProvince", "rcDistrict", "declaredValue"].includes(key)) {
+    // Doi hang, noi nhan, goi dich vu, nguoi tra hay hinh thuc -> so tien doi, ma QR cu khong con dung
+    if (key !== "feeTxnRef") setTransfer(null);
+    if (["weightGram", "length", "width", "height", "fragile", "isVehicle", "rcProvince", "rcWard", "declaredValue"].includes(key)) {
       setQuote(null);
     }
   };
@@ -91,12 +98,28 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
   const requestQuote = () =>
     run("quote", async () => {
       const res = await apiClient.post("/orders/counter/quote", {
-        receiver: { province: form.rcProvince, district: form.rcDistrict },
+        receiver: { province: form.rcProvince, ward: form.rcWard },
         item: item(),
         flags: { fragile: form.fragile, isVehicle: form.isVehicle },
       });
       setQuote(res.data.data);
-      setForm((current) => ({ ...current, serviceTypeId: current.serviceTypeId || res.data.data.options[0]?.serviceTypeId }));
+      // Giu goi dang chon neu van dung duoc; giao nhanh lien tinh khong chon duoc -> lay goi dau tien dung duoc
+      const usable = res.data.data.options.filter((o) => o.available !== false);
+      setForm((current) => ({
+        ...current,
+        serviceTypeId: usable.some((o) => o.serviceTypeId === current.serviceTypeId) ? current.serviceTypeId : usable[0]?.serviceTypeId || "",
+      }));
+    });
+
+  const showTransferQr = () =>
+    run("transfer", async () => {
+      const res = await apiClient.post("/orders/counter/transfer-qr", {
+        serviceTypeId: form.serviceTypeId,
+        receiver: { province: form.rcProvince, ward: form.rcWard },
+        item: item(),
+        flags: { fragile: form.fragile, isVehicle: form.isVehicle },
+      });
+      setTransfer(res.data.data);
     });
 
   const submit = () =>
@@ -109,18 +132,18 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
           phone: form.rcPhone,
           address: form.rcAddress,
           province: form.rcProvince,
-          district: form.rcDistrict,
           ward: form.rcWard,
         },
         item: item(),
         flags: { fragile: form.fragile, isVehicle: form.isVehicle },
         shopOrderCode: form.shopOrderCode || undefined,
         cod: {
-          enabled: form.codEnabled,
-          amount: form.codEnabled ? Number(form.codAmount) : 0,
-          feePayer: form.feePayer,
+          enabled: shop && form.codEnabled,
+          amount: shop && form.codEnabled ? Number(form.codAmount) : 0,
+          feePayer: !shop && form.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.feePayer,
           feePaymentMethod: form.feePayer === "SHOP_PREPAID" ? form.feePaymentMethod : null,
         },
+        feeTxnRef: form.feePayer === "SHOP_PREPAID" && form.feePaymentMethod === "QR" ? form.feeTxnRef : undefined,
       });
       queryCache.invalidate("/orders");
       setCreated(res.data.data);
@@ -130,6 +153,7 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
     setForm(EMPTY);
     setCustomer(null);
     setQuote(null);
+    setTransfer(null);
     setCreated(null);
     setError("");
   }
@@ -193,8 +217,14 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
         <TextField testID="ci-rc-phone" label="Số điện thoại" required keyboardType="phone-pad" value={form.rcPhone} onChangeText={set("rcPhone")} />
         <TextField testID="ci-rc-address" label="Địa chỉ (số nhà, đường)" required value={form.rcAddress} onChangeText={set("rcAddress")} />
         <TextField testID="ci-rc-province" label="Tỉnh/Thành phố" required value={form.rcProvince} onChangeText={set("rcProvince")} />
-        <TextField testID="ci-rc-district" label="Quận/Huyện" required value={form.rcDistrict} onChangeText={set("rcDistrict")} />
-        <TextField testID="ci-rc-ward" label="Phường/Xã" required value={form.rcWard} onChangeText={set("rcWard")} />
+        <TextField
+          testID="ci-rc-ward"
+          label="Xã/Phường"
+          required
+          value={form.rcWard}
+          onChangeText={set("rcWard")}
+          help="Địa giới từ 01/07/2025, không còn quận/huyện. Gõ không dấu được, nhưng phải đúng xã/phường của tỉnh"
+        />
       </Section>
 
       <Section title="3. Kiểm hàng và báo giá">
@@ -218,12 +248,20 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
               Gợi ý phương tiện: {quote.vehicle.label} — {quote.vehicle.reason}
             </Text>
             <Text style={styles.muted}>
-              {quote.zoneLabel} · tính theo {quote.chargeableWeight} g
+              {quote.receiverArea.ward}, {quote.receiverArea.province} · {quote.zoneLabel} · tính theo {quote.chargeableWeight} g
+              {quote.distanceKm !== null && quote.distanceKm !== undefined ? ` · cách khoảng ${quote.distanceKm} km` : ""}
             </Text>
+            {quote.options
+              .filter((o) => o.available === false)
+              .map((o) => (
+                <Text key={o.code} style={styles.muted} testID={`ci-unavailable-${o.code}`}>
+                  {o.reason}
+                </Text>
+              ))}
             <ChipSelect
               testID="ci-service"
               label="Dịch vụ"
-              options={quote.options.map((o) => ({ value: o.serviceTypeId, label: `${o.name} · ${vnd(o.fee.total)}` }))}
+              options={quote.options.filter((o) => o.available !== false).map((o) => ({ value: o.serviceTypeId, label: `${o.name} · ${vnd(o.fee.total)}` }))}
               value={form.serviceTypeId}
               onChange={set("serviceTypeId")}
             />
@@ -232,12 +270,49 @@ export default function CounterIntakeScreen({ user, accent, onBack }) {
       </Section>
 
       <Section title="4. Thu tiền">
-        <ChipSelect testID="ci-payer" label="Người trả phí" options={FEE_PAYERS} value={form.feePayer} onChange={set("feePayer")} />
+        <ChipSelect
+          testID="ci-payer"
+          label="Người trả phí"
+          options={FEE_PAYERS.filter((p) => shop || p.value !== "DEDUCT_FROM_COD")}
+          value={form.feePayer}
+          onChange={set("feePayer")}
+        />
         {form.feePayer === "SHOP_PREPAID" ? (
           <ChipSelect testID="ci-method" label="Hình thức" options={METHODS} value={form.feePaymentMethod} onChange={set("feePaymentMethod")} />
         ) : null}
-        <CheckboxRow testID="ci-cod" label="Thu hộ tiền hàng (COD)" value={form.codEnabled} onChange={set("codEnabled")} />
-        {form.codEnabled ? (
+        {form.feePayer === "SHOP_PREPAID" && form.feePaymentMethod === "QR" ? (
+          <View style={styles.transfer}>
+            {transfer ? (
+              <VietQrCard data={transfer} testID="ci-transfer" />
+            ) : (
+              <Button
+                testID="ci-transfer-qr"
+                title="Hiện mã VietQR cho khách quét"
+                variant="secondary"
+                disabled={!form.serviceTypeId}
+                loading={busy === "transfer"}
+                onPress={showTransferQr}
+              />
+            )}
+            <TextField
+              testID="ci-txn"
+              label="Mã giao dịch chuyển khoản"
+              required
+              help="Lấy trên màn hình chuyển khoản thành công của khách"
+              value={form.feeTxnRef}
+              onChangeText={set("feeTxnRef")}
+            />
+          </View>
+        ) : null}
+        {/* Thu ho chi danh cho shop doi tac co tai khoan; khach le (ke ca khach moi) khong gui COD */}
+        {shop ? (
+          <CheckboxRow testID="ci-cod" label="Thu hộ tiền hàng (COD)" value={form.codEnabled} onChange={set("codEnabled")} />
+        ) : (
+          <Text style={styles.muted} testID="ci-cod-individual">
+            Khách lẻ gửi hàng không kèm thu hộ (COD chỉ dành cho shop đối tác).
+          </Text>
+        )}
+        {shop && form.codEnabled ? (
           <TextField testID="ci-cod-amount" label="Số tiền thu hộ (đ)" keyboardType="numeric" value={form.codAmount} onChangeText={set("codAmount")} />
         ) : null}
         {selected ? (
@@ -270,6 +345,7 @@ function Section({ title, children }) {
 }
 
 const styles = StyleSheet.create({
+  transfer: { gap: 10 },
   card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: colors.text },
   row: { flexDirection: "row", alignItems: "flex-end", gap: 8 },

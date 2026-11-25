@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { positionFields } from "./position.js";
 import {
   ORDER_STATUS,
   ORDER_CHANNEL,
@@ -17,7 +18,6 @@ const receiverSchema = new mongoose.Schema(
     phone: { type: String, required: true },
     address: { type: String, required: true },
     province: { type: String, required: true },
-    district: { type: String, required: true },
     ward: { type: String, required: true },
   },
   { _id: false },
@@ -64,7 +64,7 @@ const codSchema = new mongoose.Schema(
   {
     enabled: { type: Boolean, default: false },
     amount: { type: Number, default: 0, min: 0, max: 20000000 },
-    // Ai tra phi van chuyen - dat trong cod theo dung schema ghi chu du an, ap dung
+    // Ai tra phi van chuyen - dat trong cod theo dung thiet ke du lieu (docs/ERD.md), ap dung
     // du cod.enabled co bat hay khong (van phai co nguoi tra phi ship).
     feePayer: { type: String, enum: FEE_PAYER, default: "RECIPIENT_PAID" },
     // Chi co y nghia khi feePayer = SHOP_PREPAID: nguoi gui tra truoc qua QR
@@ -87,10 +87,7 @@ const statusHistoryEntrySchema = new mongoose.Schema(
     at: { type: Date, default: Date.now },
     by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     note: String,
-    location: {
-      lat: Number,
-      lng: Number,
-    },
+    location: positionFields,
   },
   { _id: false },
 );
@@ -136,6 +133,8 @@ const orderSchema = new mongoose.Schema(
     serviceName: { type: String, required: true },
 
     zone: { type: String, enum: ZONE, required: true },
+    // Khoang cach noi gui - noi nhan luc tao don (km, duong chim bay giua tam hai xa/phuong)
+    distanceKm: { type: Number, default: null },
     chargeableWeight: { type: Number, required: true },
     // Bang gia da dung de tinh phi (doi chieu "phi khop bang gia dang hieu luc")
     priceTableId: { type: mongoose.Schema.Types.ObjectId, ref: "PriceTable", default: null },
@@ -146,7 +145,11 @@ const orderSchema = new mongoose.Schema(
     status: { type: String, enum: ORDER_STATUS, default: "CREATED" },
     statusHistory: { type: [statusHistoryEntrySchema], default: [] },
 
+    // So lan giao that bai (US-32, US-36); vuot so lan cho phep hoac nguoi nhan tu choi -> hoan hang
     deliveryAttempts: { type: Number, default: 0 },
+    // Hoan hang (US-37): ly do hoan; luc tai xe tra hang cho shop (cho shop xac nhan -> RETURNED)
+    returnReason: { type: String, default: null },
+    returnHandedAt: { type: Date, default: null },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     // Hang cho chua phan cong (US-25): ly do phan cong tu dong khong gan duoc (khong co ca, tuyen da day)
     unassignedReason: { type: String, default: null },

@@ -4,10 +4,11 @@ import Screen from "../../components/Screen";
 import Banner from "../../components/Banner";
 import Button from "../../components/Button";
 import TextField from "../../components/TextField";
+import ScanCodeField from "../../components/ScanCodeField";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { formatVnd } from "../../lib/format";
-import { formatPosition, getPosition, loadPosition } from "../../lib/location";
+import { formatPosition, getPosition, loadPosition, positionForAction, toPayload } from "../../lib/location";
 import { colors, radius } from "../../theme";
 
 const ASSIGNMENT_LABEL = { ASSIGNED: "Cần lấy", DONE: "Đã lấy", FAILED: "Lấy không được" };
@@ -56,13 +57,16 @@ export default function PickupListScreen({ accent, onBack }) {
   async function submit() {
     setBusy(true);
     setError("");
-    const { lat, lng } = getPosition();
+    // GPS that: lay toa do moi ngay luc bam xac nhan (US-28)
+    const here = await positionForAction();
+    setPositionState(here);
+    const where = toPayload(here);
     try {
       if (action.kind === "picked") {
-        await apiClient.post(`/assignments/pickups/${action.orderId}/picked`, { code: action.code, lat, lng });
+        await apiClient.post(`/assignments/pickups/${action.orderId}/picked`, { code: action.code, ...where });
         setNotice(`Đã lấy hàng ${action.trackingCode}`);
       } else {
-        await apiClient.post(`/assignments/pickups/${action.orderId}/failed`, { reason: action.reason, note: action.note, lat, lng });
+        await apiClient.post(`/assignments/pickups/${action.orderId}/failed`, { reason: action.reason, note: action.note, ...where });
         setNotice(`Đã ghi nhận không lấy được ${action.trackingCode}`);
       }
       setAction(null);
@@ -88,10 +92,10 @@ export default function PickupListScreen({ accent, onBack }) {
     action?.orderId === o.orderId ? (
       <View style={styles.editor} testID="pickup-form">
         <Text style={styles.muted} testID="pickup-position">
-          Vị trí (giả lập): {formatPosition(position)} · {position.label}
+          {position.source === "GPS" ? "Vị trí GPS" : "Vị trí (giả lập)"}: {formatPosition(position)} · {position.label}
         </Text>
         {action.kind === "picked" ? (
-          <TextField
+          <ScanCodeField
             testID="pickup-code"
             label="Quét / nhập mã vận đơn trên kiện"
             required

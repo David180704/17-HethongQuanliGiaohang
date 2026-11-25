@@ -1,18 +1,15 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { apiClient } from "../../lib/apiClient";
+import { formatVnd } from "../../lib/format";
 import RoleHome from "../RoleHome";
 import { radius } from "../../theme";
 
 // Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
-const SHIPPER_TILES = [
-  { key: "deliveries", title: "Đơn cần giao", short: "GH", description: "Danh sách đơn giao trong ca", upcoming: "#31 · Sprint 6" },
-  { key: "cod", title: "Thu COD", description: "Ghi nhận tiền thu hộ khi giao", upcoming: "#33 · Sprint 6" },
-];
 
 // The "ca hom nay" kieu app tai xe (Grab Driver/Ahamove): ca truc that do kho xep (US-23); so don can lay
-// trong ca hien tai tu phan cong (US-25, US-27); so don can giao co o Sprint 6 (US-31).
-function ShiftCard({ color, toPick }) {
+// trong ca hien tai tu phan cong (US-25, US-27); so don can giao / hoan trong ca (US-31, US-37).
+function ShiftCard({ color, toPick, toDeliver }) {
   const [shifts, setShifts] = useState(null);
   useEffect(() => {
     let cancelled = false;
@@ -43,22 +40,29 @@ function ShiftCard({ color, toPick }) {
           <Text style={styles.counterLabel}>Cần lấy</Text>
         </View>
         <View style={styles.counter}>
-          <Text style={styles.counterValue}>0</Text>
+          <Text style={styles.counterValue} testID="shipper-to-deliver">
+            {toDeliver ?? "–"}
+          </Text>
           <Text style={styles.counterLabel}>Cần giao</Text>
         </View>
       </View>
-      <Text style={styles.shiftNote}>Cần lấy: trong ca hiện tại · Cần giao: có ở #31</Text>
+      <Text style={styles.shiftNote}>Đếm trong ca hiện tại · Cần giao gồm cả đơn hoàn</Text>
     </View>
   );
 }
 
-export default function ShipperHome({ user, theme, onLogout, onOpenPickups, onOpenCheckin }) {
+export default function ShipperHome({ user, theme, onLogout, onOpenPickups, onOpenCheckin, onOpenDeliveries }) {
   const [pickups, setPickups] = useState();
+  const [deliveries, setDeliveries] = useState();
   useEffect(() => {
     let cancelled = false;
     apiClient
       .get("/assignments/mine/pickups")
       .then((res) => !cancelled && setPickups(res.data.data.counts))
+      .catch(() => {});
+    apiClient
+      .get("/deliveries/mine")
+      .then((res) => !cancelled && setDeliveries(res.data.data.counts))
       .catch(() => {});
     return () => {
       cancelled = true;
@@ -79,7 +83,14 @@ export default function ShipperHome({ user, theme, onLogout, onOpenPickups, onOp
       description: "Tự check-in khi đi qua điểm",
       onPress: onOpenCheckin,
     },
-    ...SHIPPER_TILES,
+    {
+      key: "deliveries",
+      title: "Đơn cần giao",
+      short: "GH",
+      description: "Phiếu giao, giao hàng, thu COD, hoàn hàng",
+      meta: deliveries ? `${deliveries.toDeliver + deliveries.toReturn} đơn · thu ${formatVnd(deliveries.toCollect)}` : undefined,
+      onPress: onOpenDeliveries,
+    },
   ];
   const routes = Array.isArray(user.routeIds) ? user.routeIds.filter(Boolean) : [];
   const routeText = routes.length ? routes.map((r) => `${r.code} — ${r.name}`).join(", ") : "Chưa được gán tuyến";
@@ -90,7 +101,7 @@ export default function ShipperHome({ user, theme, onLogout, onOpenPickups, onOp
       theme={theme}
       onLogout={onLogout}
       profileLines={[["Tuyến", routeText]]}
-      hero={<ShiftCard color={theme.color} toPick={pickups?.toPick} />}
+      hero={<ShiftCard color={theme.color} toPick={pickups?.toPick} toDeliver={deliveries ? deliveries.toDeliver + deliveries.toReturn : undefined} />}
       sections={[{ title: "Giao nhận", tiles }]}
     />
   );

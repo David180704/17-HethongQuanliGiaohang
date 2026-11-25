@@ -144,7 +144,7 @@ export default function OrdersPage() {
                     <div className="text-sm">
                       <p className="font-medium">{order.receiver.name}</p>
                       <p className="text-gray-500">
-                        {order.receiver.district}, {order.receiver.province}
+                        {order.receiver.ward}, {order.receiver.province}
                       </p>
                     </div>
                     <div className="text-sm">

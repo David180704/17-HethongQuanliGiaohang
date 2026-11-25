@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { formatSurcharge } from "../lib/format.js";
 
@@ -10,15 +11,19 @@ const STEPS = [
 ];
 
 export default function HomePage() {
+  // US-22: o tra cuu o trang chu chuyen sang trang /tra-cuu?ma=... (cong khai)
+  const navigate = useNavigate();
+  const [trackingCode, setTrackingCode] = useState("");
   // Du lieu cong khai (khong can dang nhap), cache 30 giay va tu lam moi
   const typesQuery = useCachedQuery("/public/service-types");
-  const areasQuery = useCachedQuery("/public/service-areas");
+  const areasQuery = useCachedQuery("/public/provinces");
   const serviceTypes = typesQuery.data || [];
-  const areas = areasQuery.data || [];
+  const provinces = areasQuery.data || [];
+  const servedWards = provinces.reduce((sum, p) => sum + (p.servedCount || 0), 0);
   const error =
     typesQuery.error || areasQuery.error ? "Không tải được dữ liệu từ máy chủ. Vui lòng thử lại sau." : "";
 
-  const provinceCount = new Set(areas.map((a) => a.province)).size;
+  const provinceCount = provinces.filter((p) => p.servedCount > 0).length;
 
   return (
     <div>
@@ -48,20 +53,26 @@ export default function HomePage() {
           <div className="rounded-2xl bg-white p-5 text-gray-900 shadow-lg">
             <h2 className="font-semibold">Tra cứu vận đơn</h2>
             <p className="mt-1 text-sm text-gray-500">Nhập mã vận đơn dạng EXP + 10 chữ số.</p>
-            <div className="mt-4 flex gap-2">
+            <form
+              className="mt-4 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const code = trackingCode.trim().toUpperCase();
+                if (code) navigate(`/tra-cuu?ma=${encodeURIComponent(code)}`);
+              }}
+            >
               <input
-                disabled
                 aria-label="Mã vận đơn"
                 placeholder="EXP0000000001"
-                className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                value={trackingCode}
+                onChange={(e) => setTrackingCode(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
               />
-              <button disabled className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500">
+              <button type="submit" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
                 Tra cứu
               </button>
-            </div>
-            <p className="mt-3 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-              Sắp có · #22 · Sprint 4
-            </p>
+            </form>
+            <p className="mt-3 text-xs text-gray-500">Không cần đăng nhập — người nhận cũng tra cứu được.</p>
           </div>
         </div>
       </section>
@@ -90,7 +101,7 @@ export default function HomePage() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat value={areas.length || "—"} label="quận/huyện đang phục vụ" />
+          <Stat value={servedWards ? servedWards.toLocaleString("vi-VN") : "—"} label="xã/phường đang phục vụ" />
           <Stat value={provinceCount || "—"} label="tỉnh/thành phố" />
           <Stat value="20 triệu ₫" label="thu hộ COD tối đa mỗi đơn" />
           <Stat value="3 cách" label="trả phí: shop trả, người nhận trả, trừ vào COD" />
@@ -114,7 +125,7 @@ export default function HomePage() {
         <section className="flex flex-col items-start gap-3 rounded-2xl bg-brand-50 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold">Không chắc địa chỉ có được giao?</h2>
-            <p className="text-sm text-gray-600">Tra cứu quận/huyện trong vùng phục vụ trước khi gửi.</p>
+            <p className="text-sm text-gray-600">Tra cứu xã/phường trong vùng phục vụ trước khi gửi.</p>
           </div>
           <Link to="/vung-phuc-vu" className="rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700">
             Kiểm tra vùng phục vụ

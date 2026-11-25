@@ -4,6 +4,8 @@ import { Assignment } from "../../models/Assignment.js";
 
 // Phan cong con chiem nang luc ca: chua lam, da xong hoac that bai (bi thay tay = CANCELLED thi tra cho)
 const COUNTED = ["ASSIGNED", "DONE", "FAILED"];
+// type: mot loai ("PICKUP") hoac nhieu loai (chieu giao tinh chung DELIVERY + RETURN vao nang luc giao)
+const typeFilter = (type) => (Array.isArray(type) ? { $in: type } : type);
 
 export class AssignmentRepository extends BaseRepository {
   constructor() {
@@ -17,7 +19,7 @@ export class AssignmentRepository extends BaseRepository {
   async shiftLoads(shiftId, type, { session } = {}) {
     const rows = await this.model
       .aggregate([
-        { $match: { shiftId: new mongoose.Types.ObjectId(String(shiftId)), type, status: { $in: COUNTED } } },
+        { $match: { shiftId: new mongoose.Types.ObjectId(String(shiftId)), type: typeFilter(type), status: { $in: COUNTED } } },
         {
           $group: {
             _id: "$shipperId",
@@ -49,10 +51,15 @@ export class AssignmentRepository extends BaseRepository {
     return this.model.updateOne({ orderId, type, shipperId, status: "ASSIGNED" }, { $set: fields }, { session });
   }
 
+  /** Phan cong dang hieu luc (ASSIGNED) cua mot don theo loai. */
+  findActive(orderId, type) {
+    return this.model.findOne({ orderId, type: typeFilter(type), status: "ASSIGNED" }).lean();
+  }
+
   /** Phan cong cua mot nguoi trong ngay (US-27), moi nhat truoc. */
   findForShipper({ shipperId, shiftDate, type }) {
     return this.model
-      .find({ shipperId, shiftDate, type, status: { $in: COUNTED } })
+      .find({ shipperId, shiftDate, type: typeFilter(type), status: { $in: COUNTED } })
       .sort({ assignedAt: 1 })
       .lean();
   }

@@ -12,12 +12,15 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, restoreAreas, suspendAreas } from "./helpers/fixtures.js";
 import { getRedis } from "../src/config/redis.js";
 import { ErrorCodes } from "../src/core/errors.js";
 import { swaggerSpec } from "../src/docs/swagger.js";
 import { ORDER_STATUS } from "../src/constants/enums.js";
-import { serviceAreas as seedAreas, hubs as seedHubs, routes as seedRoutes } from "../src/seed/referenceData.js";
+import { sampleWards, hubs as seedHubs, routes as seedRoutes } from "../src/seed/referenceData.js";
+import { PROVINCES } from "../src/modules/adminUnits/adminUnits.js";
+
+const STORY_AREA = { province: "Sơn La", ward: "Phường Tô Hiệu" };
 import { Role, User, Hub, Route, ServiceArea, ServiceType, PriceTable, Order } from "../src/models/index.js";
 
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
@@ -65,7 +68,7 @@ before(async () => {
 
 after(async () => {
   await User.deleteMany({ _id: { $in: [admin._id, hubStaff._id, customer._id] } });
-  await ServiceArea.deleteMany({ province: "Tỉnh Story" });
+  await restoreAreas([STORY_AREA]);
   await getRedis().quit();
   await mongoose.disconnect();
 });
@@ -118,12 +121,15 @@ test("[US-02] Seed du lieu: 5 vai tro, 19 tai khoan test, 4 tuyen, 20 khu vuc, 3
     { ADMIN: 1, HUB_STAFF: 3, SHIPPER: 5, CUSTOMER: 10 },
   );
 
-  assert.equal(await Route.countDocuments({ code: { $in: seedRoutes.map((r) => r.code) } }), 4);
+  assert.equal(await Route.countDocuments({ code: { $in: seedRoutes.map((r) => r.code) } }), 6);
   assert.equal(await Hub.countDocuments({ code: { $in: seedHubs.map((h) => h.code) } }), 3);
-  for (const area of seedAreas) {
-    assert.ok(await ServiceArea.exists({ province: area.province, district: area.district }), `thieu ${area.district}`);
+  // Vung phuc vu = toan bo 3.321 xa/phuong cua 34 tinh/thanh (dia gioi 2025), khong con quan/huyen
+  assert.equal(PROVINCES.length, 34);
+  assert.equal(PROVINCES.reduce((n, p) => n + p.wards.length, 0), 3321);
+  assert.ok((await ServiceArea.countDocuments()) >= 3300);
+  for (const w of sampleWards) {
+    assert.ok(await ServiceArea.exists(w), `thieu ${w.ward}`);
   }
-  assert.equal(seedAreas.length, 20);
   assert.equal(await ServiceType.countDocuments(), 2);
   assert.equal(await PriceTable.countDocuments({ effectiveFrom: new Date("2026-01-01") }), 8);
 });
@@ -234,18 +240,19 @@ test("[US-10] Khong co API xoa tai khoan (tranh mo coi don hang tham chieu)", as
 test("[US-11] Sua mien va xoa khu vuc phuc vu", async () => {
   const auth = { Authorization: `Bearer ${adminToken}` };
   const route = await Route.findOne({ code: "R-HN-NOI" });
+  await suspendAreas([STORY_AREA]);
   const created = await request(app)
     .post("/serviceAreas")
     .set(auth)
-    .send({ province: "Tỉnh Story", district: "Quận Story", region: "BAC", routeId: String(route._id) });
-  assert.equal(created.status, 201);
+    .send({ ...STORY_AREA, region: "BAC", routeId: String(route._id) });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
 
   const updated = await request(app).put(`/serviceAreas/${created.body.data._id}`).set(auth).send({ region: "TRUNG" });
   assert.equal(updated.body.data.region, "TRUNG");
 
   const removed = await request(app).delete(`/serviceAreas/${created.body.data._id}`).set(auth);
   assert.equal(removed.status, 200);
-  assert.equal(await ServiceArea.countDocuments({ province: "Tỉnh Story" }), 0);
+  assert.equal(await ServiceArea.countDocuments(STORY_AREA), 0);
 });
 
 test("[US-12] Co dung hai loai dich vu: gui thuong (khong phu phi) va gui nhanh", async () => {

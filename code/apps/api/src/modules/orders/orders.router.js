@@ -10,8 +10,8 @@ import { OrderController } from "./OrderController.js";
  *       type: object
  *       required: [pickup, receiver, item]
  *       properties:
- *         pickup: { type: object, properties: { province: { type: string, example: "Hà Nội" }, district: { type: string, example: "Cầu Giấy" } } }
- *         receiver: { type: object, properties: { province: { type: string, example: "TP Hồ Chí Minh" }, district: { type: string, example: "Quận 1" } } }
+ *         pickup: { type: object, properties: { province: { type: string, example: "Hà Nội" }, ward: { type: string, example: "Phường Cầu Giấy" } } }
+ *         receiver: { type: object, properties: { province: { type: string, example: "TP Hồ Chí Minh" }, ward: { type: string, example: "Phường Sài Gòn" } } }
  *         item:
  *           type: object
  *           properties:
@@ -73,7 +73,6 @@ import { OrderController } from "./OrderController.js";
  *                   phone: { type: string }
  *                   address: { type: string }
  *                   province: { type: string }
- *                   district: { type: string }
  *                   ward: { type: string }
  *               item:
  *                 type: object
@@ -94,7 +93,7 @@ import { OrderController } from "./OrderController.js";
  *                   enabled: { type: boolean }
  *                   amount: { type: number, description: "> 0 khi bat, toi da 20.000.000" }
  *                   feePayer: { type: string, enum: [SHOP_PREPAID, RECIPIENT_PAID, DEDUCT_FROM_COD] }
- *                   feePaymentMethod: { type: string, enum: [QR, CASH], description: "Bat buoc khi SHOP_PREPAID" }
+ *                   feePaymentMethod: { type: string, enum: [VNPAY, CASH, QR], description: "Bat buoc khi SHOP_PREPAID. VNPAY: tra online truoc khi kho duyet (gui nhanh bat buoc); CASH: tra tien mat khi lay hang; QR chi con cho don cu" }
  *               draftToken: { type: string, description: "Tao tu ban nhap -> xoa nhap trong cung transaction" }
  *     responses:
  *       201: { description: "Don CREATED, ma van don EXP + 10 chu so, phi tach tung khoan" }
@@ -130,11 +129,30 @@ import { OrderController } from "./OrderController.js";
  *           schema:
  *             type: object
  *             properties:
- *               receiver: { type: object, properties: { province: { type: string }, district: { type: string } } }
+ *               receiver: { type: object, properties: { province: { type: string }, ward: { type: string } } }
  *               item: { type: object }
  *               flags: { type: object }
  *     responses:
  *       200: { description: "Nhu estimate-fee + vehicle { code MOTORBIKE|TRUCK, label, reason } + counter { hubId, hubName }" }
+ * /orders/counter/transfer-qr:
+ *   post:
+ *     tags: [Orders]
+ *     summary: "Ma VietQR thu phi tai quay (de 14: tra qua chuyen khoan) - so tien = phi cua dich vu da chon, tinh lai tren may chu; tien vao tai khoan cong ty"
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [serviceTypeId]
+ *             properties:
+ *               serviceTypeId: { type: string }
+ *               receiver: { type: object, properties: { province: { type: string }, ward: { type: string } } }
+ *               item: { type: object }
+ *               flags: { type: object }
+ *     responses:
+ *       200: { description: "{ amount, note, serviceName, qr (PNG data URL), bank { code, name, accountNo, accountName }, demo }" }
+ *       503: { description: Chay that ma chua cau hinh tai khoan cong ty }
  * /orders/counter:
  *   post:
  *     tags: [Orders]
@@ -190,6 +208,7 @@ export function buildOrdersRouter({ pricingService, orderService, middleware }) 
   // Tiep nhan tai quay (US-40): dat truoc "/:id"; nhan vien kho co quyen duyet don thi tiep nhan duoc
   router.get("/counter/customers", requirePermission("order:approve"), asyncHandler(controller.counterCustomer));
   router.post("/counter/quote", requirePermission("order:approve"), asyncHandler(controller.counterQuote));
+  router.post("/counter/transfer-qr", requirePermission("order:approve"), asyncHandler(controller.counterTransferQr));
   router.post("/counter", requirePermission("order:approve"), asyncHandler(controller.createAtCounter));
   router.get("/:id", requirePermission(READ_PERMISSIONS), asyncHandler(controller.get));
   router.post("/:id/confirm", requirePermission("order:approve"), asyncHandler(controller.confirm));

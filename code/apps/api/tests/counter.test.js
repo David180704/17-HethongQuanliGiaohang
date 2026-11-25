@@ -9,7 +9,11 @@ import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { getContainer } from "../src/container.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
+// Xa/phuong co that tam ngung phuc vu trong luc test -> dung lam dia chi "ngoai vung phuc vu"
+const OUTSIDE = [{ province: "Cà Mau", ward: "Xã Năm Căn" }];
+let restoreAreas;
+
 import { User, Hub, ServiceType, Order, PickupLocation } from "../src/models/index.js";
 import { suggestVehicle } from "../src/modules/orders/vehicle.js";
 import { getRedis } from "../src/config/redis.js";
@@ -17,7 +21,7 @@ import { getRedis } from "../src/config/redis.js";
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 const EMAILS = ["ctr-kho-hn@edms.vn", "ctr-shop@edms.vn", "ctr-kho-khong-diem@edms.vn"];
-const WALK_IN_PHONES = ["0909982311", "0909982312"];
+const WALK_IN_PHONES = ["0909982311", "0909982312", "0909982313"];
 
 let app;
 let token = {};
@@ -39,7 +43,7 @@ async function cleanup() {
 }
 
 const as = (who, req) => req.set("Authorization", `Bearer ${token[who]}`);
-const receiver = { name: "Lê Người Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" };
+const receiver = { name: "Lê Người Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" };
 const counterBody = (overrides = {}) => ({
   customer: { phone: "0909982302" },
   serviceTypeId: standard._id,
@@ -53,6 +57,7 @@ before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
   await removeLeftovers({ emails: EMAILS });
   await cleanup();
+  restoreAreas = await suspendAreas(OUTSIDE);
   app = createApp();
   hub = await Hub.findOne({ code: "HUB-HN" }).lean();
   standard = await ServiceType.findOne({ code: "STANDARD" }).lean();
@@ -72,6 +77,7 @@ after(async () => {
   try {
     await worker?.close();
     await cleanup();
+    await restoreAreas?.();
   } finally {
     await getContainer().orderEvents.close();
     await getRedis().quit();
@@ -106,21 +112,24 @@ test("[US-40] tim khach theo so dien thoai: co tai khoan, chua co, so cua nhan v
 
 test("[US-40] bao gia tai quay: noi gui la diem cua nhan vien, kem goi y phuong tien", async () => {
   const small = await as("kho", request(app).post("/orders/counter/quote")).send({
-    receiver: { province: "TP Hồ Chí Minh", district: "Quận 1" },
+    receiver: { province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
     item: { weightGram: 1200, length: 30, width: 20, height: 10 },
   });
   assert.equal(small.status, 200, JSON.stringify(small.body));
-  assert.equal(small.body.data.pickupArea.district, hub.district);
+  assert.equal(small.body.data.pickupArea.ward, hub.ward);
   assert.equal(small.body.data.counter.hubName, hub.name);
   assert.equal(small.body.data.vehicle.code, "MOTORBIKE");
   assert.ok(small.body.data.options.length >= 2, "bao gia moi loai dich vu");
   // Cau truc App Nhan vien dung de chon dich vu (da gap loi doc nham o.serviceType._id)
   for (const option of small.body.data.options) {
-    assert.ok(option.serviceTypeId && option.name && option.fee.total > 0, JSON.stringify(option));
+    assert.ok(option.serviceTypeId && option.name, JSON.stringify(option));
+    // Ha Noi -> TP HCM: giao nhanh khong ap dung (chi trong cung tinh), van liet ke kem ly do
+    if (option.code === "EXPRESS") assert.deepEqual([option.available, option.fee], [false, null]);
+    else assert.ok(option.available && option.fee.total > 0, JSON.stringify(option));
   }
 
   const bike = await as("kho", request(app).post("/orders/counter/quote")).send({
-    receiver: { province: "Hà Nội", district: "Cầu Giấy" },
+    receiver: { province: "Hà Nội", ward: "Phường Cầu Giấy" },
     item: { weightGram: 90000, length: 180, width: 60, height: 110 },
     flags: { isVehicle: true },
   });
@@ -160,6 +169,8 @@ test("[US-40] khach chua co tai khoan -> tao khach le (chua dang nhap duoc); thi
   const res = await as("kho", request(app).post("/orders/counter")).send(
     counterBody({
       customer: { phone: WALK_IN_PHONES[0], fullName: "Nguyễn Khách Lẻ" },
+      // Giao nhanh chi trong cung tinh: quay Ha Noi gui noi thanh Ha Noi
+      receiver: { ...receiver, province: "Hà Nội", ward: "Phường Cầu Giấy" },
       serviceTypeId: express._id,
       shopOrderCode: "",
       cod: { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "CASH" },
@@ -185,9 +196,44 @@ test("[US-40] khach chua co tai khoan -> tao khach le (chua dang nhap duoc); thi
   assert.equal(await User.countDocuments({ phone: WALK_IN_PHONES[0] }), 1);
 });
 
+test("[US-40] de 14: gui nhanh tai quay tra truoc bang chuyen khoan VietQR - so tien tinh tren may chu, bat buoc ma giao dich, ghi da thu phi", async () => {
+  const hanoi = { ...receiver, province: "Hà Nội", ward: "Phường Cầu Giấy" };
+  const item = { name: "Hồ sơ", weightGram: 500, length: 30, width: 20, height: 2 };
+  const qr = await as("kho", request(app).post("/orders/counter/transfer-qr")).send({ serviceTypeId: express._id, receiver: hanoi, item });
+  assert.equal(qr.status, 200, JSON.stringify(qr.body));
+  const quote = (await as("kho", request(app).post("/orders/counter/quote")).send({ receiver: hanoi, item })).body.data;
+  const expressFee = quote.options.find((o) => o.code === "EXPRESS").fee.total;
+  assert.equal(qr.body.data.amount, expressFee, "so tien = phi gui nhanh cua bao gia");
+  assert.match(qr.body.data.note, /^EDMS HUB HN \d{4}$/, "khong dau, bo dau gach (ngan hang chi nhan chu, so, khoang trang)");
+  assert.match(qr.body.data.qr, /^data:image\/png;base64,/);
+  assert.equal(qr.body.data.demo, true);
+  assert.equal((await as("shop", request(app).post("/orders/counter/transfer-qr")).send({ serviceTypeId: express._id, receiver: hanoi, item })).status, 403);
+
+  const body = counterBody({
+    customer: { phone: WALK_IN_PHONES[2], fullName: "Khách Chuyển Khoản" },
+    receiver: hanoi,
+    item,
+    serviceTypeId: express._id,
+    shopOrderCode: "",
+    cod: { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "QR" },
+  });
+  const noRef = await as("kho", request(app).post("/orders/counter")).send(body);
+  assert.equal(noRef.status, 400);
+  assert.match(noRef.body.error.message, /mã giao dịch/);
+  const vnpay = await as("kho", request(app).post("/orders/counter")).send({ ...body, cod: { ...body.cod, feePaymentMethod: "VNPAY" } });
+  assert.equal(vnpay.status, 400, "tai quay khong mo cong VNPay");
+
+  const res = await as("kho", request(app).post("/orders/counter")).send({ ...body, feeTxnRef: "FT26112500123" });
+  assert.equal(res.status, 201, JSON.stringify(res.body));
+  assert.equal(res.body.data.cod.feePaid, true);
+  assert.equal(res.body.data.cod.feePaymentMethod, "QR");
+  assert.equal(res.body.data.fee.total, expressFee);
+  assert.match(res.body.data.statusHistory[1].note, /chuyển khoản VietQR, mã GD FT26112500123/);
+});
+
 test("[US-40] rang buoc: ngoai vung phuc vu, khau tru thu ho nho hon phi, nhan vien chua gan diem", async () => {
   const outside = await as("kho", request(app).post("/orders/counter")).send(
-    counterBody({ receiver: { ...receiver, province: "Cà Mau", district: "Năm Căn" } }),
+    counterBody({ receiver: { ...receiver, province: "Cà Mau", ward: "Xã Năm Căn" } }),
   );
   assert.equal(outside.status, 422);
   assert.equal(outside.body.error.code, "OUT_OF_SERVICE_AREA");
@@ -203,7 +249,7 @@ test("[US-40] don truc tuyen cung nhan ma don cua shop", async () => {
   const location = (
     await as("shop", request(app).post("/pickupLocations")).send({
       label: "Kho shop", contactName: "Chủ Shop", contactPhone: "0909982302", address: "1 Xuân Thủy",
-      province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+      province: "Hà Nội", ward: "Phường Cầu Giấy",
     })
   ).body.data;
   const res = await as("shop", request(app).post("/orders")).send({

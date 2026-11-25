@@ -18,7 +18,7 @@ import { CrudController } from "../../core/CrudController.js";
  *       required: [serviceTypeId, zone, weightTiers, effectiveFrom]
  *       properties:
  *         serviceTypeId: { type: string }
- *         zone: { type: string, enum: [INNER_DISTRICT, INNER_PROVINCE, INTER_PROVINCE, INTER_REGION] }
+ *         zone: { type: string, enum: [INNER_WARD, INNER_PROVINCE, INTER_PROVINCE, INTER_REGION] }
  *         weightTiers: { type: array, items: { $ref: "#/components/schemas/WeightTier" } }
  *         effectiveFrom: { type: string, format: date, example: "2027-01-01" }
  *         effectiveTo: { type: string, format: date, nullable: true }

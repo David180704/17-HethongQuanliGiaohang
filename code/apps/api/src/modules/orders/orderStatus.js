@@ -73,13 +73,24 @@ export function groupFilter(code) {
   };
 }
 
+// Don hoan / da huy: van xep vao 4 nhom cua de 14 de loc (hoan = luot giao tra ve nguoi gui), nhung NHAN hien cho
+// khach phai noi dung su that - "Da giao" cho don da hoan tra hay "Chua nhan" cho don da huy gay hieu sai
+// (loi kiem thu doc lap 25/11/2026).
+const OWN_LABEL_STATUSES = new Set(["RETURNING", "RETURNED", "CANCELLED"]);
+
+/** Nhan nhom hien cho khach: nhan cua nhom, tru don hoan / da huy hien dung trang thai cua no. */
+export function groupLabelOf(order, group = customerGroup(order)) {
+  const status = effectiveStatus(order);
+  return OWN_LABEL_STATUSES.has(status) ? STATUS_LABELS[status] : group.label;
+}
+
 /** Gan thong tin hien thi vao don (khong doi du lieu goc). */
 export function withDisplay(order) {
   if (!order) return order;
   const group = customerGroup(order);
   return {
     ...order,
-    display: { statusLabel: STATUS_LABELS[order.status] || order.status, group: group.code, groupLabel: group.label },
+    display: { statusLabel: STATUS_LABELS[order.status] || order.status, group: group.code, groupLabel: groupLabelOf(order, group) },
     statusHistory: (order.statusHistory || []).map((h) => ({ ...h, label: STATUS_LABELS[h.status] || h.status })),
   };
 }

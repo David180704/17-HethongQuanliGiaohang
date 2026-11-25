@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CHECKIN_SOURCE } from "../constants/enums.js";
+import { CHECKIN_SOURCE, POSITION_SOURCE } from "../constants/enums.js";
 
 // Moc check-in (US-30): tai xe qua mot diem khi dang cam don. Cung diem + cung don chi ghi mot lan trong 30 phut.
 const checkinLogSchema = new mongoose.Schema(
@@ -11,6 +11,9 @@ const checkinLogSchema = new mongoose.Schema(
     lat: { type: Number, required: true },
     lng: { type: Number, required: true },
     source: { type: String, enum: CHECKIN_SOURCE, default: "AUTO" },
+    // Toa do tu GPS that cua dien thoai hay gia lap; sai so GPS (m)
+    positionSource: { type: String, enum: POSITION_SOURCE, default: "SIMULATED" },
+    accuracyM: { type: Number, min: 0, default: null },
     // Ma su kien do app sinh: gui lai (mat mang roi co mang) khong ghi trung
     clientEventId: { type: String, default: null },
   },

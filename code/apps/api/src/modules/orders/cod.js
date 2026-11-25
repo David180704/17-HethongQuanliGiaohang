@@ -1,5 +1,5 @@
 // Thu ho COD va ai tra phi van chuyen (US-19) - ham thuan.
-//   SHOP_PREPAID    nguoi gui tra truoc: chuyen khoan QR hoac tien mat luc shipper lay hang
+//   SHOP_PREPAID    nguoi gui tra truoc: online qua VNPay (US-44) hoac tien mat luc shipper lay hang / tai quay
 //   RECIPIENT_PAID  nguoi nhan tra luc giao: shipper thu cod.amount + phi
 //   DEDUCT_FROM_COD khau tru phi vao tien thu ho: thu ho phai >= phi (chan luu, khong chi canh bao)
 import { ErrorCodes } from "../../core/errors.js";
@@ -31,11 +31,27 @@ export function parseCod(cod) {
   let feePaymentMethod = null;
   if (feePayer === "SHOP_PREPAID") {
     if (!FEE_PAYMENT_METHOD.includes(source.feePaymentMethod)) {
-      throw ErrorCodes.VALIDATION_ERROR("Người gửi trả trước: chọn chuyển khoản QR hoặc tiền mặt khi shipper đến lấy hàng");
+      throw ErrorCodes.VALIDATION_ERROR("Người gửi trả trước: chọn thanh toán online VNPay hoặc tiền mặt khi shipper đến lấy hàng");
     }
     feePaymentMethod = source.feePaymentMethod;
   }
   return { enabled, amount, feePayer, feePaymentMethod };
+}
+
+/** Khach le gui hang khong kem thu ho; chi shop doi tac (doanh nghiep) duoc thu ho / tru phi vao thu ho. */
+export const isShop = (customer) => customer?.role === "CUSTOMER" && customer?.customerType === "BUSINESS";
+
+export function assertCodAllowed(cod, customer) {
+  if ((cod.enabled || cod.feePayer === "DEDUCT_FROM_COD") && !isShop(customer)) {
+    throw ErrorCodes.SHOP_ONLY("Thu hộ (COD) chỉ dành cho shop đối tác — khách lẻ gửi hàng không kèm thu hộ");
+  }
+}
+
+/** Gui nhanh bat buoc nguoi gui tra truoc phi van chuyen (US-44, de 14). */
+export function assertExpressPrepaid(cod, serviceType) {
+  if (serviceType?.code === "EXPRESS" && cod.feePayer !== "SHOP_PREPAID") {
+    throw ErrorCodes.VALIDATION_ERROR("Gửi nhanh: người gửi phải trả trước phí vận chuyển (thanh toán online VNPay hoặc tiền mặt)");
+  }
 }
 
 /** Rang buoc can biet phi: khau tru phi vao thu ho thi tien thu ho phai du tra phi. */

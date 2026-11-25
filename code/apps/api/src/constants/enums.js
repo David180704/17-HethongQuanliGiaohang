@@ -4,7 +4,7 @@ export const USER_STATUS = ["PENDING", "ACTIVE", "LOCKED"];
 
 export const CUSTOMER_TYPE = ["INDIVIDUAL", "BUSINESS"];
 
-// Hai san pham client tach theo doi tuong dung (ghi chu du an muc 2): moi app chi
+// Hai san pham client tach theo doi tuong dung (tai lieu kien truc, docs/KienTrucAPI.md): moi app chi
 // cho dang nhap cac vai tro cua minh. GUEST khong co tai khoan nen khong nam o day.
 export const APP_ROLES = {
   CUSTOMER: ["CUSTOMER"],
@@ -17,15 +17,22 @@ export const REGION = ["BAC", "TRUNG", "NAM"];
 
 export const SERVICE_TYPE_CODE = ["STANDARD", "EXPRESS"];
 
-export const ZONE = ["INNER_DISTRICT", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_REGION"];
+export const ZONE = ["INNER_WARD", "INNER_PROVINCE", "INTER_PROVINCE", "INTER_REGION"];
 
 export const FEE_PAYER = ["SHOP_PREPAID", "RECIPIENT_PAID", "DEDUCT_FROM_COD"];
 
-export const FEE_PAYMENT_METHOD = ["QR", "CASH"];
+// VNPAY: tra truoc online qua cong VNPay (US-44); QR: chuyen khoan tu xac nhan (don cu, giao dien khong con chon)
+export const FEE_PAYMENT_METHOD = ["VNPAY", "CASH", "QR"];
+
+// Giao dich thanh toan phi van chuyen (US-44): cho thanh toan, thanh cong, that bai / huy
+export const PAYMENT_STATUS = ["PENDING", "SUCCESS", "FAILED"];
+export const PAYMENT_PROVIDER = ["VNPAY"];
+// Ung dung mo trang thanh toan - quyet dinh tra nguoi dung ve dau sau khi VNPay xu ly xong
+export const PAYMENT_CLIENT = ["WEB", "MOBILE"];
 
 export const COD_METHOD = ["CASH", "TRANSFER"];
 
-// 18 trang thai thuc te trong vong doi don hang (xem ghi chu du an muc 1 - nhan "17"
+// 18 trang thai thuc te trong vong doi don hang (tai lieu yeu cau ghi "17"
 // trong tai lieu nhung liet ke ra 18 gia tri, da bao cho nguoi dung de xac nhan lai).
 export const ORDER_STATUS = [
   "CREATED",
@@ -59,8 +66,19 @@ export const ITEM_CATEGORY = ["SMALL_PARCEL", "BAG", "CARTON", "TV", "LAPTOP", "
 // Nguyen nhan khong lay duoc hang (US-28, PB#34)
 export const PICKUP_FAIL_REASON = ["SHOP_UNREACHABLE", "NOT_READY", "WRONG_ADDRESS", "NOT_AS_DESCRIBED", "SHOP_CANCELLED", "OTHER"];
 
+// Nguyen nhan giao khong thanh cong (US-32, PB#40) - de 02: khong lien he duoc, hen giao lai, tu choi, sai dia chi
+export const DELIVERY_FAIL_REASON = ["RECIPIENT_UNREACHABLE", "RESCHEDULE_REQUESTED", "REFUSED", "WRONG_ADDRESS", "RECIPIENT_ABSENT", "OTHER"];
+
+// Su co, khieu nai (US-38, de 02): that lac, hu hong, sai thong tin giao nhan, khieu nai cua shop / nguoi nhan
+export const INCIDENT_TYPE = ["LOST", "DAMAGED", "WRONG_INFO", "SHOP_COMPLAINT", "RECIPIENT_COMPLAINT", "OTHER"];
+export const INCIDENT_STATUS = ["OPEN", "IN_PROGRESS", "RESOLVED"];
+// Ai bao: shop (khach tu bao tren app), nguoi nhan (bao qua tong dai, nhan vien ghi), nhan vien (kho, tai xe)
+export const INCIDENT_SOURCE = ["SHOP", "RECIPIENT", "STAFF"];
+
 // Nguon check-in (US-30): tu dong khi di qua diem, hoac tai xe bam tay
 export const CHECKIN_SOURCE = ["AUTO", "MANUAL"];
+// Toa do lay tu dau (22/11/2026): GPS that cua dien thoai / trinh duyet, hay vi tri gia lap (may ao, kiem thu)
+export const POSITION_SOURCE = ["GPS", "SIMULATED"];
 
 // Kenh tao don va phuong tien goi y (US-40)
 export const ORDER_CHANNEL = ["ONLINE", "COUNTER"];

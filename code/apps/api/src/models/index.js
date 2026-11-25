@@ -12,3 +12,6 @@ export { OrderDraft } from "./OrderDraft.js";
 export { Assignment } from "./Assignment.js";
 export { CheckinPoint } from "./CheckinPoint.js";
 export { CheckinLog } from "./CheckinLog.js";
+export { Incident } from "./Incident.js";
+export { Settlement } from "./Settlement.js";
+export { Payment } from "./Payment.js";

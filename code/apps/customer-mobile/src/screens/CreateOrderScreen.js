@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { addressProblem, useAddressCheck } from "../lib/adminUnits";
 import { StyleSheet, Text, View } from "react-native";
 import Screen from "../components/Screen";
 import Card from "../components/Card";
@@ -13,7 +14,7 @@ import { ChoiceGroup, Toggle } from "../components/Choice";
 import { apiClient, errorMessage } from "../lib/apiClient";
 import { queryCache } from "../lib/queryCache";
 import { useCachedQuery } from "../lib/useCachedQuery";
-import { formatVnd, groupThousands } from "../lib/format";
+import { distanceText, formatVnd, groupThousands } from "../lib/format";
 import {
   EMPTY_ORDER,
   FEE_PAYERS,
@@ -25,6 +26,8 @@ import {
   toItemPayload,
   toOrderPayload,
 } from "../lib/orderForm";
+import { needsVnpay, payWithVnpay } from "../lib/payment";
+import { useAuth } from "../auth/AuthContext";
 import { colors, radius } from "../theme";
 
 const STEP_TITLES = ["Lấy hàng", "Người nhận", "Hàng hóa & thanh toán", "Xác nhận"];
@@ -36,7 +39,6 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
   const [draft, setDraft] = useState({ data: null, error: null, loading: Boolean(openedDraft) });
   const { data: locationData, refresh: refreshLocations } = useCachedQuery("/pickupLocations");
   const { data: serviceTypes } = useCachedQuery("/public/service-types");
-  const { data: areas } = useCachedQuery("/public/service-areas");
   const locations = locationData || [];
 
   const [form, setForm] = useState(EMPTY_ORDER);
@@ -48,6 +50,9 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+  // Shop doi tac moi gui thu ho; khach le: bo thu ho, khong tru phi vao thu ho
+  const { user } = useAuth();
+  const isShop = user?.customerType === "BUSINESS";
 
   // Mo nhap (neu vao tu Uoc tinh phi) - khach da dang nhap mo nhap thi nhap thuoc ve khach
   useEffect(() => {
@@ -66,16 +71,26 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
     if (hydrated || !locationData || !serviceTypes || draft.loading) return;
     const restored = fromDraft(draft.data?.payload, locationData);
     const defaultLocation = locationData.find((location) => location.isDefault)?._id || "";
+    const cod = restored?.cod || EMPTY_ORDER.cod;
     setForm({
       ...EMPTY_ORDER,
       ...restored,
       pickupLocationId: restored?.pickupLocationId || defaultLocation,
       serviceTypeId: restored?.serviceTypeId || serviceTypes[0]?._id || "",
+      cod: isShop ? cod : { ...cod, enabled: false, amount: "", feePayer: cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : cod.feePayer },
     });
     setHydrated(true);
-  }, [hydrated, locationData, serviceTypes, draft]);
+  }, [hydrated, locationData, serviceTypes, draft, isShop]);
 
   const location = locations.find((l) => l._id === form.pickupLocationId);
+  // Dia chi nguoi nhan phai khop danh muc tinh - xa/phuong; khac tinh voi noi lay thi khong co giao nhanh
+  const receiverCheck = useAddressCheck(form.receiver.province, form.receiver.ward);
+  const expressType = (serviceTypes || []).find((type) => type.code === "EXPRESS");
+  const crossProvince = Boolean(location && receiverCheck.province && location.province !== receiverCheck.province.name);
+  const expressBlocked = crossProvince && Boolean(expressType) && form.serviceTypeId === expressType._id;
+  // Gui nhanh bat buoc nguoi gui tra truoc (US-44)
+  const expressSelected = Boolean(expressType) && form.serviceTypeId === expressType._id;
+  const [payState, setPayState] = useState({ busy: false, error: "" });
 
   async function saveDraft(next) {
     try {
@@ -94,7 +109,7 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
     setQuoteError("");
     try {
       const res = await apiClient.post("/orders/estimate-fee", {
-        pickup: { province: location.province, district: location.district },
+        pickup: { province: location.province, ward: location.ward },
         receiver: current.receiver,
         item: toItemPayload(current.item),
         flags: toFlagsPayload(current.item),
@@ -107,13 +122,23 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
   }
 
   function next() {
-    const problem = stepError(form.step, form, areas || []);
+    const problem = stepError(form.step, form, {
+      receiverProblem: addressProblem(receiverCheck, form.receiver, " người nhận"),
+      expressBlocked,
+      expressSelected,
+    });
     if (problem) {
       setError(problem);
       return;
     }
     setError("");
     const advanced = { ...form, step: form.step + 1 };
+    if (form.step === 2) {
+      advanced.receiver = { ...form.receiver, province: receiverCheck.province.name, ward: receiverCheck.ward };
+      if (expressType && advanced.serviceTypeId === expressType._id && location && location.province !== receiverCheck.province.name) {
+        advanced.serviceTypeId = (serviceTypes || []).find((type) => type.code !== "EXPRESS")?._id || "";
+      }
+    }
     setForm(advanced);
     saveDraft(advanced);
     if (advanced.step === 4) loadQuote(advanced);
@@ -144,6 +169,18 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
     });
   }
 
+  // VNPay xong (di dong) -> mo chi tiet don kem ket qua; ban web thi trang chuyen sang VNPay
+  async function payCreated() {
+    setPayState({ busy: true, error: "" });
+    try {
+      const result = await payWithVnpay(created._id);
+      setPayState({ busy: false, error: "" });
+      if (result) onOpenOrder(created._id, result.status);
+    } catch (err) {
+      setPayState({ busy: false, error: errorMessage(err, "Không mở được trang thanh toán") });
+    }
+  }
+
   if (created) {
     return (
       <Screen title="Đã tạo đơn" onBack={onBack}>
@@ -154,6 +191,13 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
           </Text>
           <Text style={styles.line}>Trạng thái: chờ bưu cục xác nhận</Text>
           <Text style={styles.line}>Phí vận chuyển: {formatVnd(created.fee.total)}</Text>
+          {needsVnpay(created) ? (
+            <>
+              <Text style={styles.line}>Bạn chọn trả trước qua VNPay: bưu cục chỉ duyệt đơn sau khi thanh toán.</Text>
+              <Button testID="order-pay" title={`Thanh toán ${formatVnd(created.fee.total)} qua VNPay`} onPress={payCreated} loading={payState.busy} />
+              <Banner>{payState.error}</Banner>
+            </>
+          ) : null}
           <Button testID="order-new" title="Tạo đơn khác" onPress={startOver} />
           <Button testID="order-view" title="Xem đơn" variant="secondary" onPress={() => onOpenOrder(created._id)} />
           <Button title="Về tài khoản" variant="secondary" onPress={() => onGoTab("account")} />
@@ -180,7 +224,7 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
         <>
           {form.estimatedPickup && !form.pickupLocationId ? (
             <Banner tone="info" testID="order-pickup-hint">
-              {`Bạn ước tính phí gửi từ ${form.estimatedPickup.district}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`}
+              {`Bạn ước tính phí gửi từ ${form.estimatedPickup.ward}, ${form.estimatedPickup.province} — chọn hoặc thêm địa điểm lấy hàng ở đó.`}
             </Banner>
           ) : null}
           {locations.length ? (
@@ -190,7 +234,7 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
               options={locations.map((l) => ({
                 value: l._id,
                 label: l.label,
-                hint: `${l.address}, ${l.district}, ${l.province}${l.isDefault ? " · Mặc định" : ""}`,
+                hint: `${l.address}, ${l.ward}, ${l.province}${l.isDefault ? " · Mặc định" : ""}`,
               }))}
               value={form.pickupLocationId}
               onChange={(value) => update({ pickupLocationId: value })}
@@ -231,30 +275,53 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
           <ChoiceGroup
             label="Gói dịch vụ"
             testID="order-service"
-            options={(serviceTypes || []).map((t) => ({ value: t._id, label: t.name, hint: `Dự kiến ${t.estimatedDays} ngày` }))}
+            options={(serviceTypes || []).map((t) => {
+              const blocked = crossProvince && t.code === "EXPRESS";
+              return {
+                value: t._id,
+                label: t.name,
+                disabled: blocked,
+                hint: blocked ? "Chỉ giao trong cùng tỉnh/thành — đơn này gửi sang tỉnh khác" : `Dự kiến ${t.estimatedDays} ngày`,
+              };
+            })}
             value={form.serviceTypeId}
-            onChange={(value) => update({ serviceTypeId: value })}
+            onChange={(value) =>
+              update({
+                serviceTypeId: value,
+                ...(expressType && value === expressType._id && { cod: { ...form.cod, feePayer: "SHOP_PREPAID", feePaymentMethod: form.cod.feePaymentMethod || "VNPAY" } }),
+              })
+            }
           />
-          <Card title="Thu hộ và phí vận chuyển">
-            <Toggle
-              testID="cod-enabled"
-              label="Thu hộ tiền hàng (COD)"
-              value={form.cod.enabled}
-              onChange={(enabled) =>
-                update({ cod: { ...form.cod, enabled, feePayer: !enabled && form.cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.cod.feePayer } })
-              }
-            />
-            {form.cod.enabled ? (
+          <Card title={isShop ? "Thu hộ và phí vận chuyển" : "Phí vận chuyển"}>
+            {isShop ? (
+              <Toggle
+                testID="cod-enabled"
+                label="Thu hộ tiền hàng (COD)"
+                value={form.cod.enabled}
+                onChange={(enabled) =>
+                  update({ cod: { ...form.cod, enabled, feePayer: !enabled && form.cod.feePayer === "DEDUCT_FROM_COD" ? "RECIPIENT_PAID" : form.cod.feePayer } })
+                }
+              />
+            ) : (
+              <Text style={styles.muted} testID="cod-individual-note">
+                Tài khoản cá nhân gửi hàng không kèm thu hộ. Thu hộ (COD) dành cho shop đối tác.
+              </Text>
+            )}
+            {isShop && form.cod.enabled ? (
               <TextField testID="cod-amount" label="Số tiền thu hộ (đ)" help="Lớn hơn 0, tối đa 20.000.000 đ" value={form.cod.amount} onChangeText={(t) => update({ cod: { ...form.cod, amount: t } })} keyboardType="number-pad" />
             ) : null}
             <ChoiceGroup
               label="Ai trả phí vận chuyển?"
               testID="fee-payer"
-              options={FEE_PAYERS.map((p) => ({
-                ...p,
-                disabled: p.value === "DEDUCT_FROM_COD" && !form.cod.enabled,
-                hint: p.value === "DEDUCT_FROM_COD" && !form.cod.enabled ? "Cần bật thu hộ" : p.hint,
-              }))}
+              options={FEE_PAYERS.filter((p) => isShop || p.value !== "DEDUCT_FROM_COD").map((p) => {
+                const needsCod = p.value === "DEDUCT_FROM_COD" && !form.cod.enabled;
+                const needsPrepaid = expressSelected && p.value !== "SHOP_PREPAID";
+                return {
+                  ...p,
+                  disabled: needsCod || needsPrepaid,
+                  hint: needsPrepaid ? "Gửi nhanh bắt buộc người gửi trả trước" : needsCod ? "Cần bật thu hộ" : p.hint,
+                };
+              })}
               value={form.cod.feePayer}
               onChange={(value) => update({ cod: { ...form.cod, feePayer: value } })}
             />
@@ -268,8 +335,8 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
       {hydrated && form.step === 4 ? (
         <>
           <Card title="Kiểm tra đơn">
-            <Info label="Lấy hàng" value={location ? `${location.label} — ${location.district}, ${location.province}` : "—"} />
-            <Info label="Giao đến" value={`${form.receiver.name} · ${form.receiver.district}, ${form.receiver.province}`} />
+            <Info label="Lấy hàng" value={location ? `${location.label} — ${location.ward}, ${location.province}` : "—"} />
+            <Info label="Giao đến" value={`${form.receiver.name} · ${form.receiver.ward}, ${form.receiver.province}`} />
             <Info label="Hàng" value={`${form.item.name} · ${form.item.weightGram} g · ${form.item.length}×${form.item.width}×${form.item.height} cm`} />
             <Info label="Thu hộ" value={form.cod.enabled ? formatVnd(Number(form.cod.amount) || 0) : "Không"} />
           </Card>
@@ -279,6 +346,11 @@ export default function CreateOrderScreen({ draftToken: openedDraft, onBack, onG
               <Text style={styles.muted}>
                 Tuyến {quote.zoneLabel} · tính theo {groupThousands(quote.chargeableWeight)} g
               </Text>
+              {quote.distanceKm !== null && quote.distanceKm !== undefined ? (
+                <Text style={styles.muted} testID="order-distance">
+                  {`Khoảng cách: ${distanceText(quote)}`}
+                </Text>
+              ) : null}
               <FeeBreakdown fee={option.fee} />
               <Info label="Shipper thu của người nhận" value={formatVnd(summary.collectFromReceiver)} />
               {form.cod.enabled ? <Info label="Express trả lại bạn" value={formatVnd(summary.payToShop)} /> : null}

@@ -15,18 +15,29 @@ export const SPECIAL_SURCHARGE = { fragile: 5000, highValue: 10000, isVehicle: 5
 export const HIGH_VALUE_FROM = 5_000_000;
 
 export const ZONE_LABELS = {
-  INNER_DISTRICT: "nội quận",
+  INNER_WARD: "nội xã/phường",
   INNER_PROVINCE: "nội tỉnh",
   INTER_PROVINCE: "liên tỉnh",
   INTER_REGION: "liên miền",
 };
 
-/** Vung tinh gia tu cap (khu vuc gui, khu vuc nhan) - moi khu vuc co province, district, region. */
+/** Vung tinh gia tu cap (khu vuc gui, khu vuc nhan) - moi khu vuc co province, ward, region. */
 export function calcZone(pickupArea, receiverArea) {
   if (pickupArea.province === receiverArea.province) {
-    return pickupArea.district === receiverArea.district ? "INNER_DISTRICT" : "INNER_PROVINCE";
+    return pickupArea.ward === receiverArea.ward ? "INNER_WARD" : "INNER_PROVINCE";
   }
   return pickupArea.region === receiverArea.region ? "INTER_PROVINCE" : "INTER_REGION";
+}
+
+// Dich vu chi chay trong cung tinh/thanh (yeu cau 12/11/2026: gui sang tinh khac khong co giao nhanh)
+export const SAME_PROVINCE_ONLY = ["EXPRESS"];
+
+/** Ly do loai dich vu khong ap dung cho cap khu vuc gui - nhan; null = dung duoc. */
+export function unavailableReason(serviceType, pickupArea, receiverArea) {
+  if (SAME_PROVINCE_ONLY.includes(serviceType.code) && pickupArea.province !== receiverArea.province) {
+    return `${serviceType.name} chỉ áp dụng trong cùng tỉnh/thành — đơn từ ${pickupArea.province} đi ${receiverArea.province} chọn giao tiêu chuẩn`;
+  }
+  return null;
 }
 
 /** Khoi luong quy doi (gram) tu kich thuoc cm: 1 kg cho moi 5000 cm3. */

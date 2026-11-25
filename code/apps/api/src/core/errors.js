@@ -37,6 +37,17 @@ export const ErrorCodes = {
     new AppError("PRICE_NOT_AVAILABLE", message, 422),
   COD_LESS_THAN_FEE: (message = "Tiền thu hộ nhỏ hơn phí vận chuyển, không khấu trừ được") =>
     new AppError("COD_LESS_THAN_FEE", message, 422),
+  // Loai dich vu khong ap dung cho cap noi gui - noi nhan (giao nhanh chi trong cung tinh/thanh)
+  SERVICE_NOT_AVAILABLE: (message = "Loại dịch vụ này không áp dụng cho tuyến gửi này") =>
+    new AppError("SERVICE_NOT_AVAILABLE", message, 422),
+
+  // Thu ho, tai khoan nhan COD, doi soat chi danh cho shop doi tac (tai khoan doanh nghiep da duyet) - 23/11/2026
+  SHOP_ONLY: (message = "Chức năng này chỉ dành cho shop đối tác") => new AppError("SHOP_ONLY", message, 403),
+
+  // Thanh toan phi van chuyen qua VNPay (US-44)
+  PAYMENT_NOT_CONFIGURED: (message = "Cổng thanh toán VNPay chưa được cấu hình trên máy chủ") =>
+    new AppError("PAYMENT_NOT_CONFIGURED", message, 503),
+  PAYMENT_REQUIRED: (message = "Đơn chưa thanh toán phí vận chuyển") => new AppError("PAYMENT_REQUIRED", message, 409),
 
   // API cong khai bi goi qua nhanh (US-22: tra cuu 20 lan/phut moi IP)
   TOO_MANY_REQUESTS: (message = "Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút") =>

@@ -17,6 +17,11 @@ import { buildTrackingRouter } from "./modules/tracking/tracking.router.js";
 import { buildShiftsRouter } from "./modules/shifts/shifts.router.js";
 import { buildCapacityRouter } from "./modules/capacity/capacity.router.js";
 import { buildAssignmentsRouter } from "./modules/assignments/assignments.router.js";
+import { buildDeliveryRouter } from "./modules/delivery/delivery.router.js";
+import { buildIncidentsRouter } from "./modules/incidents/incidents.router.js";
+import { buildSettlementsRouter } from "./modules/settlements/settlements.router.js";
+import { buildPaymentsRouter } from "./modules/payments/payments.router.js";
+import { buildStatsRouter } from "./modules/stats/stats.router.js";
 import { buildWarehouseRouter } from "./modules/warehouse/warehouse.router.js";
 import { buildCheckinPointsRouter, buildCheckinsRouter } from "./modules/checkins/checkins.router.js";
 import { buildProfileRouter } from "./modules/profile/profile.router.js";
@@ -34,6 +39,8 @@ function describeDatabase() {
 
 export function createApp(container = getContainer()) {
   const app = express();
+  // Chay sau proxy (Render): req.ip la IP that cua nguoi dung (gioi han tra cuu US-22, IP gui VNPay US-44)
+  if (env.nodeEnv === "production") app.set("trust proxy", 1);
   // exposedHeaders: cho trinh duyet doc duoc X-Cache (HIT/MISS) tu JS
   app.use(cors({ origin: env.corsOrigins, credentials: true, exposedHeaders: ["X-Cache"] }));
   app.use(express.json());
@@ -62,6 +69,11 @@ export function createApp(container = getContainer()) {
   app.use("/shifts", buildShiftsRouter(container));
   app.use("/capacity", buildCapacityRouter(container));
   app.use("/assignments", buildAssignmentsRouter(container));
+  app.use("/deliveries", buildDeliveryRouter(container));
+  app.use("/incidents", buildIncidentsRouter(container));
+  app.use("/settlements", buildSettlementsRouter(container));
+  app.use("/payments", buildPaymentsRouter(container));
+  app.use("/stats", buildStatsRouter(container));
   app.use("/warehouse", buildWarehouseRouter(container));
   app.use("/checkinPoints", buildCheckinPointsRouter(container));
   app.use("/checkins", buildCheckinsRouter(container));

@@ -62,7 +62,7 @@ before(async () => {
   const addLocation = async (who, phone) =>
     (await as(who, request(app).post("/pickupLocations")).send({
       label: "Kho nhà", contactName: "Người gửi", contactPhone: phone, address: "1 Xuân Thủy",
-      province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+      province: "Hà Nội", ward: "Phường Cầu Giấy",
     })).body.data;
   location = await addLocation("a", "0909982001");
   const locationB = await addLocation("b", "0909982002");
@@ -70,7 +70,7 @@ before(async () => {
     const res = await as(who, request(app).post("/orders")).send({
       pickupLocationId: pickup._id,
       serviceTypeId: standard._id,
-      receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+      receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
       item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10 },
     });
     assert.equal(res.status, 201, JSON.stringify(res.body));
@@ -119,6 +119,19 @@ test("[US-20] moi trang thai (tru INCIDENT) thuoc dung mot trong 4 nhom cua de 1
     const owners = CUSTOMER_GROUPS.filter((g) => g.statuses.includes(status));
     assert.equal(owners.length, status === "INCIDENT" ? 0 : 1, `${status} phai thuoc dung mot nhom`);
   }
+});
+
+test("[US-20] don hoan / da huy: van loc theo 4 nhom nhung nhan hien dung su that (khong ghi \"Da giao\" cho don da hoan tra)", () => {
+  const shown = (statuses) => withDisplay({ status: statuses.at(-1), statusHistory: history(...statuses) }).display;
+  assert.deepEqual(shown(["CREATED", "PICKED_UP", "DELIVERY_FAILED", "RETURNED"]), {
+    statusLabel: "Đã hoàn trả người gửi",
+    group: "DELIVERED",
+    groupLabel: "Đã hoàn trả người gửi",
+  });
+  assert.equal(shown(["CREATED", "PICKED_UP", "RETURNING"]).groupLabel, "Đang hoàn về người gửi");
+  assert.equal(shown(["CREATED", "CANCELLED"]).groupLabel, "Đã hủy");
+  assert.equal(shown(["CREATED", "PICKED_UP", "RETURNING", "INCIDENT"]).groupLabel, "Đang hoàn về người gửi", "su co trong luc hoan");
+  assert.equal(shown(["CREATED", "PICKED_UP", "OUT_FOR_DELIVERY", "DELIVERED"]).groupLabel, "Đã giao");
 });
 
 test("[US-20] don INCIDENT lay nhom cua trang thai lien truoc (bo qua cac moc INCIDENT lien tiep)", () => {
@@ -190,7 +203,7 @@ test("[US-20] luong nghiep vu: khach tao don -> Chua nhan; kho duyet -> hanh tri
   const created = await as("a", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: standard._id,
-    receiver: { name: "Nhận luồng US-20", phone: "0912345678", address: "9 Lê Lợi", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Thành" },
+    receiver: { name: "Nhận luồng US-20", phone: "0912345678", address: "9 Lê Lợi", province: "TP Hồ Chí Minh", ward: "Phường Bến Thành" },
     item: { name: "Áo", weightGram: 500, length: 20, width: 15, height: 5 },
   });
   assert.equal(created.status, 201);

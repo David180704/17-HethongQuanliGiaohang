@@ -130,6 +130,24 @@ const COLLECTIONS = [
                   "number",
                   "null"
                 ]
+              },
+              "source": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "GPS",
+                  "SIMULATED",
+                  null
+                ]
+              },
+              "accuracyM": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
               }
             }
           },
@@ -145,6 +163,10 @@ const COLLECTIONS = [
               "NOT_AS_DESCRIBED",
               "SHOP_CANCELLED",
               "OTHER",
+              "RECIPIENT_UNREACHABLE",
+              "RESCHEDULE_REQUESTED",
+              "REFUSED",
+              "RECIPIENT_ABSENT",
               null
             ]
           },
@@ -218,6 +240,24 @@ const COLLECTIONS = [
               "MANUAL",
               null
             ]
+          },
+          "positionSource": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "GPS",
+              "SIMULATED",
+              null
+            ]
+          },
+          "accuracyM": {
+            "bsonType": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
           },
           "clientEventId": {
             "bsonType": [
@@ -332,7 +372,7 @@ const COLLECTIONS = [
           "name",
           "type",
           "province",
-          "district",
+          "ward",
           "_id"
         ],
         "properties": {
@@ -364,7 +404,7 @@ const COLLECTIONS = [
           "province": {
             "bsonType": "string"
           },
-          "district": {
+          "ward": {
             "bsonType": "string"
           },
           "serviceAreaId": {
@@ -396,6 +436,208 @@ const COLLECTIONS = [
           "isActive": {
             "bsonType": [
               "bool",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
+    // ---------------- incidents (model Incident) ----------------
+    name: "incidents",
+    indexes: [[{"code":1},{"unique":true}],[{"orderId":1,"status":1},{}],[{"hubIds":1,"status":1,"createdAt":-1},{}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "code",
+          "orderId",
+          "trackingCode",
+          "customerId",
+          "type",
+          "source",
+          "description",
+          "reportedBy",
+          "_id"
+        ],
+        "properties": {
+          "code": {
+            "bsonType": "string"
+          },
+          "orderId": {
+            "bsonType": "objectId"
+          },
+          "trackingCode": {
+            "bsonType": "string"
+          },
+          "customerId": {
+            "bsonType": "objectId"
+          },
+          "hubIds": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": "objectId"
+            }
+          },
+          "type": {
+            "bsonType": "string",
+            "enum": [
+              "LOST",
+              "DAMAGED",
+              "WRONG_INFO",
+              "SHOP_COMPLAINT",
+              "RECIPIENT_COMPLAINT",
+              "OTHER"
+            ]
+          },
+          "source": {
+            "bsonType": "string",
+            "enum": [
+              "SHOP",
+              "RECIPIENT",
+              "STAFF"
+            ]
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "status": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "RESOLVED",
+              null
+            ]
+          },
+          "reportedBy": {
+            "bsonType": "objectId"
+          },
+          "orderStatusBefore": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CREATED",
+              "CONFIRMED",
+              "PICKUP_ASSIGNED",
+              "PICKED_UP",
+              "SORTED",
+              "IN_TRANSIT",
+              "AT_HUB",
+              "AT_DEST_HUB",
+              "DELIVERY_ASSIGNED",
+              "OUT_FOR_DELIVERY",
+              "DELIVERED",
+              "PICKUP_FAILED",
+              "DELIVERY_FAILED",
+              "RESCHEDULED",
+              "RETURNING",
+              "RETURNED",
+              "CANCELLED",
+              "INCIDENT",
+              null
+            ]
+          },
+          "history": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": "object",
+              "required": [
+                "status"
+              ],
+              "properties": {
+                "status": {
+                  "bsonType": "string",
+                  "enum": [
+                    "OPEN",
+                    "IN_PROGRESS",
+                    "RESOLVED"
+                  ]
+                },
+                "at": {
+                  "bsonType": [
+                    "date",
+                    "null"
+                  ]
+                },
+                "by": {
+                  "bsonType": [
+                    "objectId",
+                    "null"
+                  ]
+                },
+                "note": {
+                  "bsonType": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "resolution": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "result": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
+              "compensation": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "at": {
+                "bsonType": [
+                  "date",
+                  "null"
+                ]
+              },
+              "by": {
+                "bsonType": [
+                  "objectId",
+                  "null"
+                ]
+              }
+            }
+          },
+          "settlementId": {
+            "bsonType": [
+              "objectId",
               "null"
             ]
           },
@@ -569,7 +811,6 @@ const COLLECTIONS = [
               "phone",
               "address",
               "province",
-              "district",
               "ward"
             ],
             "properties": {
@@ -583,9 +824,6 @@ const COLLECTIONS = [
                 "bsonType": "string"
               },
               "province": {
-                "bsonType": "string"
-              },
-              "district": {
                 "bsonType": "string"
               },
               "ward": {
@@ -686,10 +924,16 @@ const COLLECTIONS = [
           "zone": {
             "bsonType": "string",
             "enum": [
-              "INNER_DISTRICT",
+              "INNER_WARD",
               "INNER_PROVINCE",
               "INTER_PROVINCE",
               "INTER_REGION"
+            ]
+          },
+          "distanceKm": {
+            "bsonType": [
+              "number",
+              "null"
             ]
           },
           "chargeableWeight": {
@@ -783,8 +1027,9 @@ const COLLECTIONS = [
                   "null"
                 ],
                 "enum": [
-                  "QR",
+                  "VNPAY",
                   "CASH",
+                  "QR",
                   null
                 ]
               },
@@ -927,6 +1172,24 @@ const COLLECTIONS = [
                         "number",
                         "null"
                       ]
+                    },
+                    "source": {
+                      "bsonType": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "GPS",
+                        "SIMULATED",
+                        null
+                      ]
+                    },
+                    "accuracyM": {
+                      "bsonType": [
+                        "number",
+                        "null"
+                      ],
+                      "minimum": 0
                     }
                   }
                 }
@@ -936,6 +1199,18 @@ const COLLECTIONS = [
           "deliveryAttempts": {
             "bsonType": [
               "number",
+              "null"
+            ]
+          },
+          "returnReason": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "returnHandedAt": {
+            "bsonType": [
+              "date",
               "null"
             ]
           },
@@ -977,6 +1252,124 @@ const COLLECTIONS = [
     },
   },
   {
+    // ---------------- payments (model Payment) ----------------
+    name: "payments",
+    indexes: [[{"txnRef":1},{"unique":true}],[{"orderId":1,"createdAt":-1},{}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "orderId",
+          "trackingCode",
+          "customerId",
+          "txnRef",
+          "amount",
+          "expiresAt",
+          "_id"
+        ],
+        "properties": {
+          "orderId": {
+            "bsonType": "objectId"
+          },
+          "trackingCode": {
+            "bsonType": "string"
+          },
+          "customerId": {
+            "bsonType": "objectId"
+          },
+          "provider": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "VNPAY",
+              null
+            ]
+          },
+          "txnRef": {
+            "bsonType": "string"
+          },
+          "amount": {
+            "bsonType": "number",
+            "minimum": 1
+          },
+          "status": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "PENDING",
+              "SUCCESS",
+              "FAILED",
+              null
+            ]
+          },
+          "client": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "WEB",
+              "MOBILE",
+              null
+            ]
+          },
+          "returnTo": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "expiresAt": {
+            "bsonType": "date"
+          },
+          "responseCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "transactionNo": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "bankCode": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "paidAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
     // ---------------- pickuplocations (model PickupLocation) ----------------
     name: "pickuplocations",
     indexes: [[{"customerId":1,"isActive":1},{}]],
@@ -990,7 +1383,6 @@ const COLLECTIONS = [
           "contactPhone",
           "address",
           "province",
-          "district",
           "ward",
           "serviceAreaId",
           "_id"
@@ -1012,9 +1404,6 @@ const COLLECTIONS = [
             "bsonType": "string"
           },
           "province": {
-            "bsonType": "string"
-          },
-          "district": {
             "bsonType": "string"
           },
           "ward": {
@@ -1075,7 +1464,7 @@ const COLLECTIONS = [
           "zone": {
             "bsonType": "string",
             "enum": [
-              "INNER_DISTRICT",
+              "INNER_WARD",
               "INNER_PROVINCE",
               "INTER_PROVINCE",
               "INTER_REGION"
@@ -1272,13 +1661,13 @@ const COLLECTIONS = [
   {
     // ---------------- serviceareas (model ServiceArea) ----------------
     name: "serviceareas",
-    indexes: [[{"province":1,"district":1},{"unique":true}]],
+    indexes: [[{"province":1,"ward":1},{"unique":true}]],
     validator: {
       $jsonSchema: {
         "bsonType": "object",
         "required": [
           "province",
-          "district",
+          "ward",
           "region",
           "routeId",
           "_id"
@@ -1287,17 +1676,8 @@ const COLLECTIONS = [
           "province": {
             "bsonType": "string"
           },
-          "district": {
+          "ward": {
             "bsonType": "string"
-          },
-          "wards": {
-            "bsonType": [
-              "array",
-              "null"
-            ],
-            "items": {
-              "bsonType": "string"
-            }
           },
           "region": {
             "bsonType": "string",
@@ -1365,6 +1745,265 @@ const COLLECTIONS = [
           "isActive": {
             "bsonType": [
               "bool",
+              "null"
+            ]
+          },
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "createdAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": [
+              "date",
+              "null"
+            ]
+          }
+        }
+      },
+    },
+  },
+  {
+    // ---------------- settlements (model Settlement) ----------------
+    name: "settlements",
+    indexes: [[{"code":1},{"unique":true}],[{"customerId":1,"createdAt":-1},{}],[{"status":1,"createdAt":-1},{}]],
+    validator: {
+      $jsonSchema: {
+        "bsonType": "object",
+        "required": [
+          "code",
+          "customerId",
+          "customerName",
+          "periodFrom",
+          "periodTo",
+          "_id"
+        ],
+        "properties": {
+          "code": {
+            "bsonType": "string"
+          },
+          "customerId": {
+            "bsonType": "objectId"
+          },
+          "customerName": {
+            "bsonType": "string"
+          },
+          "periodFrom": {
+            "bsonType": "date"
+          },
+          "periodTo": {
+            "bsonType": "date"
+          },
+          "status": {
+            "bsonType": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "PENDING",
+              "PAID",
+              null
+            ]
+          },
+          "lines": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": "object",
+              "required": [
+                "orderId",
+                "trackingCode",
+                "status",
+                "finishedAt"
+              ],
+              "properties": {
+                "orderId": {
+                  "bsonType": "objectId"
+                },
+                "trackingCode": {
+                  "bsonType": "string"
+                },
+                "status": {
+                  "bsonType": "string"
+                },
+                "finishedAt": {
+                  "bsonType": "date"
+                },
+                "feePayer": {
+                  "bsonType": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "codCollected": {
+                  "bsonType": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "feeTotal": {
+                  "bsonType": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "feeDeducted": {
+                  "bsonType": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "adjustments": {
+            "bsonType": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "bsonType": "object",
+              "required": [
+                "kind",
+                "amount",
+                "reason",
+                "_id"
+              ],
+              "properties": {
+                "kind": {
+                  "bsonType": "string",
+                  "enum": [
+                    "COMPENSATION",
+                    "OTHER"
+                  ]
+                },
+                "amount": {
+                  "bsonType": "number"
+                },
+                "reason": {
+                  "bsonType": "string"
+                },
+                "incidentId": {
+                  "bsonType": [
+                    "objectId",
+                    "null"
+                  ]
+                },
+                "by": {
+                  "bsonType": [
+                    "objectId",
+                    "null"
+                  ]
+                },
+                "at": {
+                  "bsonType": [
+                    "date",
+                    "null"
+                  ]
+                },
+                "_id": {
+                  "bsonType": "objectId"
+                }
+              }
+            }
+          },
+          "totals": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "orders": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cod": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "feeDeducted": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "adjustments": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "netPayable": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "payment": {
+            "bsonType": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "amount": {
+                "bsonType": [
+                  "number",
+                  "null"
+                ]
+              },
+              "bankName": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
+              "accountNumber": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
+              "accountName": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
+              "txnRef": {
+                "bsonType": [
+                  "string",
+                  "null"
+                ]
+              },
+              "paidAt": {
+                "bsonType": [
+                  "date",
+                  "null"
+                ]
+              },
+              "by": {
+                "bsonType": [
+                  "objectId",
+                  "null"
+                ]
+              }
+            }
+          },
+          "createdBy": {
+            "bsonType": [
+              "objectId",
               "null"
             ]
           },

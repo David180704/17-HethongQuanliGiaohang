@@ -57,7 +57,7 @@ Hoặc **Terminal → Run Task → `EDMS: CHAY DEMO ...`**. Lệnh tự làm the
 ## 0. Chuẩn bị (một lần)
 
 Cần có: **Docker Desktop**, **Node.js 20+**, **Git**. Java 17, Android SDK và Maestro đã cài
-sẵn trên máy này (xem ghi chu du an, mục _Kiểm thử trên máy ảo Android_).
+sẵn trên máy này (xem `docs/HuongDanChayVaTest.md`).
 
 ```powershell
 cd code

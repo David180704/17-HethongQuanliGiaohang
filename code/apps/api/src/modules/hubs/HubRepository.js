@@ -3,7 +3,7 @@ import { Hub } from "../../models/Hub.js";
 
 export class HubRepository extends BaseRepository {
   constructor() {
-    super(Hub, { searchFields: ["code", "name", "province", "district"], defaultSort: { type: 1, code: 1 } });
+    super(Hub, { searchFields: ["code", "name", "province", "ward"], defaultSort: { type: 1, code: 1 } });
   }
 
   // Man hinh quan tri can ma/ten hub cap tren cua buu cuc ngay trong danh sach

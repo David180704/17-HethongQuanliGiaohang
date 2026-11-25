@@ -9,7 +9,7 @@ import request from "supertest";
 import { createApp } from "../src/app.js";
 import { getContainer } from "../src/container.js";
 import { removeLeftovers } from "./helpers/fixtures.js";
-import { User, Hub, Route, Shift } from "../src/models/index.js";
+import { User, Hub, Route, Shift, Assignment } from "../src/models/index.js";
 import { shiftValidator } from "../src/modules/shifts/shifts.validator.js";
 import { getRedis } from "../src/config/redis.js";
 
@@ -142,6 +142,29 @@ test("[US-23] sua ca them nguoi, kiem trung gio khi sua; xoa ca; lua chon form c
   const hnNoi = options.routes.find((r) => r.code === "R-HN-NOI");
   assert.ok(hnNoi.shippers.some((s) => s.fullName === "Tài xế Ca B"));
   assert.ok(!hnNoi.shippers.some((s) => s.fullName === "Tài xế Ca HCM"));
+});
+
+test("[US-23] khong xoa duoc ca con don dang phan cong (de don mo coi, tai xe mat ca); xu ly xong moi xoa", async () => {
+  const shift = (await as("hn", request(app).post("/shifts")).send(shiftBody({ startTime: "22:00", endTime: "23:30", shipperIds: [], name: "KT23 Ca khuya" }))).body.data;
+  const assignment = await Assignment.create({
+    orderId: new mongoose.Types.ObjectId(),
+    shipperId: tx.a._id,
+    shiftId: shift._id,
+    type: "PICKUP",
+    shiftDate: new Date(`${DAY}T00:00:00+07:00`),
+    method: "AUTO",
+  });
+  try {
+    const blocked = await as("hn", request(app).delete(`/shifts/${shift._id}`));
+    assert.equal(blocked.status, 409, JSON.stringify(blocked.body));
+    assert.match(blocked.body.error.message, /1 đơn được phân công/);
+    assert.equal(await Shift.countDocuments({ _id: shift._id }), 1, "ca van con");
+    await Assignment.updateOne({ _id: assignment._id }, { $set: { status: "DONE" } });
+    assert.equal((await as("hn", request(app).delete(`/shifts/${shift._id}`))).status, 200, "phan cong da xong -> xoa duoc");
+  } finally {
+    await Assignment.deleteOne({ _id: assignment._id });
+    await Shift.deleteOne({ _id: shift._id });
+  }
 });
 
 test("[US-23] luong nghiep vu: kho lap ca sang + chieu cho tuyen, chia nguoi; ngay do moi tuyen thay dung nguoi theo ca", async () => {

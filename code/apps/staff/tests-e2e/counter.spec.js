@@ -43,8 +43,7 @@ async function fillReceiver(page, name) {
   await page.getByTestId("ci-rc-phone").fill("0977 333 444");
   await page.getByTestId("ci-rc-address").fill("12 Nguyễn Huệ");
   await page.getByTestId("ci-rc-province").fill("TP Hồ Chí Minh");
-  await page.getByTestId("ci-rc-district").fill("quan 1");
-  await page.getByTestId("ci-rc-ward").fill("Bến Nghé");
+  await page.getByTestId("ci-rc-ward").fill("sai gon"); // dia gioi 2025: khong con quan/huyen, go khong dau duoc
 }
 
 async function fillParcel(page, { name, weight, length, width, height }) {
@@ -108,6 +107,40 @@ test("[US-40] quy trinh: kho tiep nhan tai quay cho khach le (xe may goi y xe ta
   await page.getByTestId("ci-phone").fill(walkInPhone);
   await page.getByTestId("ci-lookup").click();
   await expect(page.getByTestId("ci-customer")).toHaveText("Trần Khách Lẻ · khách lẻ");
+});
+
+test("[US-40] de 14: gui nhanh tai quay tra truoc bang chuyen khoan - hien ma VietQR dung phi, ghi ma giao dich, don da thu phi", async ({ page }) => {
+  test.setTimeout(2 * 60_000);
+  await login(page, "kho1@edms.vn");
+  await page.getByRole("button", { name: /Tiếp nhận tại quầy/ }).click();
+  await page.getByTestId("ci-phone").fill(`0905550${String(Date.now() + 7).slice(-3)}`);
+  await page.getByTestId("ci-lookup").click();
+  await page.getByTestId("ci-fullName").fill("Lê Chuyển Khoản");
+  // Gui nhanh chi trong tinh: quay Ha Noi -> noi thanh Ha Noi
+  await page.getByTestId("ci-rc-name").fill("KT40 Người Nhận Nhanh");
+  await page.getByTestId("ci-rc-phone").fill("0977 333 555");
+  await page.getByTestId("ci-rc-address").fill("1 Trần Duy Hưng");
+  await page.getByTestId("ci-rc-province").fill("Hà Nội");
+  await page.getByTestId("ci-rc-ward").fill("cau giay");
+  await fillParcel(page, { name: "Hồ sơ thầu", weight: 500, length: 30, width: 20, height: 2 });
+  await page.getByTestId("ci-quote").click();
+  await page.getByRole("radio", { name: /nhanh/i }).click();
+  const fee = (await page.getByTestId("ci-total").innerText()).match(/([\d.]+) ₫/)[1];
+
+  await page.getByTestId("ci-payer-SHOP_PREPAID").click();
+  await page.getByTestId("ci-method-QR").click();
+  await page.getByTestId("ci-transfer-qr").click();
+  await expect(page.getByTestId("ci-transfer-image")).toBeVisible();
+  await expect(page.getByTestId("ci-transfer-amount")).toHaveText(`${fee} ₫`);
+  await expect(page.getByTestId("ci-transfer-note")).toContainText("Nội dung: EDMS HUB HN");
+  await page.screenshot({ path: `${SHOT_DIR}/40-counter-vietqr.png`, fullPage: true });
+
+  // Chua nhap ma giao dich -> may chu chan; nhap ma -> tao don, da thu phi
+  await page.getByTestId("ci-submit").click();
+  await expect(page.getByText(/mã giao dịch/).first()).toBeVisible();
+  await page.getByTestId("ci-txn").fill("FT26112599001");
+  await page.getByTestId("ci-submit").click();
+  await expect(page.getByTestId("ci-created")).toContainText("đã thu tại quầy");
 });
 
 test("[US-40] quy trinh: kho tiep nhan hang cua shop co tai khoan -> shop thay don trong Don hang cua toi tren Web", async ({

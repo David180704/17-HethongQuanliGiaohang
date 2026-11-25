@@ -30,5 +30,7 @@ export class OrderController {
 
   counterQuote = async (req, res) => ok(res, await this.orderService.counterQuote(req.user, req.body || {}));
 
+  counterTransferQr = async (req, res) => ok(res, await this.orderService.counterTransferQr(req.user, req.body || {}));
+
   createAtCounter = async (req, res) => created(res, await this.orderService.createAtCounter(req.user, req.body || {}));
 }

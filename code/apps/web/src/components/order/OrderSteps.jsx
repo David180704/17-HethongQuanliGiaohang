@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { inputClass } from "../../lib/ui.js";
-import { formatVnd } from "../../lib/format.js";
+import { distanceText, formatVnd } from "../../lib/format.js";
 import { FEE_PAYERS, PACKING_TYPES, codSummary } from "../../lib/orderForm.js";
+import { PAYMENT_METHODS } from "../../lib/payment.js";
 import { Field } from "../AuthShell.jsx";
 import AddressFields from "../AddressFields.jsx";
 import ParcelFields from "../ParcelFields.jsx";
@@ -65,7 +66,7 @@ export function PickupStep({ form, update, locations, onLocationAdded, hint }) {
                 {location.contactName} · {location.contactPhone}
               </span>
               <span className="block text-gray-600">
-                {location.address}, {location.ward}, {location.district}, {location.province}
+                {location.address}, {location.ward}, {location.province}
               </span>
             </span>
           </label>
@@ -120,10 +121,15 @@ export function ReceiverStep({ form, update }) {
 }
 
 // Buoc 3: kien hang, goi dich vu, thu ho va ai tra phi (US-19)
-export function ParcelStep({ form, update, serviceTypes }) {
+// isShop: shop doi tac moi duoc thu ho COD / tru phi vao thu ho; khach le chi chon nguoi tra phi
+export function ParcelStep({ form, update, serviceTypes, crossProvince = false, isShop = false }) {
   const { item, cod } = form;
   const setItem = (patch) => update({ item: { ...item, ...patch } });
   const setCod = (patch) => update({ cod: { ...cod, ...patch } });
+  // Gui nhanh bat buoc nguoi gui tra truoc (US-44)
+  const expressSelected = serviceTypes.some((type) => type._id === form.serviceTypeId && type.code === "EXPRESS");
+  const chooseService = (type) =>
+    update({ serviceTypeId: type._id, ...(type.code === "EXPRESS" && { cod: { ...cod, feePayer: "SHOP_PREPAID", feePaymentMethod: cod.feePaymentMethod || "VNPAY" } }) });
   return (
     <section aria-label="Bước 3: Hàng hóa và thanh toán" className="space-y-5">
       <h2 className="text-lg font-semibold">Gửi gì, gói nào, ai trả phí?</h2>
@@ -149,56 +155,78 @@ export function ParcelStep({ form, update, serviceTypes }) {
       <fieldset>
         <legend className="mb-2 font-semibold">Gói dịch vụ</legend>
         <div className="grid gap-2 sm:grid-cols-2">
-          {serviceTypes.map((type) => (
-            <label key={type._id} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${form.serviceTypeId === type._id ? "border-brand-600 bg-brand-50" : "border-gray-200 bg-white"}`}>
-              <input type="radio" name="serviceTypeId" checked={form.serviceTypeId === type._id} onChange={() => update({ serviceTypeId: type._id })} aria-label={type.name} />
-              <span className="text-sm">
-                <span className="font-semibold">{type.name}</span>
-                <span className="block text-gray-500">Dự kiến {type.estimatedDays} ngày</span>
-              </span>
-            </label>
-          ))}
+          {serviceTypes.map((type) => {
+            // Giao nhanh chi trong cung tinh/thanh
+            const blocked = crossProvince && type.code === "EXPRESS";
+            return (
+              <label
+                key={type._id}
+                className={`flex items-center gap-3 rounded-xl border p-3 ${blocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${form.serviceTypeId === type._id ? "border-brand-600 bg-brand-50" : "border-gray-200 bg-white"}`}
+              >
+                <input
+                  type="radio"
+                  name="serviceTypeId"
+                  disabled={blocked}
+                  checked={form.serviceTypeId === type._id}
+                  onChange={() => chooseService(type)}
+                  aria-label={type.name}
+                />
+                <span className="text-sm">
+                  <span className="font-semibold">{type.name}</span>
+                  <span className="block text-gray-500">
+                    {blocked ? "Chỉ giao trong cùng tỉnh/thành — đơn này gửi sang tỉnh khác" : `Dự kiến ${type.estimatedDays} ngày`}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
         </div>
       </fieldset>
 
       <fieldset className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
-        <legend className="px-1 font-semibold">Thu hộ và phí vận chuyển</legend>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={cod.enabled}
-            onChange={(e) => setCod({ enabled: e.target.checked, ...(e.target.checked || cod.feePayer !== "DEDUCT_FROM_COD" ? {} : { feePayer: "RECIPIENT_PAID" }) })}
-          />
-          Thu hộ tiền hàng (COD)
-        </label>
-        {cod.enabled && (
+        <legend className="px-1 font-semibold">{isShop ? "Thu hộ và phí vận chuyển" : "Phí vận chuyển"}</legend>
+        {isShop ? (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={cod.enabled}
+              onChange={(e) => setCod({ enabled: e.target.checked, ...(e.target.checked || cod.feePayer !== "DEDUCT_FROM_COD" ? {} : { feePayer: "RECIPIENT_PAID" }) })}
+            />
+            Thu hộ tiền hàng (COD)
+          </label>
+        ) : (
+          <p className="text-xs text-gray-500">Tài khoản cá nhân gửi hàng không kèm thu hộ. Thu hộ (COD) dành cho shop đối tác.</p>
+        )}
+        {isShop && cod.enabled && (
           <Field id="cod-amount" label="Số tiền thu hộ (đ)" hint="Lớn hơn 0, tối đa 20.000.000 đ">
             <input id="cod-amount" type="number" min="1" max="20000000" required value={cod.amount} onChange={(e) => setCod({ amount: e.target.value })} className={inputClass} />
           </Field>
         )}
         <div role="radiogroup" aria-label="Ai trả phí vận chuyển" className="space-y-2">
-          {FEE_PAYERS.map((payer) => {
-            const disabled = payer.value === "DEDUCT_FROM_COD" && !cod.enabled;
+          {FEE_PAYERS.filter((payer) => isShop || payer.value !== "DEDUCT_FROM_COD").map((payer) => {
+            const needsCod = payer.value === "DEDUCT_FROM_COD" && !cod.enabled;
+            const needsPrepaid = expressSelected && payer.value !== "SHOP_PREPAID";
+            const disabled = needsCod || needsPrepaid;
             return (
               <label key={payer.value} className={`flex gap-2 text-sm ${disabled ? "opacity-50" : "cursor-pointer"}`}>
                 <input type="radio" name="feePayer" disabled={disabled} checked={cod.feePayer === payer.value} onChange={() => setCod({ feePayer: payer.value })} aria-label={payer.label} />
                 <span>
                   <span className="font-medium">{payer.label}</span>
-                  <span className="block text-xs text-gray-500">{disabled ? "Cần bật thu hộ" : payer.hint}</span>
+                  <span className="block text-xs text-gray-500">{needsPrepaid ? "Gửi nhanh bắt buộc người gửi trả trước" : needsCod ? "Cần bật thu hộ" : payer.hint}</span>
                 </span>
               </label>
             );
           })}
         </div>
         {cod.feePayer === "SHOP_PREPAID" && (
-          <div role="radiogroup" aria-label="Cách trả trước" className="flex flex-wrap gap-4 pl-6 text-sm">
-            {[
-              ["QR", "Chuyển khoản QR"],
-              ["CASH", "Tiền mặt khi lấy hàng"],
-            ].map(([value, label]) => (
-              <label key={value} className="flex items-center gap-2">
+          <div role="radiogroup" aria-label="Cách trả trước" className="space-y-2 pl-6 text-sm">
+            {PAYMENT_METHODS.map(({ value, label, hint }) => (
+              <label key={value} className="flex cursor-pointer gap-2">
                 <input type="radio" name="feePaymentMethod" checked={cod.feePaymentMethod === value} onChange={() => setCod({ feePaymentMethod: value })} aria-label={label} />
-                {label}
+                <span>
+                  <span className="font-medium">{label}</span>
+                  <span className="block text-xs text-gray-500">{hint}</span>
+                </span>
               </label>
             ))}
           </div>
@@ -218,8 +246,8 @@ export function ConfirmStep({ form, location, quote, quoteError, serviceTypes })
     <section aria-label="Bước 4: Xác nhận" className="space-y-4">
       <h2 className="text-lg font-semibold">Kiểm tra và xác nhận đơn</h2>
       <dl className="grid gap-3 rounded-xl border border-gray-200 bg-white p-5 text-sm sm:grid-cols-2">
-        <Info label="Lấy hàng tại" value={location ? `${location.label} — ${location.address}, ${location.district}, ${location.province}` : "—"} />
-        <Info label="Giao đến" value={`${receiver.name} · ${receiver.phone} — ${receiver.address}, ${receiver.ward}, ${receiver.district}, ${receiver.province}`} />
+        <Info label="Lấy hàng tại" value={location ? `${location.label} — ${location.address}, ${location.ward}, ${location.province}` : "—"} />
+        <Info label="Giao đến" value={`${receiver.name} · ${receiver.phone} — ${receiver.address}, ${receiver.ward}, ${receiver.province}`} />
         <Info label="Hàng hóa" value={`${item.name} · ${item.weightGram} g · ${item.length}×${item.width}×${item.height} cm`} />
         <Info label="Gói dịch vụ" value={service?.name || "—"} />
         <Info label="Thu hộ" value={cod.enabled ? formatVnd(Number(cod.amount) || 0) : "Không thu hộ"} />
@@ -236,6 +264,11 @@ export function ConfirmStep({ form, location, quote, quoteError, serviceTypes })
           <p className="mb-2 text-sm text-gray-600">
             Tuyến {quote.zoneLabel} · tính theo {quote.chargeableWeight.toLocaleString("vi-VN")} g
           </p>
+          {quote.distanceKm !== null && quote.distanceKm !== undefined && (
+            <p className="mb-2 text-sm text-gray-600" aria-label="Khoảng cách">
+              Khoảng cách: <span className="font-semibold">{distanceText(quote)}</span>
+            </p>
+          )}
           <FeeBreakdown fee={option.fee} label="Chi tiết phí dự kiến" />
           {summary && (
             <dl className="mt-3 space-y-1 border-t border-gray-200 pt-3 text-sm">

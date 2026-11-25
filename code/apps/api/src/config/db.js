@@ -22,7 +22,7 @@ export function describeUri(uri) {
 
 // Atlas dung chuoi "mongodb+srv://" -> driver tra ban ghi DNS SRV. Tren mot so may Windows,
 // Node gui truy van SRV toi DNS 127.0.0.1 va bi tu choi (querySrv ECONNREFUSED) du trinh duyet
-// van vao mang binh thuong (da gap trong moi truong chay cua may dev: Node thay DNS
+// van vao mang binh thuong (da gap tren may dev: Node thay DNS
 // 127.0.0.1 thay vi DNS Wi-Fi cua may). Khi DNS TU CHOI/khong tra
 // loi thi chuyen sang DNS cong cong; "khong ton tai" (ENOTFOUND) thi giu nguyen de bao dung loi.
 export const FALLBACK_DNS_SERVERS = ["8.8.8.8", "1.1.1.1"];

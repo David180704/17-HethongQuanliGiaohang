@@ -52,11 +52,15 @@ const STORIES = [
   [33, 6, "Ghi nhận đã thu tiền COD từ người nhận", 3],
   [36, 6, "Cấu hình chính sách giao lại, giới hạn số lần giao", 2],
   [37, 6, "Quy trình hoàn hàng — phân công theo tuyến, theo dõi đến khi shop xác nhận", 5],
-  [44, 7, "Thanh toán phí vận chuyển bằng mã VietQR", 4],
+  [44, 7, "Thanh toán phí vận chuyển qua cổng VNPay (gửi nhanh bắt buộc trả trước)", 4],
   [34, 7, "Tạo đối soát và tổng hợp số liệu cho khách hàng", 5],
   [43, 7, "Shop xem kỳ đối soát, khoản điều chỉnh; ghi nhận đã chi trả", 5],
   [38, 7, "Ghi nhận sự cố/khiếu nại, theo dõi xử lý và kết quả", 5],
   [39, 7, "Thống kê tổng hợp và dashboard quản trị", 8],
+  // Them 19/11/2026 theo yeu cau Product Owner (gop vao Sprint 7): chay that tren may chu, hai nen tang cho moi vai tro
+  [45, 7, "Triển khai hệ thống lên máy chủ: API, CSDL cloud, cổng thanh toán", 5],
+  [46, 7, "Web Nhân viên và Web Khách hàng có địa chỉ riêng trên Internet", 3],
+  [47, 7, "Phát hành App Nhân viên, App Khách hàng trên điện thoại thật (CH Play nội bộ)", 5],
 ].map(([id, sprint, name, points]) => ({ tag: `US-${String(id).padStart(2, "0")}`, id, sprint, name, points }));
 
 const EXTRA = [
@@ -75,8 +79,8 @@ const UI_TESTS = {
   "US-11": "App NV: CRUD khu vực · Maestro NV 06 · Liên app + liên thiết bị (cả hai chiều)",
   "US-12": "App NV: chặn trùng mã dịch vụ",
   "US-13": "App NV: lưới bậc khối lượng, báo chồng lấn và trùng khoảng hiệu lực ngay trên form",
-  "US-14": "App NV: mở hub và bưu cục trực thuộc, chặn quận/huyện ngoài vùng phục vụ, tuyến chọn hub từ danh mục · Maestro NV 03",
-  "US-15": "Web + App KH: thêm địa điểm (gợi ý quận/huyện), chặn ngoài vùng phục vụ, đặt mặc định, xóa",
+  "US-14": "App NV: mở hub và bưu cục trực thuộc, chặn xã/phường ngoài vùng phục vụ, tuyến chọn hub từ danh mục · Maestro NV 03",
+  "US-15": "Web + App KH: thêm địa điểm (gợi ý xã/phường), chặn ngoài vùng phục vụ, đặt mặc định, xóa",
   "US-16": "Web + App KH: ước tính phí → Gửi hàng → đăng ký tài khoản mới → tạo đơn điền sẵn dữ liệu · Maestro KH 09*",
   "US-17": "Web + App KH: bước xác nhận tách từng khoản phí, phí tạo đơn bằng phí đã ước tính · Liên app: phí khóa khi kho duyệt",
   "US-18": "Web + App KH: tạo đơn 4 bước, chặn bước sai · App NV: kho duyệt đơn, hub khác không thấy · Liên app Web → App NV · Maestro KH 09*, NV 08*",
@@ -208,6 +212,9 @@ ${failures.length ? `\n## Test đang fail\n\n${failures.join("\n")}\n` : ""}
 - \\* Flow Maestro KH 09 và NV 08 đã viết nhưng chưa chạy trên máy ảo: máy dev chỉ còn khoảng 3 GB
   bộ nhớ ảo, bật máy ảo dễ làm sập tiến trình. Cùng mã nguồn đã chạy bằng Playwright (bản web).
 - US-26 (Sprint 4) đã xong sớm cùng App Nhân viên.
+- 19/11/2026: US-44 đổi từ VietQR xác nhận tay sang cổng VNPay (sandbox) theo lựa chọn của Product Owner;
+  thêm US-45 → US-47 vào Sprint 7 (máy chủ Render + MongoDB Atlas, web riêng cho nhân viên và khách,
+  app trên điện thoại thật qua kênh thử nghiệm nội bộ CH Play).
 - US-05 (CI) chỉ kiểm tra được file workflow có đủ bước lint → test → build; kết quả chạy
   thật xem trên tab Actions của GitHub.
 `;

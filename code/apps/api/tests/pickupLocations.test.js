@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import request from "supertest";
 import { createApp } from "../src/app.js";
-import { removeLeftovers } from "./helpers/fixtures.js";
+import { removeLeftovers, suspendAreas } from "./helpers/fixtures.js";
 import { User } from "../src/models/User.js";
 import { Route } from "../src/models/Route.js";
 import { ServiceArea } from "../src/models/ServiceArea.js";
@@ -18,7 +18,9 @@ import { getRedis } from "../src/config/redis.js";
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 const EMAILS = ["pick-khach-a@edms.vn", "pick-khach-b@edms.vn", "pick-kho@edms.vn", "pick-flow@edms.vn", "pick-admin@edms.vn"];
-const TEST_PROVINCE = "Tỉnh T15";
+const TEST_AREA = { province: "Điện Biên", ward: "Phường Mường Lay" };
+const OUTSIDE = [{ province: "Hà Nội", ward: "Xã Sóc Sơn" }, { province: "Lào Cai", ward: "Phường Sa Pa" }];
+let restoreAreas;
 const TEST_TRACKING = /^EXP99150/;
 
 let app;
@@ -33,7 +35,6 @@ async function cleanup() {
   const ids = users.map((u) => u._id);
   await Order.deleteMany({ trackingCode: TEST_TRACKING });
   await PickupLocation.deleteMany({ customerId: { $in: ids } });
-  await ServiceArea.deleteMany({ province: TEST_PROVINCE });
   await User.deleteMany({ email: { $in: EMAILS } });
 }
 
@@ -44,6 +45,7 @@ before(async () => {
   await mongoose.connect(URI, { serverSelectionTimeoutMS: 5000 });
   await removeLeftovers({ emails: EMAILS });
   await cleanup();
+  restoreAreas = await suspendAreas([TEST_AREA, ...OUTSIDE]);
   app = createApp();
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
   const hub = await mongoose.connection.collection("hubs").findOne({ code: "HUB-HN" });
@@ -70,6 +72,7 @@ before(async () => {
 after(async () => {
   try {
     await cleanup();
+    await restoreAreas?.();
   } finally {
     await getRedis().quit();
     await mongoose.disconnect();
@@ -83,8 +86,7 @@ const location = (overrides = {}) => ({
   contactPhone: "0909 123 456",
   address: "12 Trần Thái Tông",
   province: "ha noi",
-  district: "cau giay",
-  ward: "Dịch Vọng",
+  ward: "cau giay",
   ...overrides,
 });
 const addLocation = (token, overrides) => as(token, request(app).post("/pickupLocations")).send(location(overrides));
@@ -99,7 +101,7 @@ async function placeOrder(pickupLocation, status, seq) {
     customerName: "Khách A",
     pickupLocationId: pickupLocation._id,
     pickupWard: pickupLocation.ward,
-    receiver: { name: "Người nhận", phone: "0911111111", address: "1 Lê Lợi", province: "Hà Nội", district: "Đống Đa", ward: "Láng Hạ" },
+    receiver: { name: "Người nhận", phone: "0911111111", address: "1 Lê Lợi", province: "Hà Nội", ward: "Phường Láng" },
     item: { name: "Sách", weightGram: 500, length: 10, width: 10, height: 10 },
     serviceTypeId: serviceType._id,
     serviceName: serviceType.name,
@@ -118,28 +120,28 @@ test("[US-15] khach vang lai, nhan vien kho khong dung duoc API dia diem lay han
 test("[US-15] them dia diem: tu xac dinh khu vuc phuc vu tu quan/huyen, dia diem dau tien la mac dinh", async () => {
   const res = await addLocation(tokenA);
   assert.equal(res.status, 201, JSON.stringify(res.body));
-  const area = await ServiceArea.findOne({ province: "Hà Nội", district: "Cầu Giấy" }).lean();
+  const area = await ServiceArea.findOne({ province: "Hà Nội", ward: "Phường Cầu Giấy" }).lean();
   assert.equal(String(res.body.data.serviceAreaId), String(area._id));
-  assert.deepEqual([res.body.data.province, res.body.data.district], ["Hà Nội", "Cầu Giấy"]);
+  assert.deepEqual([res.body.data.province, res.body.data.ward], ["Hà Nội", "Phường Cầu Giấy"]);
   assert.equal(res.body.data.contactPhone, "0909123456");
   assert.equal(res.body.data.isDefault, true);
   assert.equal(String(res.body.data.customerId), String(customerA._id));
 
   const missing = await addLocation(tokenA, { ward: "  " });
   assert.equal(missing.status, 400);
-  assert.match(missing.body.error.message, /phường\/xã/);
+  assert.match(missing.body.error.message, /xã\/phường/);
   const badPhone = await addLocation(tokenA, { contactPhone: "12345" });
   assert.equal(badPhone.status, 400);
 });
 
 test("[US-15] chan dia diem ngoai vung phuc vu (them moi va doi dia chi)", async () => {
-  const outside = await addLocation(tokenA, { province: "Hà Nội", district: "Sóc Sơn" });
+  const outside = await addLocation(tokenA, { province: "Hà Nội", ward: "Xã Sóc Sơn" });
   assert.equal(outside.status, 422);
   assert.equal(outside.body.error.code, "OUT_OF_SERVICE_AREA");
-  assert.match(outside.body.error.message, /Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ/);
+  assert.match(outside.body.error.message, /Xã Sóc Sơn, Hà Nội chưa thuộc vùng phục vụ/);
 
   const [first] = (await listLocations(tokenA)).body.data;
-  const move = await as(tokenA, request(app).put(`/pickupLocations/${first._id}`)).send({ province: "Lào Cai", district: "Sa Pa" });
+  const move = await as(tokenA, request(app).put(`/pickupLocations/${first._id}`)).send({ province: "Lào Cai", ward: "Phường Sa Pa" });
   assert.equal(move.status, 422);
 });
 
@@ -214,13 +216,13 @@ test("[US-15] con don chua hoan tat: khong xoa, khong doi dia chi; don hoan tat 
 
 test("[US-15] khu vuc phuc vu con dia diem lay hang cua khach thi khong xoa duoc", async () => {
   const area = await as(adminToken, request(app).post("/serviceAreas")).send({
-    province: TEST_PROVINCE,
-    district: "Quận T15",
+    province: TEST_AREA.province,
+    ward: TEST_AREA.ward,
     region: "BAC",
     routeId: (await Route.findOne({ code: "R-HN-NOI" }).lean())._id,
   });
   assert.equal(area.status, 201, JSON.stringify(area.body));
-  const loc = await addLocation(tokenB, { province: TEST_PROVINCE, district: "Quận T15" });
+  const loc = await addLocation(tokenB, TEST_AREA);
   assert.equal(loc.status, 201, JSON.stringify(loc.body));
 
   const blocked = await as(adminToken, request(app).delete(`/serviceAreas/${area.body.data._id}`));
@@ -245,12 +247,12 @@ test("[US-15] luong nghiep vu: dang ky -> them kho -> doi kho mac dinh -> don xo
   assert.equal(register.status, 201, JSON.stringify(register.body));
   const token = await loginToken(EMAILS[3]);
 
-  const first = await addLocation(token, { label: "Nhà riêng", province: "TP Hồ Chí Minh", district: "quan 7", ward: "Tân Phong" });
+  const first = await addLocation(token, { label: "Nhà riêng", province: "TP Hồ Chí Minh", ward: "tan my" });
   assert.equal(first.status, 201, JSON.stringify(first.body));
   assert.equal(first.body.data.isDefault, true);
-  assert.equal(first.body.data.district, "Quận 7");
+  assert.equal(first.body.data.ward, "Phường Tân Mỹ");
 
-  const second = await addLocation(token, { label: "Kho Đà Nẵng", province: "Đà Nẵng", district: "Hải Châu", ward: "Thạch Thang" });
+  const second = await addLocation(token, { label: "Kho Đà Nẵng", province: "Đà Nẵng", ward: "Phường Hải Châu" });
   assert.equal(second.body.data.isDefault, false);
   await as(token, request(app).put(`/pickupLocations/${second.body.data._id}`)).send({ isDefault: true });
 

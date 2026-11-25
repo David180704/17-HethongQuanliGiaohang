@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Screen from "../../components/Screen";
 import Button from "../../components/Button";
 import Banner from "../../components/Banner";
-import TextField from "../../components/TextField";
+import ScanCodeField from "../../components/ScanCodeField";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { colors, radius } from "../../theme";
@@ -38,6 +38,21 @@ export default function WarehouseScreen({ accent, onBack }) {
       .then((res) => setCategories(res.data.data))
       .catch(() => {});
   }, [loadStock]);
+
+  // Don tai quay bi hoan: tai xe da tra hang ve quay -> giao lai cho khach (khach le khong co tai khoan de tu xac nhan)
+  async function confirmCounterReturn(target) {
+    setBusy(true);
+    setError("");
+    try {
+      await apiClient.post(`/deliveries/${target._id}/confirm-return`);
+      await lookup(target.trackingCode);
+      setNotice(`${target.trackingCode}: khách đã nhận lại hàng — đơn hoàn tất`);
+    } catch (err) {
+      setError(errorMessage(err, "Không xác nhận được"));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function lookup(value = code) {
     setError("");
@@ -98,13 +113,14 @@ export default function WarehouseScreen({ accent, onBack }) {
   return (
     <Screen title="Nhập / xuất kho" subtitle="Quét mã vận đơn: nhận, phân loại, xuất kho" accent={accent} onBack={onBack}>
       <View style={styles.search}>
-        <TextField
+        <ScanCodeField
           testID="wh-code"
           label="Quét / nhập mã vận đơn"
           autoCapitalize="characters"
           placeholder="EXP..."
           value={code}
           onChangeText={setCode}
+          onScanned={(scanned) => lookup(scanned)}
           onSubmitEditing={() => lookup()}
           style={styles.grow}
         />
@@ -115,6 +131,14 @@ export default function WarehouseScreen({ accent, onBack }) {
         {notice}
       </Banner>
 
+      {order?.counterReturnReady ? (
+        <Button
+          testID="wh-counter-return"
+          title="Khách đã nhận lại hàng tại quầy"
+          loading={busy}
+          onPress={() => confirmCounterReturn(order)}
+        />
+      ) : null}
       {order ? (
         <View style={styles.card} testID="wh-result">
           <View style={styles.head}>
@@ -125,7 +149,7 @@ export default function WarehouseScreen({ accent, onBack }) {
             <Text style={styles.badge}>{order.statusLabel}</Text>
           </View>
           <Text style={styles.text}>
-            {order.customerName} → {order.receiver.district}, {order.receiver.province}
+            {order.customerName} → {order.receiver.ward}, {order.receiver.province}
           </Text>
           <Text style={styles.muted}>
             {order.item.name}

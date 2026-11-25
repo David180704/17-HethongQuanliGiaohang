@@ -55,7 +55,15 @@ export default function AccountPage() {
         </Link>
       </section>
 
-      <BankAccountSection />
+      {/* Tai khoan nhan tien thu ho chi danh cho shop doi tac */}
+      {profile?.customerType === "BUSINESS" ? (
+        <BankAccountSection />
+      ) : profile ? (
+        <section aria-label="Thu hộ và đối soát" className="mt-6 rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-600">
+          Tài khoản cá nhân gửi hàng không kèm thu hộ. Thu hộ tiền hàng (COD), tài khoản nhận tiền và đối soát dành cho shop đối tác —
+          đăng ký tài khoản doanh nghiệp nếu bạn bán hàng online.
+        </section>
+      ) : null}
     </div>
   );
 }

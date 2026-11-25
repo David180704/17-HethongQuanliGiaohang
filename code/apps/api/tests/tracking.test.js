@@ -43,7 +43,7 @@ const createOrder = async (receiverName) => {
   const res = await as("khach", request(app).post("/orders")).send({
     pickupLocationId: location._id,
     serviceTypeId: standard._id,
-    receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+    receiver: { name: receiverName, phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
     item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10 },
   });
   assert.equal(res.status, 201, JSON.stringify(res.body));
@@ -68,7 +68,7 @@ before(async () => {
   location = (
     await as("khach", request(app).post("/pickupLocations")).send({
       label: "Kho shop", contactName: "Shop Tra Cứu", contactPhone: "0909982201", address: "1 Xuân Thủy",
-      province: "Hà Nội", district: "Cầu Giấy", ward: "Dịch Vọng Hậu",
+      province: "Hà Nội", ward: "Phường Cầu Giấy",
     })
   ).body.data;
 });
@@ -96,7 +96,7 @@ test("[US-22] tra cuu cong khai khong can dang nhap: nhom trang thai de 14, moc 
   assert.equal(data.groupLabel, "Chưa nhận");
   assert.equal(data.statusLabel, "Chờ bưu cục xác nhận");
   assert.deepEqual(data.events.map((e) => e.label), ["Chờ bưu cục xác nhận"]);
-  assert.deepEqual(data.receiver, { phone: "09xx xxx 678", district: "Quận 1", province: "TP Hồ Chí Minh" });
+  assert.deepEqual(data.receiver, { phone: "09xx xxx 678", ward: "Phường Sài Gòn", province: "TP Hồ Chí Minh" });
   assert.equal(data.sender.name, "Shop Tra Cứu");
   const text = JSON.stringify(res.body);
   for (const secret of ["Trần Người Nhận", "0912345678", "Lý Tự Trọng", "Bến Nghé", "customerId", "fee"]) {

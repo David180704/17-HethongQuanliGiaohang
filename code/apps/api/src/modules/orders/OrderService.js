@@ -2,10 +2,14 @@ import { ErrorCodes } from "../../core/errors.js";
 import { ORDER_STATUS } from "../../constants/enums.js";
 import { orderValidator } from "./orders.validator.js";
 import { TRACKING_COUNTER, formatTrackingCode } from "./CounterRepository.js";
-import { assertCodCoversFee } from "./cod.js";
+import { assertCodAllowed, assertCodCoversFee, assertExpressPrepaid } from "./cod.js";
 import { groupFilter, withDisplay } from "./orderStatus.js";
 import { suggestVehicle } from "./vehicle.js";
 import { randomBytes } from "node:crypto";
+import QRCode from "qrcode";
+import { buildVietQr, transferNote } from "../payments/vietqr.js";
+import { BANKS } from "../profile/bankAccount.js";
+import { vnNow } from "../assignments/AssignmentService.js";
 
 const MAX_LIMIT = 100;
 
@@ -33,6 +37,7 @@ export class OrderService {
     transactions,
     orderEvents = null,
     passwordHasher = null,
+    companyBank = null,
     validator = orderValidator,
   }) {
     Object.assign(this, {
@@ -45,6 +50,7 @@ export class OrderService {
       hubRepository,
       userRepository,
       pricingService,
+      companyBank,
       transactions,
       orderEvents,
       passwordHasher,
@@ -74,6 +80,8 @@ export class OrderService {
     const data = this.validator.create(input);
     const customer = await this.userRepository.findById(user.id);
     if (customer?.status !== "ACTIVE") throw ErrorCodes.FORBIDDEN("Tài khoản chưa hoạt động nên chưa tạo được đơn");
+    // Khach le khong gui thu ho; chi shop doi tac da duyet moi co COD
+    assertCodAllowed(data.cod, customer);
 
     const location = await this.pickupLocationRepository.findActiveOwned(user.id, data.pickupLocationId);
     if (!location) throw ErrorCodes.NOT_FOUND("Không tìm thấy địa điểm lấy hàng của bạn");
@@ -83,6 +91,7 @@ export class OrderService {
     }
     const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
     const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    assertExpressPrepaid(data.cod, serviceType);
     const quote = await this.pricingService.quote({
       pickupArea,
       receiverArea,
@@ -103,12 +112,13 @@ export class OrderService {
       pickupWard: location.ward,
       pickupHubId: route?.hubId ?? null,
       destHubId: destRoute?.hubId ?? null,
-      receiver: { ...data.receiver, province: receiverArea.province, district: receiverArea.district },
+      receiver: { ...data.receiver, province: receiverArea.province, ward: receiverArea.ward },
       item: data.item,
       flags: quote.flags,
       serviceTypeId: serviceType._id,
       serviceName: serviceType.name,
       zone: quote.zone,
+      distanceKm: quote.distanceKm,
       chargeableWeight: quote.chargeableWeight,
       priceTableId: quote.priceTableId,
       fee: quote.fee,
@@ -163,13 +173,45 @@ export class OrderService {
     const data = this.validator.counterQuote(input);
     const { hub } = await this.#counterPoint(user);
     const estimate = await this.pricingService.estimate({
-      pickup: { province: hub.province, district: hub.district },
+      pickup: { province: hub.province, ward: hub.ward },
       receiver: data.receiver,
       item: data.item,
       flags: data.flags,
     });
     const vehicle = suggestVehicle({ chargeableWeight: estimate.chargeableWeight, item: data.item, flags: estimate.flags });
     return { ...estimate, vehicle, counter: { hubId: hub._id, hubName: hub.name } };
+  }
+
+  /**
+   * Ma VietQR thu phi tai quay (de 14: gui nhanh tra qua chuyen khoan): so tien la phi cua dich vu da chon, tinh lai tren
+   * may chu theo bang gia hien hanh (khong tin so tien tu ung dung). Noi dung "EDMS <ma diem> <gio phut>" de doi chieu.
+   */
+  async counterTransferQr(user, input) {
+    const data = this.validator.counterTransferQr(input);
+    const { hub, area: pickupArea } = await this.#counterPoint(user);
+    const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
+    const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
+    if (!this.companyBank) {
+      throw ErrorCodes.PAYMENT_NOT_CONFIGURED("Chưa cấu hình tài khoản nhận chuyển khoản của công ty (COMPANY_BANK_CODE, COMPANY_BANK_ACCOUNT)");
+    }
+    const { time } = vnNow(new Date());
+    const note = `EDMS ${hub.code} ${time.replace(":", "")}`;
+    const amount = quote.fee.total;
+    const payload = buildVietQr({ bankCode: this.companyBank.code, accountNo: this.companyBank.accountNo, amount, note });
+    return {
+      amount,
+      note: transferNote(note),
+      serviceName: serviceType.name,
+      qr: await QRCode.toDataURL(payload, { margin: 1, width: 280, errorCorrectionLevel: "M" }),
+      bank: {
+        code: this.companyBank.code,
+        name: BANKS.find((b) => b.code === this.companyBank.code)?.name || this.companyBank.code,
+        accountNo: this.companyBank.accountNo,
+        accountName: this.companyBank.accountName,
+      },
+      demo: Boolean(this.companyBank.demo),
+    };
   }
 
   /**
@@ -182,6 +224,11 @@ export class OrderService {
     const receiverArea = await this.pricingService.locate(data.receiver, "nhận");
     const destRoute = await this.routeRepository.findById(receiverArea.routeId);
     const serviceType = await this.pricingService.activeServiceType(data.serviceTypeId);
+    assertExpressPrepaid(data.cod, serviceType);
+    // Tai quay khach dung truoc mat nhan vien: tra truoc bang tien mat hoac chuyen khoan VietQR (de 14), khong mo cong VNPay
+    if (data.cod.feePaymentMethod === "VNPAY") {
+      throw ErrorCodes.VALIDATION_ERROR("Tại quầy: người gửi trả trước bằng tiền mặt hoặc chuyển khoản VietQR");
+    }
     const quote = await this.pricingService.quote({ pickupArea, receiverArea, item: data.item, flags: data.flags, serviceType });
     assertCodCoversFee(data.cod, quote.fee);
     const vehicle = suggestVehicle({ chargeableWeight: quote.chargeableWeight, item: data.item, flags: quote.flags });
@@ -191,6 +238,8 @@ export class OrderService {
       throw ErrorCodes.VALIDATION_ERROR("Số điện thoại này thuộc tài khoản nhân viên, không phải khách hàng");
     }
     if (existing && existing.status === "LOCKED") throw ErrorCodes.FORBIDDEN("Tài khoản khách đang bị khóa");
+    // Khach le (ca khach moi tao tai quay) khong gui thu ho; shop doi tac co tai khoan moi co COD
+    assertCodAllowed(data.cod, existing);
     if (!existing && !data.customer.fullName) {
       throw ErrorCodes.VALIDATION_ERROR("Khách chưa có tài khoản: nhập họ tên để tạo khách lẻ");
     }
@@ -198,7 +247,12 @@ export class OrderService {
     const walkInHash = existing ? null : await this.passwordHasher.hash(randomBytes(24).toString("hex"));
 
     const now = new Date();
-    const paidAtCounter = data.cod.feePayer === "SHOP_PREPAID" && data.cod.feePaymentMethod === "CASH";
+    const paidAtCounter = data.cod.feePayer === "SHOP_PREPAID" && ["CASH", "QR"].includes(data.cod.feePaymentMethod);
+    const paidNote = !paidAtCounter
+      ? ""
+      : data.cod.feePaymentMethod === "QR"
+        ? ` — thu phí chuyển khoản VietQR, mã GD ${data.feeTxnRef}`
+        : " — thu phí tiền mặt";
     const by = staff._id;
     const saved = await this.transactions.run(async (session) => {
       const customer =
@@ -229,17 +283,18 @@ export class OrderService {
           customerName: customer.shopName || customer.fullName,
           shopOrderCode: data.shopOrderCode,
           pickupLocationId: null,
-          pickupWard: hub.address || hub.district,
+          pickupWard: hub.ward,
           pickupHubId: hub._id,
           destHubId: destRoute?.hubId ?? null,
           // Hang da o quay cua diem nay (AT_HUB) - kho nay phan loai, xuat kho (US-41)
           currentHubId: hub._id,
-          receiver: { ...data.receiver, province: receiverArea.province, district: receiverArea.district },
+          receiver: { ...data.receiver, province: receiverArea.province, ward: receiverArea.ward },
           item: data.item,
           flags: quote.flags,
           serviceTypeId: serviceType._id,
           serviceName: serviceType.name,
           zone: quote.zone,
+          distanceKm: quote.distanceKm,
           chargeableWeight: quote.chargeableWeight,
           priceTableId: quote.priceTableId,
           fee: { ...quote.fee, lockedAt: now },
@@ -248,7 +303,7 @@ export class OrderService {
           status: "AT_HUB",
           statusHistory: [
             { status: "CREATED", at: now, by, note: `Tiếp nhận tại quầy ${hub.name}` },
-            { status: "CONFIRMED", at: now, by, note: "Kiểm hàng, báo giá và khóa phí tại quầy" },
+            { status: "CONFIRMED", at: now, by, note: `Kiểm hàng, báo giá và khóa phí tại quầy${paidNote}` },
             { status: "AT_HUB", at: now, by, note: `Hàng đã nhận tại ${hub.name}` },
           ],
         },
@@ -283,6 +338,10 @@ export class OrderService {
     const conflict = () =>
       ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} đã được xử lý (không còn chờ xác nhận)`);
     if (order.status !== "CREATED") throw conflict();
+    // US-44: don chon tra truoc online ma chua thanh toan VNPay thi chua duyet
+    if (order.cod?.feePayer === "SHOP_PREPAID" && order.cod?.feePaymentMethod === "VNPAY" && !order.cod?.feePaid) {
+      throw ErrorCodes.PAYMENT_REQUIRED(`Đơn ${order.trackingCode} chưa thanh toán phí vận chuyển qua VNPay nên chưa duyệt được`);
+    }
     const now = new Date();
     const confirmed = await this.orderRepository.transition(order._id, "CREATED", {
       $set: { status: "CONFIRMED", "fee.lockedAt": now },

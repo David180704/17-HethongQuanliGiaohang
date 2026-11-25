@@ -3,15 +3,12 @@ import RoleHome from "../RoleHome";
 import { queryCache } from "../../lib/queryCache";
 import { apiClient } from "../../lib/apiClient";
 
-// Ma hang muc va Sprint lay tu sheet "Sprint backlog" (docs/ProductBacklog-nhom17.xlsx)
-const UPCOMING_TILES = [
-  { key: "incidents", title: "Sự cố, khiếu nại", description: "Ghi nhận và theo dõi xử lý", upcoming: "#38 · Sprint 7" },
-];
 
-export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts, onOpenAssign, onOpenWarehouse }) {
+export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCounter, onOpenShifts, onOpenAssign, onOpenWarehouse, onOpenDelivery, onOpenIncidents, onOpenStats }) {
   const hub = user.hubId;
   const [waiting, setWaiting] = useState();
   const [queued, setQueued] = useState();
+  const [toDeliver, setToDeliver] = useState();
 
   // So don cho duyet that (limit=1, chi lay meta.total), qua cache 30 giay
   useEffect(() => {
@@ -19,6 +16,11 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCo
     queryCache
       .get("/orders", { status: "CREATED", limit: 1 })
       .then(({ body }) => !cancelled && setWaiting(body.meta.total))
+      .catch(() => {});
+    // Hang cho phan cong giao / hoan (US-35, US-37)
+    apiClient
+      .get("/deliveries/board")
+      .then((res) => !cancelled && setToDeliver(res.data.data.queue.length))
       .catch(() => {});
     // Hang cho phan cong lay hang (US-25) - doc thang, so lieu doi lien tuc
     apiClient
@@ -52,6 +54,13 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCo
       onPress: onOpenAssign,
     },
     {
+      key: "delivery",
+      title: "Phân công giao",
+      description: "Giao, giao lại, hoàn hàng theo ca và năng lực",
+      meta: toDeliver !== undefined ? `${toDeliver} đơn chờ giao/hoàn` : undefined,
+      onPress: onOpenDelivery,
+    },
+    {
       key: "warehouse",
       title: "Nhập / xuất kho",
       description: "Quét mã: nhận, phân loại, xuất kho",
@@ -63,7 +72,18 @@ export default function HubHome({ user, theme, onLogout, onOpenApprove, onOpenCo
       description: "Xếp người giao hàng vào ca theo tuyến",
       onPress: onOpenShifts,
     },
-    ...UPCOMING_TILES,
+    {
+      key: "incidents",
+      title: "Sự cố, khiếu nại",
+      description: "Ghi nhận, theo dõi xử lý, kết quả",
+      onPress: onOpenIncidents,
+    },
+    {
+      key: "stats",
+      title: "Thống kê",
+      description: "Số đơn, năng suất, doanh thu của kho",
+      onPress: onOpenStats,
+    },
   ];
 
   return (

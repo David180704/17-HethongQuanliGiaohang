@@ -21,3 +21,6 @@ export function pointsInRange(position, points) {
 export const DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 // Check-in tay (du phong khi GPS lech): chi nhan neu cach diem khong qua 1 km
 export const MANUAL_MAX_DISTANCE_M = 1000;
+// GPS that (22/11/2026): sai so dien thoai bao lon hon muc nay (trong nha, mat tin hieu) thi khong tu check-in -
+// vi tri co the lech ca ban kinh diem. Tai xe doi dinh vi chinh xac hon hoac check-in tay.
+export const GPS_MAX_ACCURACY_M = 200;

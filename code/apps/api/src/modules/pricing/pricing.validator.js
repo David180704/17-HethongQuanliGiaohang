@@ -17,12 +17,12 @@ function positive(value, label, max) {
   return number;
 }
 
-/** Tinh/thanh + quan/huyen bat buoc (khop vung phuc vu o PricingService). */
+/** Tinh/thanh + xa/phuong bat buoc (khop danh muc hanh chinh va vung phuc vu o PricingService). */
 export function parseArea(area, side) {
-  if (!area || !isFilled(area.province) || !isFilled(area.district)) {
-    throw ErrorCodes.VALIDATION_ERROR(`Thiếu tỉnh/thành hoặc quận/huyện nơi ${side}`);
+  if (!area || !isFilled(area.province) || !isFilled(area.ward)) {
+    throw ErrorCodes.VALIDATION_ERROR(`Thiếu tỉnh/thành hoặc xã/phường nơi ${side}`);
   }
-  return { province: area.province.trim(), district: area.district.trim() };
+  return { province: area.province.trim(), ward: area.ward.trim() };
 }
 
 /** Kien hang: gram va cm. requireName: tao don can ten hang, uoc tinh phi thi khong. */

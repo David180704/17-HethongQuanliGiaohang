@@ -47,7 +47,7 @@ function Assert-Tools {
   }
   if ($missing.Count -gt 0) {
     Write-Fail "Thieu cong cu: $($missing -join ', ')"
-    Write-Host "Xem huong dan cai trong ghi chu du an, muc 'Kiem thu tren may ao Android'."
+    Write-Host "Xem huong dan cai trong docs/HuongDanChayVaTest.md."
     exit 1
   }
 }

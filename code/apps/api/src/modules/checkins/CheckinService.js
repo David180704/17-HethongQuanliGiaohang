@@ -1,13 +1,15 @@
 import { ErrorCodes } from "../../core/errors.js";
 import { parseLocation } from "../assignments/pickupOutcome.js";
-import { DEDUPE_WINDOW_MS, MANUAL_MAX_DISTANCE_M, distanceM, pointsInRange } from "./geo.js";
+import { DEDUPE_WINDOW_MS, GPS_MAX_ACCURACY_M, MANUAL_MAX_DISTANCE_M, distanceM, pointsInRange } from "./geo.js";
 
-// Don tai xe dang cam (dang di lay / da lay / dang giao / dang hoan) - check-in ghi vao hanh trinh cac don nay
-export const CARRYING_STATUSES = ["PICKUP_ASSIGNED", "PICKED_UP", "DELIVERY_ASSIGNED", "OUT_FOR_DELIVERY", "RETURNING"];
+// Don tai xe dang THUC SU cam tren xe (da lay hang / dang giao / dang hoan) - check-in ghi vao hanh trinh cac don nay.
+// Don moi duoc phan cong (PICKUP_ASSIGNED: hang con o shop; DELIVERY_ASSIGNED: kien con o kho) khong ghi, neu khong
+// khach se thay kien "da qua Hub" khi hang chua roi shop (loi kiem thu doc lap 25/11/2026).
+export const CARRYING_STATUSES = ["PICKED_UP", "OUT_FOR_DELIVERY", "RETURNING"];
 const MAX_DELAY_MS = 24 * 3600 * 1000;
 
 /**
- * Check-in vi tri (US-30): app tai xe gui vi tri (gia lap) moi khi doi; vi tri nam trong ban kinh mot diem
+ * Check-in vi tri (US-30): app tai xe gui vi tri (GPS that cua dien thoai, hoac gia lap khi kiem thu) moi khi doi; vi tri nam trong ban kinh mot diem
  * check-in (US-29) thi ghi moc cho tung don dang cam. Cung diem + cung don chi ghi mot lan trong 30 phut.
  * Mat mang: app xep hang doi va gui lai kem thoi gian goc (at) va ma su kien (clientEventId) -> gui lai bao
  * nhieu lan cung khong ghi trung (chi muc unique). Check-in tay la du phong khi GPS lech (cach diem <= 1 km).
@@ -57,6 +59,12 @@ export class CheckinService {
     // Moi nguoi giao hang chi co MOT diem check-in hop le (yeu cau 12/11/2026); khong dung diem thi khong nhan
     const point = await this.#registeredPoint(user);
     if (!point) throw ErrorCodes.VALIDATION_ERROR("Bạn chưa được đăng ký điểm check-in — liên hệ quản trị viên");
+    // GPS that ma sai so qua lon thi khong tu check-in (check-in tay van duoc, nhan vien tu xac nhan)
+    if (!input.pointId && position.source === "GPS" && position.accuracyM > GPS_MAX_ACCURACY_M) {
+      throw ErrorCodes.VALIDATION_ERROR(
+        `Tín hiệu GPS yếu (sai số ±${position.accuracyM} m) — chờ định vị chính xác hơn hoặc check-in tay`,
+      );
+    }
     if (input.pointId && String(input.pointId) !== String(point._id)) {
       throw ErrorCodes.VALIDATION_ERROR(`Chỉ check-in tại điểm đã đăng ký: ${point.name}`);
     }
@@ -98,6 +106,8 @@ export class CheckinService {
           lat: position.lat,
           lng: position.lng,
           source,
+          positionSource: position.source ?? "SIMULATED",
+          accuracyM: position.accuracyM ?? null,
           clientEventId,
         });
         if (inserted) {
@@ -112,6 +122,8 @@ export class CheckinService {
     return {
       at,
       source,
+      positionSource: position.source ?? "SIMULATED",
+      accuracyM: position.accuracyM ?? null,
       matched: matched.map(({ point, distanceM: d }) => ({ _id: point._id, code: point.code, name: point.name, distanceM: d })),
       orders: orders.length,
       recorded,
@@ -125,7 +137,7 @@ export class CheckinService {
     if (!logs.length) return [];
     const points = await this.checkinPointRepository.findMany({ _id: { $in: logs.map((l) => l.pointId) } }, { select: "code name" });
     const byId = new Map(points.map((p) => [String(p._id), p]));
-    return logs.map((l) => ({ at: l.at, source: l.source, point: byId.get(String(l.pointId)) || null }));
+    return logs.map((l) => ({ at: l.at, source: l.source, positionSource: l.positionSource, point: byId.get(String(l.pointId)) || null }));
   }
 
   async #publish(order) {

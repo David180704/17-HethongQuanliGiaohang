@@ -53,7 +53,7 @@ test.beforeAll(async () => {
     data: {
       pickupLocationId: location._id,
       serviceTypeId: service._id,
-      receiver: { name: "E2E CI Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", district: "Quận 1", ward: "Bến Nghé" },
+      receiver: { name: "E2E CI Nhận", phone: "0912345678", address: "5 Lý Tự Trọng", province: "TP Hồ Chí Minh", ward: "Phường Sài Gòn" },
       item: { name: "Sách", weightGram: 500, length: 20, width: 15, height: 5 },
     },
   });
@@ -147,6 +147,8 @@ test("[US-29][US-30] quy trinh: admin them diem va gan cho tai xe -> tai xe chi 
     .poll(
       async () => {
         await recipient.goto(`${WEB_URL}/tra-cuu?ma=${order.trackingCode}`);
+        // Doi ket qua tra cuu ve (goi API sau khi trang tai xong) roi moi dem, tranh dem luc trang con trong
+        await recipient.getByRole("region", { name: "Kết quả tra cứu" }).waitFor({ timeout: 10_000 }).catch(() => {});
         return recipient.getByRole("list", { name: "Điểm check-in đã qua" }).getByRole("listitem").count();
       },
       { timeout: 30_000, intervals: [2_000, 3_000] },
@@ -156,4 +158,42 @@ test("[US-29][US-30] quy trinh: admin them diem va gan cho tai xe -> tai xe chi 
   await expect(items.first()).toContainText(POINT.name);
   await recipient.screenshot({ path: `${SHOT_DIR}/30-nguoi-nhan-thay-diem.png`, fullPage: true });
   await recipient.close();
+});
+
+// 22/11/2026: GPS that. Playwright dong vai dien thoai cho phep dinh vi va doi vi tri (setGeolocation) - giong
+// Web Nhan vien / dien thoai that dung navigator.geolocation. Chay sau test tren (diem KT29-PW da gan cho Tai Xe 1).
+function mongoOut(script) {
+  return execFileSync("docker", ["exec", "edms-mongo", "mongosh", "edms", "--quiet", "--eval", script], { encoding: "utf8" }).trim();
+}
+
+test("[US-30] GPS that: o xa chi bao khoang cach; toi diem nhung tin hieu yeu thi chua check-in; tin hieu tot thi tu check-in, ghi nguon GPS", async ({
+  browser,
+}) => {
+  test.setTimeout(2 * 60_000);
+  mongo(`db.checkinlogs.deleteMany({ orderId: db.orders.findOne({ trackingCode: "${order.trackingCode}" })._id })`);
+  const far = { latitude: Number(POINT.lat) + 0.02, longitude: Number(POINT.lng), accuracy: 20 }; // ~2,2 km ve phia bac
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ["geolocation"], geolocation: far });
+  const phone = await context.newPage();
+  await login(phone, "taixe1@edms.vn");
+  await phone.getByRole("button", { name: /Vị trí & check-in/ }).click();
+  await expect(phone.getByTestId("chk-source")).toContainText("GPS của máy");
+  await expect(phone.getByTestId("chk-position")).toContainText("GPS ±20 m");
+  await expect(phone.getByTestId("chk-distance")).toContainText(/Cách KT29 Điểm thử Playwright: 2,2 km/);
+  await expect(phone.getByTestId("chk-last")).toHaveCount(0);
+
+  // Toi diem nhung dang trong nha: sai so 350 m -> canh bao, khong tu check-in
+  await context.setGeolocation({ latitude: Number(POINT.lat), longitude: Number(POINT.lng), accuracy: 350 });
+  await expect(phone.getByText(/Tín hiệu GPS yếu \(±350 m\)/)).toBeVisible();
+  await expect(phone.getByTestId("chk-last")).toHaveCount(0);
+
+  // Ra ngoai troi: sai so 12 m, cach diem ~30 m -> tu check-in bang GPS
+  await context.setGeolocation({ latitude: Number(POINT.lat) + 0.00027, longitude: Number(POINT.lng), accuracy: 12 });
+  await expect(phone.getByTestId("chk-last")).toContainText(`Tự check-in (GPS): ${POINT.name}`);
+  await expect(phone.getByTestId("chk-last")).toContainText("ghi 1 mốc");
+  await phone.screenshot({ path: `${SHOT_DIR}/31-check-in-gps-that.png` });
+  const saved = mongoOut(
+    `const l = db.checkinlogs.findOne({ orderId: db.orders.findOne({ trackingCode: "${order.trackingCode}" })._id }); print(l.positionSource + " " + l.accuracyM)`,
+  );
+  expect(saved).toBe("GPS 12");
+  await context.close();
 });

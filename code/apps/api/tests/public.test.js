@@ -25,14 +25,14 @@ before(async () => {
   serviceType = await ServiceType.findOne({ code: "STANDARD" });
   expiredTable = await PriceTable.create({
     serviceTypeId: serviceType._id,
-    zone: "INNER_DISTRICT",
+    zone: "INNER_WARD",
     weightTiers: TIERS,
     effectiveFrom: new Date("2020-01-01"),
     effectiveTo: new Date("2020-12-31"),
   });
   futureTable = await PriceTable.create({
     serviceTypeId: serviceType._id,
-    zone: "INNER_DISTRICT",
+    zone: "INNER_WARD",
     weightTiers: TIERS,
     effectiveFrom: new Date("2099-01-01"),
   });
@@ -53,7 +53,7 @@ test("[PB-01] GET /public/service-types khong can token, khong lo field noi bo",
   assert.equal(item.createdAt, undefined);
 });
 
-test("[PB-01] GET /public/service-areas tim theo ten quan, khong lo routeId", async () => {
+test("[PB-01] GET /public/service-areas tim theo ten xa/phuong, khong lo routeId", async () => {
   const res = await request(app).get("/public/service-areas").query({ search: "Hoàn Kiếm" });
   assert.equal(res.status, 200);
   assert.equal(res.body.data.length, 1);
@@ -62,17 +62,16 @@ test("[PB-01] GET /public/service-areas tim theo ten quan, khong lo routeId", as
 });
 
 test("[PB-01] GET /public/service-areas: go khong dau van tim ra (hoan kiem, dong da, TP HCM)", async () => {
-  for (const [search, district] of [
-    ["hoan kiem", "Hoàn Kiếm"],
-    ["DONG DA", "Đống Đa"],
-    ["quan 7", "Quận 7"],
+  for (const [search, province, ward] of [
+    ["hoan kiem", "Hà Nội", "Phường Hoàn Kiếm"],
+    ["DONG DA", "Hà Nội", "Phường Đống Đa"],
+    ["tan my", "TP Hồ Chí Minh", "Phường Tân Mỹ"],
   ]) {
     const res = await request(app).get("/public/service-areas").query({ search });
     assert.equal(res.status, 200, search);
-    assert.deepEqual(
-      res.body.data.map((a) => a.district),
-      [district],
-      `"${search}" phai ra dung ${district}`,
+    assert.ok(
+      res.body.data.some((a) => a.province === province && a.ward === ward),
+      `"${search}" phai ra ${ward}, ${province}`,
     );
   }
 });

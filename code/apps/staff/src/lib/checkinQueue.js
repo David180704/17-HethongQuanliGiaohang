@@ -51,9 +51,18 @@ export async function pendingCount() {
  * Gui mot check-in. Tra { ok, data } khi server nhan; { queued: true } khi mat mang (da xep hang doi);
  * { ok: false, error } khi server tu choi.
  */
-export async function sendCheckin({ lat, lng, pointId }) {
+// positionSource / accuracyM: nguon vi tri (GPS that hay gia lap) va sai so GPS, xem lib/location.js toPayload
+export async function sendCheckin({ lat, lng, pointId, positionSource, accuracyM }) {
   await load();
-  const event = { lat, lng, at: new Date().toISOString(), clientEventId: newEventId(), ...(pointId && { pointId }) };
+  const event = {
+    lat,
+    lng,
+    at: new Date().toISOString(),
+    clientEventId: newEventId(),
+    ...(positionSource && { positionSource }),
+    ...(accuracyM != null && { accuracyM }),
+    ...(pointId && { pointId }),
+  };
   try {
     const res = await apiClient.post("/checkins", event);
     flushQueue(); // co mang lai -> gui luon cac su kien dang cho

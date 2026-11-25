@@ -43,8 +43,7 @@ before(async () => {
       contactPhone: "0909981901",
       address: "10 Võ Văn Tần",
       province: "TP Hồ Chí Minh",
-      district: "Quận 3",
-      ward: "Võ Thị Sáu",
+      ward: "Phường Xuân Hòa",
     })
   ).body.data;
 });
@@ -71,20 +70,20 @@ const createOrder = (cod) =>
     .send({
       pickupLocationId: location._id,
       serviceTypeId: standard._id,
-      receiver: { name: "Người Mua", phone: "0987654321", address: "9 Nguyễn Thị Thập", province: "TP Hồ Chí Minh", district: "Quận 7", ward: "Tân Phú" },
+      receiver: { name: "Người Mua", phone: "0987654321", address: "9 Nguyễn Thị Thập", province: "TP Hồ Chí Minh", ward: "Phường Tân Mỹ" },
       item: { name: "Áo thun", weightGram: 800, length: 20, width: 15, height: 5 },
       cod,
     });
 const rejects = (cod, pattern) =>
   assert.throws(() => parseCod(cod), (err) => err.code === "VALIDATION_ERROR" && pattern.test(err.message));
 
-test("[US-19] luat thu ho (ham thuan): mac dinh, gioi han tien, nguoi gui tra truoc phai chon QR/tien mat", () => {
+test("[US-19] luat thu ho (ham thuan): mac dinh, gioi han tien, nguoi gui tra truoc phai chon VNPay/tien mat", () => {
   assert.deepEqual(parseCod(undefined), { enabled: false, amount: 0, feePayer: "RECIPIENT_PAID", feePaymentMethod: null });
   rejects({ enabled: true, amount: 0 }, /lớn hơn 0/);
   rejects({ enabled: true, amount: -5000 }, /lớn hơn 0/);
   rejects({ enabled: true, amount: 20_000_001 }, /tối đa 20\.000\.000 đ/);
   assert.equal(parseCod({ enabled: true, amount: 20_000_000 }).amount, 20_000_000);
-  rejects({ feePayer: "SHOP_PREPAID" }, /QR hoặc tiền mặt/);
+  rejects({ feePayer: "SHOP_PREPAID" }, /online VNPay hoặc tiền mặt/);
   rejects({ feePayer: "DEDUCT_FROM_COD" }, /phải bật thu hộ/);
   rejects({ feePayer: "FREE" }, /Hình thức trả phí/);
   // Thu ho tat thi so tien bi bo qua; khong phai SHOP_PREPAID thi khong luu phuong thuc tra phi

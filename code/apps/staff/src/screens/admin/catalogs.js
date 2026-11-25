@@ -16,7 +16,7 @@ const CUSTOMER_TYPE_OPTIONS = toOptions({ INDIVIDUAL: "Cá nhân", BUSINESS: "Do
 const REGION_OPTIONS = toOptions(REGION_LABELS);
 const SERVICE_CODE_OPTIONS = toOptions({ STANDARD: "Gửi thường", EXPRESS: "Gửi nhanh" });
 const ZONE_LABELS = {
-  INNER_DISTRICT: "Nội quận",
+  INNER_WARD: "Nội xã/phường",
   INNER_PROVINCE: "Nội tỉnh",
   INTER_PROVINCE: "Liên tỉnh",
   INTER_REGION: "Liên miền",
@@ -148,25 +148,31 @@ const routeIdField = {
   type: "select",
   required: true,
   optionsFrom: { endpoint: "/routes", label: routeLabel },
-  help: "Một quận/huyện chỉ thuộc đúng một tuyến.",
+  help: "Một xã/phường chỉ thuộc đúng một tuyến.",
 };
 
 const serviceAreas = {
   title: "Khu vực phục vụ",
   endpoint: "/serviceAreas",
-  searchPlaceholder: "Tìm theo tỉnh, quận/huyện...",
+  searchPlaceholder: "Tìm theo tỉnh, xã/phường...",
   columns: [
-    { key: "district", label: "Quận/Huyện" },
+    { key: "ward", label: "Xã/Phường" },
     { key: "province", label: "Tỉnh/Thành" },
     { key: "region", label: "Miền", format: (item) => REGION_LABELS[item.region] || item.region },
   ],
   createFields: [
     { name: "province", label: "Tỉnh/Thành phố", required: true, autoCapitalize: "words" },
-    { name: "district", label: "Quận/Huyện", required: true, autoCapitalize: "words" },
+    {
+      name: "ward",
+      label: "Xã/Phường",
+      required: true,
+      autoCapitalize: "words",
+      help: "Phải là xã/phường có thật của tỉnh (địa giới từ 01/07/2025); gõ không dấu được, hệ thống lưu tên chuẩn.",
+    },
     { name: "region", label: "Miền", type: "select", required: true, options: REGION_OPTIONS },
     routeIdField,
   ],
-  // province/district khong sua sau khi tao (dung voi serviceAreas.schema.js)
+  // province/ward khong sua sau khi tao (dung voi serviceAreas.schema.js)
   updateFields: [{ name: "region", label: "Miền", type: "select", required: true, options: REGION_OPTIONS }, routeIdField],
 };
 
@@ -202,7 +208,7 @@ const serviceTypes = {
   updateFields: serviceTypeFields,
 };
 
-// Diem tap ket va buu cuc (US-14): buu cuc truc thuoc mot hub; quan/huyen phai
+// Diem tap ket va buu cuc (US-14): buu cuc truc thuoc mot hub; xa/phuong phai
 // thuoc vung phuc vu (server tu gan khu vuc phuc vu, bao loi neu ngoai vung).
 const HUB_TYPE_LABELS = { HUB: "Hub — điểm tập kết", POST_OFFICE: "Bưu cục" };
 const isPostOffice = (v) => v.type === "POST_OFFICE";
@@ -227,11 +233,11 @@ const hubPlaceFields = [
   { name: "address", label: "Địa chỉ", autoCapitalize: "sentences" },
   { name: "province", label: "Tỉnh/Thành phố", required: true, autoCapitalize: "words" },
   {
-    name: "district",
-    label: "Quận/Huyện",
+    name: "ward",
+    label: "Xã/Phường",
     required: true,
     autoCapitalize: "words",
-    help: "Phải thuộc vùng phục vụ — hệ thống tự gắn khu vực phục vụ.",
+    help: "Xã/phường của tỉnh, phải thuộc vùng phục vụ — hệ thống tự gắn khu vực phục vụ.",
   },
   { name: "isActive", label: "Đang hoạt động", type: "checkbox", defaultValue: true },
 ];
@@ -240,7 +246,7 @@ const hubNameField = { name: "name", label: "Tên điểm", required: true, auto
 const hubs = {
   title: "Hub & bưu cục",
   endpoint: "/hubs",
-  searchPlaceholder: "Tìm theo mã, tên, tỉnh, quận/huyện...",
+  searchPlaceholder: "Tìm theo mã, tên, tỉnh, xã/phường...",
   columns: [
     { key: "name", label: "Tên" },
     { key: "code", label: "Mã" },
@@ -251,7 +257,7 @@ const hubs = {
       badge: (item) => (item.type === "HUB" ? "info" : "neutral"),
     },
     { key: "parentHubId", label: "Trực thuộc", format: (item) => (item.parentHubId ? hubLabel(item.parentHubId) : "—") },
-    { key: "district", label: "Khu vực", format: (item) => `${item.district}, ${item.province}` },
+    { key: "ward", label: "Khu vực", format: (item) => `${item.ward}, ${item.province}` },
     { key: "isActive", label: "Hoạt động" },
   ],
   createFields: [
