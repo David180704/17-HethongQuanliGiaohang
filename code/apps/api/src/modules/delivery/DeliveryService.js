@@ -553,12 +553,19 @@ export class DeliveryService {
     const shifts = await this.shiftRepository.findForRoutes({ shiftDate, shipperId: user.id });
     const current = shifts.find((s) => s.startTime <= time && time < s.endTime) || shifts.find((s) => s.endTime > time) || null;
     const selected = query.shiftId === "all" ? null : query.shiftId || (current ? String(current._id) : null);
-    const assignments = (await this.assignmentRepository.findForShipper({ shipperId: user.id, shiftDate, type: DELIVERY_TYPES })).filter(
-      (a) => !selected || same(a.shiftId, selected),
-    );
+    // Moi lan giao hut sinh mot phan cong moi cho cung don: chi giu phan cong MOI NHAT cua moi don, neu khong danh sach
+    // lap the (loi kiem thu doc lap 25/11/2026: mot don hien 4 the, mo form o mot the thi ca 4 the cung mo)
+    const latest = new Map();
+    for (const a of await this.assignmentRepository.findForShipper({ shipperId: user.id, shiftDate, type: DELIVERY_TYPES })) {
+      if (selected && !same(a.shiftId, selected)) continue;
+      const key = String(a.orderId);
+      const kept = latest.get(key);
+      if (!kept || new Date(a.assignedAt) > new Date(kept.assignedAt)) latest.set(key, a);
+    }
+    const assignments = [...latest.values()];
     const orders = await this.orderRepository.findMany(
       { _id: { $in: assignments.map((a) => a.orderId) } },
-      { select: "trackingCode customerName pickupLocationId pickupWard receiver item cod fee status deliveryAttempts serviceTypeId returnReason returnHandedAt" },
+      { select: "trackingCode customerName customerId channel pickupHubId pickupLocationId pickupWard receiver item cod fee status deliveryAttempts serviceTypeId returnReason returnHandedAt" },
     );
     const orderById = new Map(orders.map((o) => [String(o._id), o]));
     const locations = await this.pickupLocationRepository.findMany(
