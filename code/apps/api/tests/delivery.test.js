@@ -452,6 +452,39 @@ test("[US-37] hoan hang: phan cong theo tuyen lay hang cu (Assignment RETURN), t
 
 // ---------------------------------------------------------------- luong nghiep vu
 
+test("[US-37][US-40] hoan don tiep nhan tai quay: hang tra ve quay, nhan vien quay xac nhan khach le nhan lai (khach khong co tai khoan)", async () => {
+  const WALK_IN = "0909983599";
+  const created = await as("kho", request(app).post("/orders/counter")).send({
+    customer: { phone: WALK_IN, fullName: "Khách Lẻ Hoàn" },
+    serviceTypeId: standard._id,
+    receiver: { name: "E2E GH Hoàn quầy", phone: "0912345678", address: "20 Điện Biên Phủ", province: "Đà Nẵng", ward: "Phường Thanh Khê" },
+    item: { name: "Sách", weightGram: 800, length: 20, width: 15, height: 10 },
+  });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const { _id: id, trackingCode } = created.body.data;
+  try {
+    // Nguoi nhan tu choi -> dang hoan (cac buoc giao that bai, phan cong hoan da kiem o US-32, US-37)
+    await Order.updateOne({ _id: id }, { $set: { status: "RETURNING", returnHandedAt: null } });
+    const early = await as("kho", request(app).post(`/deliveries/${id}/confirm-return`));
+    assert.equal(early.status, 409, "tai xe chua tra hang ve quay");
+
+    await Order.updateOne({ _id: id }, { $set: { returnHandedAt: new Date() } });
+    const look = await as("kho", request(app).get(`/warehouse/orders/${trackingCode}`));
+    assert.equal(look.body.data.counterReturnReady, true, "man kho hien nut giao lai cho khach");
+    assert.equal((await as("shop", request(app).post(`/deliveries/${id}/confirm-return`))).status, 404, "nguoi khac khong xac nhan duoc");
+
+    const ok = await as("kho", request(app).post(`/deliveries/${id}/confirm-return`));
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    const saved = await Order.findById(id).lean();
+    assert.equal(saved.status, "RETURNED");
+    assert.equal(saved.statusHistory.at(-1).note, "Khách nhận lại hàng tại quầy");
+  } finally {
+    await Order.deleteOne({ _id: id });
+    await User.deleteOne({ phone: WALK_IN });
+    await getRedis().del(`journey:${trackingCode}`);
+  }
+});
+
 test("[US-35][US-31][US-32][US-33] luong nghiep vu: don toi kho dich -> consumer tu phan cong giao -> tai xe xem danh sach, phieu QR -> quet ma, thu COD -> nguoi nhan tra cuu thay Da giao", async () => {
   worker = getContainer().startOrderEventWorker();
   const order = await atDestHub("E2E GH Luồng", { cod: { enabled: true, amount: 150000, feePayer: "DEDUCT_FROM_COD" } });
