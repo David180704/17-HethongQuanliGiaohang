@@ -61,6 +61,13 @@ export const env = {
     payUrl: process.env.VNPAY_PAY_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
     expireMinutes: Number(process.env.VNPAY_EXPIRE_MINUTES || 15),
   },
+  // Tai khoan cong ty nhan tien chuyen khoan luc giao (ma VietQR tu sinh, US-33). Chua dat: may dev dung tai khoan
+  // DEMO so 0000000000 (khong ton tai, quet chi de xem thu); chay that (production) chua dat thi bao chua cau hinh.
+  companyBank: {
+    code: process.env.COMPANY_BANK_CODE || null,
+    accountNo: process.env.COMPANY_BANK_ACCOUNT || null,
+    accountName: process.env.COMPANY_BANK_NAME || null,
+  },
   // Sau khi thanh toan, API chuyen nguoi dung ve returnTo cua app: web phai thuoc CORS_ORIGIN,
   // app di dong phai bat dau bang mot trong cac tien to nay (scheme cua app, Expo Go khi dev)
   mobileReturnPrefixes: (process.env.MOBILE_RETURN_PREFIXES || "edmskh://,edmsnv://,exp://,exps://").split(",").map((s) => s.trim()),

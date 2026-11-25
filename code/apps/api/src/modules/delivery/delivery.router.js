@@ -45,6 +45,17 @@ import { DELIVERY_FAIL_LABELS } from "./deliveryPolicy.js";
  *     responses:
  *       200: { description: "{ trackingCode, qr, receiver, item, collect, attempts, printedAt }" }
  *       404: { description: Don khong thuoc nguoi xem }
+ * /deliveries/{orderId}/transfer-qr:
+ *   get:
+ *     tags: [Deliveries]
+ *     summary: "Ma VietQR chuyen khoan (EMVCo/Napas, tu sinh, khong qua cong thanh toan): dung so tien nguoi nhan phai tra, noi dung EDMS <ma van don>, tien vao tai khoan cong ty (COMPANY_BANK_*)"
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     responses:
+ *       200: { description: "{ trackingCode, amount, note, payload, qr (PNG data URL), bank: { code, name, accountNo, accountName }, demo }" }
+ *       404: { description: Khong phai don tai xe dang mang di giao }
+ *       409: { description: Don khong co tien phai thu }
+ *       503: { description: Chay that ma chua cau hinh tai khoan cong ty }
  * /deliveries/{orderId}/start:
  *   post:
  *     tags: [Deliveries]
@@ -146,6 +157,7 @@ export function buildDeliveryRouter({ deliveryService, middleware }) {
   router.get("/policy", run(() => deliveryService.policy()));
   router.put("/policy", run((req) => deliveryService.setPolicy(req.user, req.body || {})));
   router.get("/:orderId/slip", run((req) => deliveryService.slip(req.user, req.params.orderId)));
+  router.get("/:orderId/transfer-qr", run((req) => deliveryService.transferQr(req.user, req.params.orderId)));
   router.post("/:orderId/start", run((req) => deliveryService.startDelivery(req.user, req.params.orderId, req.body || {})));
   router.post("/:orderId/delivered", run((req) => deliveryService.confirmDelivered(req.user, req.params.orderId, req.body || {})));
   router.post("/:orderId/failed", run((req) => deliveryService.failDelivery(req.user, req.params.orderId, req.body || {})));

@@ -1,4 +1,6 @@
 import QRCode from "qrcode";
+import { buildVietQr } from "../payments/vietqr.js";
+import { BANKS } from "../profile/bankAccount.js";
 import { ErrorCodes } from "../../core/errors.js";
 import { parseShiftDate } from "../shifts/shifts.validator.js";
 import { routeScopeFor } from "../routes/routeScope.js";
@@ -56,6 +58,7 @@ export class DeliveryService {
     capacityService,
     transactions,
     orderEvents,
+    companyBank = null,
     clock = () => new Date(),
   }) {
     Object.assign(this, {
@@ -72,6 +75,7 @@ export class DeliveryService {
       capacityService,
       transactions,
       orderEvents,
+      companyBank,
       clock,
     });
   }
@@ -642,6 +646,38 @@ export class DeliveryService {
       collect: amountToCollect(order),
       attempts: order.deliveryAttempts || 0,
       printedAt: this.clock(),
+    };
+  }
+
+  /**
+   * Ma VietQR chuyen khoan luc giao (US-33): dung so tien nguoi nhan phai tra (thu ho + phi neu nguoi nhan tra), noi
+   * dung "EDMS <ma van don>" de doi chieu sao ke; tien vao tai khoan cong ty. Chi tai xe dang mang don di giao.
+   */
+  async transferQr(user, orderId) {
+    const order = await this.orderRepository.findOne({ _id: orderId, assignedTo: user.id, status: "OUT_FOR_DELIVERY" });
+    if (!order) throw ErrorCodes.NOT_FOUND("Không tìm thấy đơn bạn đang mang đi giao");
+    const { total } = amountToCollect(order);
+    if (total <= 0) throw ErrorCodes.CONFLICT("Đơn này không có tiền phải thu");
+    const account = this.companyBank;
+    if (!account) {
+      throw ErrorCodes.PAYMENT_NOT_CONFIGURED("Chưa cấu hình tài khoản nhận chuyển khoản của công ty (COMPANY_BANK_CODE, COMPANY_BANK_ACCOUNT)");
+    }
+    const note = `EDMS ${order.trackingCode}`;
+    const payload = buildVietQr({ bankCode: account.code, accountNo: account.accountNo, amount: total, note });
+    const qr = await QRCode.toDataURL(payload, { margin: 1, width: 280, errorCorrectionLevel: "M" });
+    return {
+      trackingCode: order.trackingCode,
+      amount: total,
+      note,
+      payload,
+      qr,
+      bank: {
+        code: account.code,
+        name: BANKS.find((b) => b.code === account.code)?.name || account.code,
+        accountNo: account.accountNo,
+        accountName: account.accountName,
+      },
+      demo: Boolean(account.demo),
     };
   }
 

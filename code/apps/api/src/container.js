@@ -36,6 +36,7 @@ import { SettingRepository } from "./modules/capacity/SettingRepository.js";
 import { AssignmentRepository } from "./modules/assignments/AssignmentRepository.js";
 import { AssignmentService } from "./modules/assignments/AssignmentService.js";
 import { DeliveryService } from "./modules/delivery/DeliveryService.js";
+import { companyAccount } from "./modules/payments/vietqr.js";
 import { IncidentRepository } from "./modules/incidents/IncidentRepository.js";
 import { IncidentService } from "./modules/incidents/IncidentService.js";
 import { SettlementRepository } from "./modules/settlements/SettlementRepository.js";
@@ -245,6 +246,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     capacityService,
     transactions: new MongooseTransactionRunner(),
     orderEvents,
+    companyBank: companyAccount(env.companyBank, env.nodeEnv),
   });
   // US-38 (de 02): su co, khieu nai - ma SC tang trong transaction
   const incidentRepository = new IncidentRepository();
