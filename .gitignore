@@ -12,3 +12,6 @@ code/test-logs/
 # Python
 __pycache__/
 *.pyc
+
+# Ban sao luu CSDL (npm run backup) - co du lieu nguoi dung, khong commit
+code/apps/api/backups/

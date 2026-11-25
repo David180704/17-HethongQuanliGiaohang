@@ -1,0 +1,52 @@
+# Sao luu CSDL hang ngay sang cloud thu hai (GitHub Actions artifact, giu 30 ngay).
+# Du lieu chinh nam tren MongoDB Atlas (goi M0 mien phi khong co sao luu tu dong) -> neu Atlas loi / bi xoa nham
+# van con ban sao tren GitHub de khoi phuc: tai artifact, giai nen, `npm run restore -- <thu muc> --yes --cho-phep-cloud`.
+# Bat: GitHub repo -> Settings -> Secrets and variables -> Actions -> New secret BACKUP_MONGO_URI = chuoi Atlas
+# (nen tao user Atlas chi co quyen doc). Chua co secret thi job bo qua, khong bao loi.
+name: Sao luu CSDL
+
+on:
+  schedule:
+    - cron: "0 18 * * *" # 01:00 gio Viet Nam
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      BACKUP_MONGO_URI: ${{ secrets.BACKUP_MONGO_URI }}
+    defaults:
+      run:
+        working-directory: code/apps/api
+    steps:
+      - name: Kiem tra da cau hinh secret
+        id: check
+        run: |
+          if [ -z "$BACKUP_MONGO_URI" ]; then
+            echo "Chua co secret BACKUP_MONGO_URI -> bo qua sao luu"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.enabled == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.enabled == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: code/apps/api/package-lock.json
+      - run: npm ci --omit=dev
+        if: steps.check.outputs.enabled == 'true'
+      - name: Sao luu
+        if: steps.check.outputs.enabled == 'true'
+        run: npm run backup -- --out "$RUNNER_TEMP/edms-backup"
+      - uses: actions/upload-artifact@v4
+        if: steps.check.outputs.enabled == 'true'
+        with:
+          name: edms-backup-${{ github.run_number }}
+          path: ${{ runner.temp }}/edms-backup
+          retention-days: 30

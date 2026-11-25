@@ -18,7 +18,9 @@
     "test:story": "node scripts/run-story.js",
     "report:stories": "node scripts/story-report.js",
     "unlock": "node scripts/unlock-accounts.js",
-    "accounts:demo": "node scripts/demo-accounts.mjs"
+    "accounts:demo": "node scripts/demo-accounts.mjs",
+    "backup": "node scripts/backup-db.js",
+    "restore": "node scripts/backup-db.js restore"
   },
   "keywords": [],
   "author": "",
