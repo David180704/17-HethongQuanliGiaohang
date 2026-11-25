@@ -513,8 +513,18 @@ export class DeliveryService {
 
   /** Nguoi gui (chu don) xac nhan da nhan lai hang -> RETURNED (ket thuc theo doi hoan hang). */
   async confirmReturned(user, orderId) {
-    const filter = { _id: orderId, ...(user.role === "ADMIN" ? {} : { customerId: user.id }) };
-    if (!["CUSTOMER", "ADMIN"].includes(user.role)) throw ErrorCodes.FORBIDDEN("Chỉ người gửi xác nhận đã nhận lại hàng");
+    let filter;
+    let note = "Người gửi xác nhận đã nhận lại hàng";
+    if (user.role === "ADMIN") filter = { _id: orderId };
+    else if (user.role === "CUSTOMER") filter = { _id: orderId, customerId: user.id };
+    else if (user.role === "HUB_STAFF") {
+      // Don tiep nhan tai quay (khach le khong co tai khoan): hang hoan ve quay, nhan vien quay giao lai cho khach
+      const staff = await this.userRepository.findById(user.id);
+      filter = { _id: orderId, channel: "COUNTER", pickupHubId: staff?.hubId ?? null };
+      note = "Khách nhận lại hàng tại quầy";
+    } else {
+      throw ErrorCodes.FORBIDDEN("Chỉ người gửi (hoặc quầy đã nhận đơn) xác nhận đã nhận lại hàng");
+    }
     const order = await this.orderRepository.findOne(filter);
     if (!order) throw ErrorCodes.NOT_FOUND("Không tìm thấy đơn hàng của bạn");
     if (order.status !== "RETURNING" || !order.returnHandedAt) {
@@ -525,7 +535,7 @@ export class DeliveryService {
       { _id: order._id, status: "RETURNING" },
       {
         $set: { status: "RETURNED" },
-        $push: { statusHistory: { status: "RETURNED", at, by: user.id, note: "Người gửi xác nhận đã nhận lại hàng" } },
+        $push: { statusHistory: { status: "RETURNED", at, by: user.id, note } },
       },
     );
     if (!updated) throw ErrorCodes.CONFLICT(`Đơn ${order.trackingCode} vừa được cập nhật, tải lại để xem`);
@@ -556,6 +566,16 @@ export class DeliveryService {
       { select: "contactName contactPhone address ward province" },
     );
     const locationById = new Map(locations.map((l) => [String(l._id), l]));
+    // Don tai quay khong co dia diem lay hang: hoan ve quay da nhan, lien he khach qua so dien thoai tai khoan
+    const counterOrders = orders.filter((o) => o.channel === "COUNTER");
+    const [counterCustomers, counterHubs] = counterOrders.length
+      ? await Promise.all([
+          this.userRepository.findMany({ _id: { $in: counterOrders.map((o) => o.customerId) } }, { select: "phone" }),
+          this.hubRepository.findMany({ _id: { $in: counterOrders.map((o) => o.pickupHubId) } }, { select: "name" }),
+        ])
+      : [[], []];
+    const phoneOf = new Map(counterCustomers.map((u) => [String(u._id), u.phone]));
+    const hubNameOf = new Map(counterHubs.map((h) => [String(h._id), h.name]));
     const isExpress = await this.#isExpress();
     const { maxDeliveryAttempts } = await this.policy();
     const items = assignments
@@ -575,11 +595,17 @@ export class DeliveryService {
           express: isExpress(o),
           // Giao: nguoi nhan; hoan: tra ve nguoi gui (dia diem lay hang)
           to: isReturn
-            ? {
-                name: shop?.contactName || o.customerName,
-                phone: shop?.contactPhone || null,
-                address: shop ? fullAddress(shop.address, shop.ward, shop.province) : o.pickupWard,
-              }
+            ? o.channel === "COUNTER"
+              ? {
+                  name: `${o.customerName} (nhận lại tại quầy)`,
+                  phone: phoneOf.get(String(o.customerId)) || null,
+                  address: `Trả về quầy ${hubNameOf.get(String(o.pickupHubId)) || o.pickupWard}`,
+                }
+              : {
+                  name: shop?.contactName || o.customerName,
+                  phone: shop?.contactPhone || null,
+                  address: shop ? fullAddress(shop.address, shop.ward, shop.province) : o.pickupWard,
+                }
             : { name: o.receiver?.name, phone: o.receiver?.phone, address: fullAddress(o.receiver?.address, o.receiver?.ward, o.receiver?.province) },
           collect: isReturn ? { cod: 0, fee: 0, total: 0 } : amountToCollect(o),
           item: { name: o.item?.name, weightGram: o.item?.weightGram, note: o.item?.note || null },

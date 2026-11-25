@@ -72,6 +72,8 @@ export class WarehouseService {
       action,
       actionLabel: action ? WAREHOUSE_ACTIONS[action].label : null,
       reason: reason ?? null,
+      // Don tai quay da duoc tai xe tra ve quay: nhan vien giao lai cho khach roi xac nhan (POST /deliveries/:id/confirm-return)
+      counterReturnReady: order.channel === "COUNTER" && order.status === "RETURNING" && Boolean(order.returnHandedAt),
     };
   }
 

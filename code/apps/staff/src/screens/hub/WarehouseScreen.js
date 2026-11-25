@@ -39,6 +39,21 @@ export default function WarehouseScreen({ accent, onBack }) {
       .catch(() => {});
   }, [loadStock]);
 
+  // Don tai quay bi hoan: tai xe da tra hang ve quay -> giao lai cho khach (khach le khong co tai khoan de tu xac nhan)
+  async function confirmCounterReturn(target) {
+    setBusy(true);
+    setError("");
+    try {
+      await apiClient.post(`/deliveries/${target._id}/confirm-return`);
+      await lookup(target.trackingCode);
+      setNotice(`${target.trackingCode}: khách đã nhận lại hàng — đơn hoàn tất`);
+    } catch (err) {
+      setError(errorMessage(err, "Không xác nhận được"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function lookup(value = code) {
     setError("");
     setNotice("");
@@ -116,6 +131,14 @@ export default function WarehouseScreen({ accent, onBack }) {
         {notice}
       </Banner>
 
+      {order?.counterReturnReady ? (
+        <Button
+          testID="wh-counter-return"
+          title="Khách đã nhận lại hàng tại quầy"
+          loading={busy}
+          onPress={() => confirmCounterReturn(order)}
+        />
+      ) : null}
       {order ? (
         <View style={styles.card} testID="wh-result">
           <View style={styles.head}>
