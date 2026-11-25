@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCachedQuery } from "../lib/useCachedQuery.js";
 import { formatSurcharge } from "../lib/format.js";
 
@@ -10,6 +11,9 @@ const STEPS = [
 ];
 
 export default function HomePage() {
+  // US-22: o tra cuu o trang chu chuyen sang trang /tra-cuu?ma=... (cong khai)
+  const navigate = useNavigate();
+  const [trackingCode, setTrackingCode] = useState("");
   // Du lieu cong khai (khong can dang nhap), cache 30 giay va tu lam moi
   const typesQuery = useCachedQuery("/public/service-types");
   const areasQuery = useCachedQuery("/public/provinces");
@@ -49,20 +53,26 @@ export default function HomePage() {
           <div className="rounded-2xl bg-white p-5 text-gray-900 shadow-lg">
             <h2 className="font-semibold">Tra cứu vận đơn</h2>
             <p className="mt-1 text-sm text-gray-500">Nhập mã vận đơn dạng EXP + 10 chữ số.</p>
-            <div className="mt-4 flex gap-2">
+            <form
+              className="mt-4 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const code = trackingCode.trim().toUpperCase();
+                if (code) navigate(`/tra-cuu?ma=${encodeURIComponent(code)}`);
+              }}
+            >
               <input
-                disabled
                 aria-label="Mã vận đơn"
                 placeholder="EXP0000000001"
-                className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                value={trackingCode}
+                onChange={(e) => setTrackingCode(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"
               />
-              <button disabled className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500">
+              <button type="submit" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
                 Tra cứu
               </button>
-            </div>
-            <p className="mt-3 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-              Sắp có · #22 · Sprint 4
-            </p>
+            </form>
+            <p className="mt-3 text-xs text-gray-500">Không cần đăng nhập — người nhận cũng tra cứu được.</p>
           </div>
         </div>
       </section>

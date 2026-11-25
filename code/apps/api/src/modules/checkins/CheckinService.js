@@ -2,8 +2,10 @@ import { ErrorCodes } from "../../core/errors.js";
 import { parseLocation } from "../assignments/pickupOutcome.js";
 import { DEDUPE_WINDOW_MS, GPS_MAX_ACCURACY_M, MANUAL_MAX_DISTANCE_M, distanceM, pointsInRange } from "./geo.js";
 
-// Don tai xe dang cam (dang di lay / da lay / dang giao / dang hoan) - check-in ghi vao hanh trinh cac don nay
-export const CARRYING_STATUSES = ["PICKUP_ASSIGNED", "PICKED_UP", "DELIVERY_ASSIGNED", "OUT_FOR_DELIVERY", "RETURNING"];
+// Don tai xe dang THUC SU cam tren xe (da lay hang / dang giao / dang hoan) - check-in ghi vao hanh trinh cac don nay.
+// Don moi duoc phan cong (PICKUP_ASSIGNED: hang con o shop; DELIVERY_ASSIGNED: kien con o kho) khong ghi, neu khong
+// khach se thay kien "da qua Hub" khi hang chua roi shop (loi kiem thu doc lap 25/11/2026).
+export const CARRYING_STATUSES = ["PICKED_UP", "OUT_FOR_DELIVERY", "RETURNING"];
 const MAX_DELAY_MS = 24 * 3600 * 1000;
 
 /**

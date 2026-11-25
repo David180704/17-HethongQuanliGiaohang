@@ -66,6 +66,10 @@ export class BaseRepository {
     return Boolean(await this.model.exists(filter));
   }
 
+  count(filter) {
+    return this.model.countDocuments(filter);
+  }
+
   // Doc lai sau khi tao de ap projection (model.create tra ve document day du,
   // vd van con passwordHash).
   async create(data) {

@@ -1,7 +1,7 @@
 // Hanh trinh cong khai cua mot don (US-21 ghi, US-22 doc): ham thuan, dung lai nhan va nhom trang thai
 // cua orderStatus.js. Chi dua thong tin an toan cho nguoi chi biet ma van don: khong ten, so dien thoai
 // day du hay dia chi cu the.
-import { STATUS_LABELS, customerGroup } from "./orderStatus.js";
+import { STATUS_LABELS, customerGroup, groupLabelOf } from "./orderStatus.js";
 
 /** "0912345678" -> "09xx xxx 678" (giu 2 so dau va 3 so cuoi). */
 export function maskPhone(phone) {
@@ -17,7 +17,7 @@ export function buildPublicJourney(order, checkins = []) {
     status: order.status,
     statusLabel: STATUS_LABELS[order.status] || order.status,
     group: group.code,
-    groupLabel: group.label,
+    groupLabel: groupLabelOf(order, group),
     serviceName: order.serviceName,
     sender: { name: order.customerName, ward: order.pickupWard },
     receiver: {

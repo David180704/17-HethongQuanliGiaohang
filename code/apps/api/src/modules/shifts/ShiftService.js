@@ -16,8 +16,8 @@ function vnDay(date) {
  * Doc tuyen / nguoi dung qua repository KHONG cache (rang buoc can so lieu moi nhat).
  */
 export class ShiftService {
-  constructor({ shiftRepository, routeRepository, userRepository, hubRepository, validator = shiftValidator }) {
-    Object.assign(this, { shiftRepository, routeRepository, userRepository, hubRepository, validator });
+  constructor({ shiftRepository, routeRepository, userRepository, hubRepository, assignmentRepository, validator = shiftValidator }) {
+    Object.assign(this, { shiftRepository, routeRepository, userRepository, hubRepository, assignmentRepository, validator });
   }
 
   /** Cac tuyen nguoi dung duoc quan ly; null = moi tuyen (quan tri vien). */
@@ -121,6 +121,12 @@ export class ShiftService {
 
   async remove(user, id) {
     await this.#findInScope(user, id);
+    // Ca con don dang phan cong (chua lay / chua giao xong) thi khong xoa: xoa se de phan cong va don mo coi,
+    // tai xe mat ca, don khong ve hang cho. Phai phan cong lai / dieu chinh tay truoc.
+    const pending = this.assignmentRepository ? await this.assignmentRepository.count({ shiftId: id, status: "ASSIGNED" }) : 0;
+    if (pending > 0) {
+      throw ErrorCodes.CONFLICT(`Ca đang có ${pending} đơn được phân công chưa xử lý xong — điều chỉnh tay sang người/ca khác trước khi xóa ca`);
+    }
     await this.shiftRepository.deleteById(id);
   }
 

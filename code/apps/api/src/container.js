@@ -206,6 +206,7 @@ export function buildContainer({ cacheStore = env.cache.store, cacheTtlSeconds =
     routeRepository,
     userRepository,
     hubRepository,
+    assignmentRepository: new AssignmentRepository(),
   });
   const settingRepository = new SettingRepository();
   // US-24: nang luc 3 cap (nguoi giao hang -> tuyen -> mac dinh he thong)

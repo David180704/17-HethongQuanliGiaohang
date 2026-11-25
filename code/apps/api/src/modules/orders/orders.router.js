@@ -93,7 +93,7 @@ import { OrderController } from "./OrderController.js";
  *                   enabled: { type: boolean }
  *                   amount: { type: number, description: "> 0 khi bat, toi da 20.000.000" }
  *                   feePayer: { type: string, enum: [SHOP_PREPAID, RECIPIENT_PAID, DEDUCT_FROM_COD] }
- *                   feePaymentMethod: { type: string, enum: [QR, CASH], description: "Bat buoc khi SHOP_PREPAID" }
+ *                   feePaymentMethod: { type: string, enum: [VNPAY, CASH, QR], description: "Bat buoc khi SHOP_PREPAID. VNPAY: tra online truoc khi kho duyet (gui nhanh bat buoc); CASH: tra tien mat khi lay hang; QR chi con cho don cu" }
  *               draftToken: { type: string, description: "Tao tu ban nhap -> xoa nhap trong cung transaction" }
  *     responses:
  *       201: { description: "Don CREATED, ma van don EXP + 10 chu so, phi tach tung khoan" }
