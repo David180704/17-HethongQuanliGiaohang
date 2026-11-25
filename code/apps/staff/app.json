@@ -10,7 +10,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "vn.edms17.nhanvien",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "EDMS Nhân viên dùng vị trí khi bạn mở ứng dụng để tự check-in tại điểm đã đăng ký và ghi tọa độ lúc lấy hàng, giao hàng."
+        "NSLocationWhenInUseUsageDescription": "EDMS Nhân viên dùng vị trí khi bạn mở ứng dụng để tự check-in tại điểm đã đăng ký và ghi tọa độ lúc lấy hàng, giao hàng.",
+        "NSCameraUsageDescription": "EDMS Nhân viên dùng camera để quét mã QR / mã vạch vận đơn trên kiện hàng và phiếu giao."
       }
     },
     "android": {
@@ -24,7 +25,8 @@
       "versionCode": 1,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "CAMERA"
       ],
       "blockedPermissions": [
         "ACCESS_BACKGROUND_LOCATION"
@@ -41,6 +43,14 @@
           "locationWhenInUsePermission": "EDMS Nhân viên dùng vị trí khi bạn mở ứng dụng để tự check-in tại điểm đã đăng ký và ghi tọa độ lúc lấy hàng, giao hàng.",
           "isAndroidBackgroundLocationEnabled": false,
           "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "EDMS Nhân viên dùng camera để quét mã QR / mã vạch vận đơn trên kiện hàng và phiếu giao.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ]
     ]

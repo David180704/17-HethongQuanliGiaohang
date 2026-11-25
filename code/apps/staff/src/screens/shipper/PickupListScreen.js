@@ -4,6 +4,7 @@ import Screen from "../../components/Screen";
 import Banner from "../../components/Banner";
 import Button from "../../components/Button";
 import TextField from "../../components/TextField";
+import ScanCodeField from "../../components/ScanCodeField";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { formatVnd } from "../../lib/format";
@@ -94,7 +95,7 @@ export default function PickupListScreen({ accent, onBack }) {
           {position.source === "GPS" ? "Vị trí GPS" : "Vị trí (giả lập)"}: {formatPosition(position)} · {position.label}
         </Text>
         {action.kind === "picked" ? (
-          <TextField
+          <ScanCodeField
             testID="pickup-code"
             label="Quét / nhập mã vận đơn trên kiện"
             required

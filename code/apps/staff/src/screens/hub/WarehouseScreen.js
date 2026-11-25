@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Screen from "../../components/Screen";
 import Button from "../../components/Button";
 import Banner from "../../components/Banner";
-import TextField from "../../components/TextField";
+import ScanCodeField from "../../components/ScanCodeField";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { colors, radius } from "../../theme";
@@ -98,13 +98,14 @@ export default function WarehouseScreen({ accent, onBack }) {
   return (
     <Screen title="Nhập / xuất kho" subtitle="Quét mã vận đơn: nhận, phân loại, xuất kho" accent={accent} onBack={onBack}>
       <View style={styles.search}>
-        <TextField
+        <ScanCodeField
           testID="wh-code"
           label="Quét / nhập mã vận đơn"
           autoCapitalize="characters"
           placeholder="EXP..."
           value={code}
           onChangeText={setCode}
+          onScanned={(scanned) => lookup(scanned)}
           onSubmitEditing={() => lookup()}
           style={styles.grow}
         />

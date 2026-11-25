@@ -4,6 +4,7 @@ import Screen from "../../components/Screen";
 import Banner from "../../components/Banner";
 import Button from "../../components/Button";
 import TextField from "../../components/TextField";
+import ScanCodeField from "../../components/ScanCodeField";
 import ChipSelect from "../../components/ChipSelect";
 import { apiClient, errorMessage } from "../../lib/apiClient";
 import { formatVnd } from "../../lib/format";
@@ -18,6 +19,53 @@ const STATUS_LABEL = {
   RETURNING: "Hoàn về người gửi",
   RETURNED: "Đã hoàn",
 };
+// Ma VietQR (tu sinh tren may chu, chuan Napas): nguoi nhan mo app ngan hang bat ky quet, so tien va noi dung dien san.
+function TransferQr({ orderId }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const show = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await apiClient.get(`/deliveries/${orderId}/transfer-qr`);
+      setData(res.data.data);
+    } catch (err) {
+      setError(errorMessage(err, "Không tạo được mã chuyển khoản"));
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (!data) {
+    return (
+      <View style={styles.transfer}>
+        <Button testID="delivery-transfer-qr" title="Hiện mã VietQR cho người nhận quét" variant="secondary" loading={busy} onPress={show} />
+        <Banner testID="delivery-transfer-error">{error}</Banner>
+      </View>
+    );
+  }
+  return (
+    <View style={[styles.transfer, styles.transferCard]} testID="delivery-transfer-card">
+      {data.demo ? (
+        <Banner tone="warning" testID="delivery-transfer-demo">
+          Tài khoản DEMO (máy chủ chưa cấu hình tài khoản công ty) — chỉ để xem, không chuyển tiền.
+        </Banner>
+      ) : null}
+      <Image source={{ uri: data.qr }} style={styles.transferQr} accessibilityLabel="Mã VietQR chuyển khoản" testID="delivery-transfer-image" />
+      <Text style={styles.transferAmount} testID="delivery-transfer-amount">
+        {formatVnd(data.amount)}
+      </Text>
+      <Text style={styles.muted}>
+        {data.bank.name} · {data.bank.accountNo}
+        {data.bank.accountName ? ` · ${data.bank.accountName}` : ""}
+      </Text>
+      <Text style={styles.muted} testID="delivery-transfer-note">
+        Nội dung: {data.note}
+      </Text>
+    </View>
+  );
+}
+
 const METHODS = [
   { value: "CASH", label: "Tiền mặt" },
   { value: "TRANSFER", label: "Chuyển khoản" },
@@ -158,7 +206,7 @@ export default function DeliveryListScreen({ accent, onBack }) {
           {position.source === "GPS" ? "Vị trí GPS" : "Vị trí (giả lập)"}: {formatPosition(position)} · {position.label}
         </Text>
         {action.kind === "start" ? (
-          <TextField
+          <ScanCodeField
             testID="delivery-code"
             label="Quét / nhập mã vận đơn trên kiện"
             required
@@ -181,7 +229,17 @@ export default function DeliveryListScreen({ accent, onBack }) {
             />
             <ChipSelect testID="delivery-method" label="Hình thức" required options={METHODS} value={action.method} onChange={(method) => setAction({ ...action, method })} />
             {action.method === "TRANSFER" ? (
-              <TextField testID="delivery-txn" label="Mã giao dịch" required value={action.txnRef} onChangeText={(txnRef) => setAction({ ...action, txnRef })} />
+              <>
+                <TransferQr orderId={o.orderId} />
+                <TextField
+                  testID="delivery-txn"
+                  label="Mã giao dịch"
+                  required
+                  help="Mã trên màn hình chuyển khoản thành công của người nhận"
+                  value={action.txnRef}
+                  onChangeText={(txnRef) => setAction({ ...action, txnRef })}
+                />
+              </>
             ) : null}
           </>
         ) : null}
@@ -328,4 +386,8 @@ const styles = StyleSheet.create({
   slipTitle: { fontSize: 15, fontWeight: "800", letterSpacing: 1, color: colors.text },
   slipCode: { fontSize: 18, fontWeight: "800", color: colors.text, letterSpacing: 1 },
   qr: { width: 180, height: 180 },
+  transfer: { gap: 8 },
+  transferCard: { alignItems: "center", padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  transferQr: { width: 220, height: 220 },
+  transferAmount: { fontSize: 20, fontWeight: "800", color: colors.text },
 });
