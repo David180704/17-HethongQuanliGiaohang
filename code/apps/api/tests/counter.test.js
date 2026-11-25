@@ -21,7 +21,7 @@ import { getRedis } from "../src/config/redis.js";
 const URI = "mongodb://localhost:27018/edms?directConnection=true";
 const PASSWORD = "Test@12345";
 const EMAILS = ["ctr-kho-hn@edms.vn", "ctr-shop@edms.vn", "ctr-kho-khong-diem@edms.vn"];
-const WALK_IN_PHONES = ["0909982311", "0909982312"];
+const WALK_IN_PHONES = ["0909982311", "0909982312", "0909982313"];
 
 let app;
 let token = {};
@@ -194,6 +194,41 @@ test("[US-40] khach chua co tai khoan -> tao khach le (chua dang nhap duoc); thi
   assert.equal(again.status, 201);
   assert.equal(again.body.data.newCustomer, false);
   assert.equal(await User.countDocuments({ phone: WALK_IN_PHONES[0] }), 1);
+});
+
+test("[US-40] de 14: gui nhanh tai quay tra truoc bang chuyen khoan VietQR - so tien tinh tren may chu, bat buoc ma giao dich, ghi da thu phi", async () => {
+  const hanoi = { ...receiver, province: "Hà Nội", ward: "Phường Cầu Giấy" };
+  const item = { name: "Hồ sơ", weightGram: 500, length: 30, width: 20, height: 2 };
+  const qr = await as("kho", request(app).post("/orders/counter/transfer-qr")).send({ serviceTypeId: express._id, receiver: hanoi, item });
+  assert.equal(qr.status, 200, JSON.stringify(qr.body));
+  const quote = (await as("kho", request(app).post("/orders/counter/quote")).send({ receiver: hanoi, item })).body.data;
+  const expressFee = quote.options.find((o) => o.code === "EXPRESS").fee.total;
+  assert.equal(qr.body.data.amount, expressFee, "so tien = phi gui nhanh cua bao gia");
+  assert.match(qr.body.data.note, /^EDMS HUB HN \d{4}$/, "khong dau, bo dau gach (ngan hang chi nhan chu, so, khoang trang)");
+  assert.match(qr.body.data.qr, /^data:image\/png;base64,/);
+  assert.equal(qr.body.data.demo, true);
+  assert.equal((await as("shop", request(app).post("/orders/counter/transfer-qr")).send({ serviceTypeId: express._id, receiver: hanoi, item })).status, 403);
+
+  const body = counterBody({
+    customer: { phone: WALK_IN_PHONES[2], fullName: "Khách Chuyển Khoản" },
+    receiver: hanoi,
+    item,
+    serviceTypeId: express._id,
+    shopOrderCode: "",
+    cod: { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "QR" },
+  });
+  const noRef = await as("kho", request(app).post("/orders/counter")).send(body);
+  assert.equal(noRef.status, 400);
+  assert.match(noRef.body.error.message, /mã giao dịch/);
+  const vnpay = await as("kho", request(app).post("/orders/counter")).send({ ...body, cod: { ...body.cod, feePaymentMethod: "VNPAY" } });
+  assert.equal(vnpay.status, 400, "tai quay khong mo cong VNPay");
+
+  const res = await as("kho", request(app).post("/orders/counter")).send({ ...body, feeTxnRef: "FT26112500123" });
+  assert.equal(res.status, 201, JSON.stringify(res.body));
+  assert.equal(res.body.data.cod.feePaid, true);
+  assert.equal(res.body.data.cod.feePaymentMethod, "QR");
+  assert.equal(res.body.data.fee.total, expressFee);
+  assert.match(res.body.data.statusHistory[1].note, /chuyển khoản VietQR, mã GD FT26112500123/);
 });
 
 test("[US-40] rang buoc: ngoai vung phuc vu, khau tru thu ho nho hon phi, nhan vien chua gan diem", async () => {
