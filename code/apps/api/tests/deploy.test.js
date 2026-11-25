@@ -71,10 +71,16 @@ test("[US-47] App Khach hang, App Nhan vien: ten goi, scheme, ban APK / AAB goi 
     assert.equal(expo.android.package, pkg, `${app}: ten goi Android`);
     assert.equal(expo.scheme, scheme, `${app}: scheme deep link`);
     assert.ok(Number.isInteger(expo.android.versionCode) && expo.android.versionCode >= 1);
-    // App Khach hang khong xin quyen nhay cam; App Nhan vien chi xin vi tri KHI DANG DUNG (GPS that, 22/11/2026)
-    const expected = app === "staff" ? ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"] : [];
+    // App Khach hang khong xin quyen nhay cam; App Nhan vien chi xin vi tri KHI DANG DUNG (GPS that, 22/11/2026) va camera
+    // de quet ma van don (25/11/2026), khong xin micro
+    const expected = app === "staff" ? ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "CAMERA"] : [];
     assert.deepEqual(expo.android.permissions, expected, `${app}: quyen Android`);
-    if (app === "staff") assert.deepEqual(expo.android.blockedPermissions, ["ACCESS_BACKGROUND_LOCATION"], "khong xin vi tri nen");
+    if (app === "staff") {
+      assert.deepEqual(expo.android.blockedPermissions, ["ACCESS_BACKGROUND_LOCATION"], "khong xin vi tri nen");
+      const camera = expo.plugins.find((p) => Array.isArray(p) && p[0] === "expo-camera");
+      assert.ok(camera, "khai bao plugin expo-camera (ly do xin quyen camera)");
+      assert.equal(camera[1].microphonePermission, false, "chi quet ma, khong ghi am");
+    }
     const eas = easConfig(app);
     assert.equal(eas.build.preview.android.buildType, "apk", "ban cai thu tren may that");
     assert.equal(eas.build.production.android.buildType, "app-bundle", "ban tai len CH Play");
