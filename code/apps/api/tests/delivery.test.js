@@ -326,6 +326,29 @@ test("[US-33] thu COD tien mat hoac chuyen khoan, cung transaction voi DELIVERED
   assert.equal(none.body.data.collected, null);
 });
 
+test("[US-33] nguoi nhan chuyen khoan: tai xe hien ma VietQR dung so tien phai thu, noi dung ma van don; nguoi khac / don khong phai thu thi khong co", async () => {
+  const order = await outForDelivery("E2E GH VietQR", { cod: { enabled: true, amount: 200000, feePayer: "RECIPIENT_PAID" } });
+  const res = await as("a", request(app).get(`/deliveries/${order._id}/transfer-qr`));
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  const data = res.body.data;
+  assert.equal(data.amount, amountToCollect(order).total);
+  assert.equal(data.note, `EDMS ${order.trackingCode}`);
+  assert.match(data.payload, new RegExp(`54\\d{2}${data.amount}5802VN`), "so tien nam trong ma");
+  assert.ok(data.payload.includes(order.trackingCode), "noi dung chuyen khoan co ma van don");
+  assert.match(data.qr, /^data:image\/png;base64,/);
+  assert.equal(data.demo, true, "may dev chua cau hinh tai khoan cong ty -> tai khoan demo");
+  assert.equal(data.bank.name, "Vietcombank");
+
+  assert.equal((await as("b", request(app).get(`/deliveries/${order._id}/transfer-qr`))).status, 404, "tai xe khac");
+  const prepaid = await outForDelivery("E2E GH VietQR Không thu", { cod: { enabled: false, feePayer: "SHOP_PREPAID", feePaymentMethod: "CASH" } });
+  assert.equal((await as("a", request(app).get(`/deliveries/${prepaid._id}/transfer-qr`))).status, 409, "khong co tien phai thu");
+
+  // Quet xong, tai xe ghi ma giao dich -> giao thanh cong bang chuyen khoan (luong US-33 cu)
+  const done = await as("a", request(app).post(`/deliveries/${order._id}/delivered`)).send({ ...GPS, collectedAmount: data.amount, method: "TRANSFER", txnRef: "FT2611250001" });
+  assert.equal(done.status, 200, JSON.stringify(done.body));
+  assert.equal((await as("a", request(app).get(`/deliveries/${order._id}/transfer-qr`))).status, 404, "da giao thi khong hien QR nua");
+});
+
 test("[US-32] giao that bai: bat buoc chon nguyen nhan (Ly do khac phai ghi chu), tang so lan giao, ghi nguyen nhan (PB#40)", async () => {
   const order = await outForDelivery("E2E GH Thất bại");
   assert.equal((await as("a", request(app).post(`/deliveries/${order._id}/failed`)).send(GPS)).status, 400);
